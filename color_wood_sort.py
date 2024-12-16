@@ -38,9 +38,9 @@ class Plateau():
 
     @plateau_ligne.setter
     def plateau_ligne(self, plateau_ligne):
-        # Pas de vérification sur la validité,
+        # Pas de verification sur la validite,
         # pour pouvoir traiter les plateaux invalides
-        # à ignorer.
+        # a ignorer.
         self._plateau_ligne = tuple(plateau_ligne)
 
     @property
@@ -104,7 +104,7 @@ class Plateau():
         return self._liste_familles
 
     def creer_plateau_initial(self):
-        """"Crée un plateau en ligne initial = ['A', 'A', 'B', 'B', ' ', ' ']"""
+        """"Cree un plateau en ligne initial = ['A', 'A', 'B', 'B', ' ', ' ']"""
         if not self._plateau_ligne:
             liste_familles = self.creer_les_familles()
             self.plateau_ligne = tuple(
@@ -113,7 +113,7 @@ class Plateau():
 
     @property
     def est_valide(self):
-        """"Vérifie si le plateau en parametre est valide"""
+        """"Verifie si le plateau en parametre est valide"""
         if self._plateau_ligne and self._est_valide is None:
             # Pour chaque colonne, les cases vides sont sur les dernieres cases
             case_vide = ' '
@@ -133,7 +133,7 @@ class Plateau():
         return self._est_valide
 
     def a_gagne(self):
-        """"Vérifie si le plateau actuel est gagnant"""
+        """"Verifie si le plateau actuel est gagnant"""
         return False
 
 class LotDePlateau():
@@ -148,10 +148,10 @@ class LotDePlateau():
         self.dico_compteur_des_plateaux_a_ignorer.clear()
 
     def est_connu(self, plateau: Plateau):
-        "Retourne 'True' si le plateau est déjà connu"
+        "Retourne 'True' si le plateau est deja connu"
         if plateau.plateau_ligne_texte not in self.ensemble_des_plateaux_valides and plateau.plateau_ligne_texte not in self.ensemble_des_plateaux_a_ignorer:
             # plateau.afficher()
-            # Vérifier que la plateau est valide
+            # Verifier que la plateau est valide
             if plateau.est_valide:
                 # Enregistrer la permutation courante qui est un plateau valide
                 self.__ajouter_le_plateau(plateau)
@@ -176,12 +176,12 @@ class LotDePlateau():
         return len(self.ensemble_des_plateaux_a_ignorer)
 
     def __ajouter_le_plateau(self, plateau: Plateau):
-        "Mémorise un plateau déjà traité"
+        "Memorise un plateau deja traite"
         self.ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
         self.__ignorer_les_permutations(plateau)
 
     def __ignorer_les_permutations(self, plateau: Plateau):
-        "Ajoute toutes les permutations d'un plateau dans l'ensemble à ignorer"
+        "Ajoute toutes les permutations d'un plateau dans l'ensemble a ignorer"
         for permutation_courante in permutations(plateau.plateau_rectangle_texte):
             plateau_a_ignorer = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
             plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
@@ -189,23 +189,23 @@ class LotDePlateau():
                 self.__ignorer_le_plateau(plateau_a_ignorer)
 
     def __compter_plateau_a_ignorer(self, plateau_a_ignorer: Plateau):
-        "Compte un plateau à ignorer"
+        "Compte un plateau a ignorer"
         if plateau_a_ignorer.plateau_ligne_texte not in self.dico_compteur_des_plateaux_a_ignorer:
             self.dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] = 1
         else:
             self.dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] += 1
 
     def __ignorer_le_plateau(self, plateau_a_ignorer: Plateau):
-        "Ignore un plateau et met à jour les ensembles et compteurs"
+        "Ignore un plateau et met a jour les ensembles et compteurs"
         # Ignorer le plateau
         self.ensemble_des_plateaux_a_ignorer.add(plateau_a_ignorer.plateau_ligne_texte)
         # Compter l'occurence
         self.__compter_plateau_a_ignorer(plateau_a_ignorer)
-        # Optimiser la mémoire
+        # Optimiser la memoire
         self.__reduire_memoire()
 
     def __reduire_memoire(self):
-        "Optimisation mémoire quand la mémoire maximum est atteinte"
+        "Optimisation memoire quand la memoire maximum est atteinte"
         # Trier par valeur croissantes
         if len(self.ensemble_des_plateaux_a_ignorer) > self.nb_plateaux_max:
             dico_trie_par_valeur_croissantes = dict(sorted(self.dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
@@ -217,14 +217,14 @@ class LotDePlateau():
             for i in range(int(self.nb_plateaux_max/10)):
                 if len(dico_trie_par_valeur_croissantes) == 0:
                     break
-                # Reconduire les 10% les plus sollicités
+                # Reconduire les 10% les plus sollicites
                 key, value = dico_trie_par_valeur_croissantes.popitem()
                 self.ensemble_des_plateaux_a_ignorer.add(key)
                 self.dico_compteur_des_plateaux_a_ignorer[key] = 1
             dico_trie_par_valeur_croissantes.clear()
 
     def fixer_taille_memoire_max(self, nb_plateaux_max):
-        "Fixe le nombre maximum de plateau à mémoriser"
+        "Fixe le nombre maximum de plateau a memoriser"
         self.__reduire_memoire()
 
 def afficher_heure():
@@ -269,7 +269,7 @@ for lignes in LIGNES:
         lot_de_plateaux = LotDePlateau()
         ensemble_des_plateaux_a_ignorer = set()
         for permutation_courante in permutations(plateau.pour_permutations):
-            # Vérifier que ce plateau est nouveau
+            # Verifier que ce plateau est nouveau
             plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
             plateau_courant.plateau_ligne = permutation_courante
             if lot_de_plateaux.est_connu(plateau_courant):
@@ -281,4 +281,7 @@ for lignes in LIGNES:
         lot_de_plateaux.arret_des_enregistrements()
         fin = lire_heure()
         enregistrer_la_liste_de_plateaux_ligne(lot_de_plateaux.plateaux_valides, colonnes, lignes, debut, fin)
-        print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int((fin - debut)*1000)} millisecondes")
+        if (fin - debut) < 10:
+            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int((fin - debut)*1000)} millisecondes")
+        else:
+            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int(fin - debut)} secondes")
