@@ -272,7 +272,7 @@ for lignes in LIGNES:
             # Verifier que ce plateau est nouveau
             plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
             plateau_courant.plateau_ligne = permutation_courante
-            if lot_de_plateaux.est_connu(plateau_courant):
+            if not lot_de_plateaux.est_connu(plateau_courant):
                 if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
                     print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
 
