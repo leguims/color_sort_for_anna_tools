@@ -136,7 +136,7 @@ class Plateau():
         """"Verifie si le plateau actuel est gagnant"""
         return False
 
-class LotDePlateau():
+class LotDePlateaux():
     def __init__(self):
         self.ensemble_des_plateaux_valides = set()
         self.ensemble_des_plateaux_a_ignorer = set()
@@ -177,16 +177,25 @@ class LotDePlateau():
 
     def __ajouter_le_plateau(self, plateau: Plateau):
         "Memorise un plateau deja traite"
-        self.ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
-        self.__ignorer_les_permutations(plateau)
-
-    def __ignorer_les_permutations(self, plateau: Plateau):
-        "Ajoute toutes les permutations d'un plateau dans l'ensemble a ignorer"
+        # Avec les réductions de memoires, un nouveau plateau pourrait-etre une ancienne
+        # permutation effacée. Il faut vérifier les permutations avant d'ajouter définitivement
+        # le plateau.
+        nouveau_plateau = True
         for permutation_courante in permutations(plateau.plateau_rectangle_texte):
             plateau_a_ignorer = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
             plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
-            if plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
+
+            # Tester si la permutation était déjà dans les plateaux valides
+            if plateau_a_ignorer.plateau_ligne_texte in self.ensemble_des_plateaux_valides:
+                nouveau_plateau = False
+            
+            # Si nouveau plateau : on enregistre seulement les permutations dans 'IGNORER'
+            # Sinon : on enregistre tout dans 'IGNORER'
+            if not nouveau_plateau or plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
                 self.__ignorer_le_plateau(plateau_a_ignorer)
+
+        if nouveau_plateau:
+            self.ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
 
     def __compter_plateau_a_ignorer(self, plateau_a_ignorer: Plateau):
         "Compte un plateau a ignorer"
@@ -225,6 +234,8 @@ class LotDePlateau():
 
     def fixer_taille_memoire_max(self, nb_plateaux_max):
         "Fixe le nombre maximum de plateau a memoriser"
+        if nb_plateaux_max > 0:
+            self.nb_plateaux_max = nb_plateaux_max
         self.__reduire_memoire()
 
 def afficher_heure():
@@ -266,8 +277,8 @@ for lignes in LIGNES:
         plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
         plateau.creer_plateau_initial()
         plateau.afficher()
-        lot_de_plateaux = LotDePlateau()
-        ensemble_des_plateaux_a_ignorer = set()
+        lot_de_plateaux = LotDePlateaux()
+        lot_de_plateaux.fixer_taille_memoire_max(10)
         for permutation_courante in permutations(plateau.pour_permutations):
             # Verifier que ce plateau est nouveau
             plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
