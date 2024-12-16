@@ -138,18 +138,21 @@ class Plateau():
 
 class LotDePlateaux():
     def __init__(self):
-        self.ensemble_des_plateaux_valides = set()
-        self.ensemble_des_plateaux_a_ignorer = set()
-        self.dico_compteur_des_plateaux_a_ignorer = dict()
-        self.nb_plateaux_max = 1_000_000
+        self._ensemble_des_plateaux_valides = set()
+        self._ensemble_des_plateaux_a_ignorer = set()
+        self._dico_compteur_des_plateaux_a_ignorer = dict()
+        self._nb_plateaux_max = 1_000_000
+        self._debut = datetime.datetime.now().timestamp()
+        self._fin = None
 
     def arret_des_enregistrements(self):
-        self.ensemble_des_plateaux_a_ignorer.clear()
-        self.dico_compteur_des_plateaux_a_ignorer.clear()
+        self._ensemble_des_plateaux_a_ignorer.clear()
+        self._dico_compteur_des_plateaux_a_ignorer.clear()
+        self._fin = datetime.datetime.now().timestamp()
 
     def est_connu(self, plateau: Plateau):
         "Retourne 'True' si le plateau est deja connu"
-        if plateau.plateau_ligne_texte not in self.ensemble_des_plateaux_valides and plateau.plateau_ligne_texte not in self.ensemble_des_plateaux_a_ignorer:
+        if plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_valides and plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_a_ignorer:
             # plateau.afficher()
             # Verifier que la plateau est valide
             if plateau.est_valide:
@@ -165,15 +168,30 @@ class LotDePlateaux():
 
     @property
     def plateaux_valides(self):
-        return self.ensemble_des_plateaux_valides
+        return self._ensemble_des_plateaux_valides
 
     @property
     def nb_plateaux_valides(self):
-        return len(self.ensemble_des_plateaux_valides)
+        return len(self._ensemble_des_plateaux_valides)
 
     @property
     def nb_plateaux_ignores(self):
-        return len(self.ensemble_des_plateaux_a_ignorer)
+        return len(self._ensemble_des_plateaux_a_ignorer)
+
+    @property
+    def debut(self):
+        return self._debut
+
+    @property
+    def fin(self):
+        if self._fin:
+            return self._fin
+        else:
+            return datetime.datetime.now().timestamp()
+
+    @property
+    def duree(self):
+        return self.fin - self.debut
 
     def __ajouter_le_plateau(self, plateau: Plateau):
         "Memorise un plateau deja traite"
@@ -186,7 +204,7 @@ class LotDePlateaux():
             plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
 
             # Tester si la permutation était déjà dans les plateaux valides
-            if plateau_a_ignorer.plateau_ligne_texte in self.ensemble_des_plateaux_valides:
+            if plateau_a_ignorer.plateau_ligne_texte in self._ensemble_des_plateaux_valides:
                 nouveau_plateau = False
             
             # Si nouveau plateau : on enregistre seulement les permutations dans 'IGNORER'
@@ -195,19 +213,19 @@ class LotDePlateaux():
                 self.__ignorer_le_plateau(plateau_a_ignorer)
 
         if nouveau_plateau:
-            self.ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
+            self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
 
     def __compter_plateau_a_ignorer(self, plateau_a_ignorer: Plateau):
         "Compte un plateau a ignorer"
-        if plateau_a_ignorer.plateau_ligne_texte not in self.dico_compteur_des_plateaux_a_ignorer:
-            self.dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] = 1
+        if plateau_a_ignorer.plateau_ligne_texte not in self._dico_compteur_des_plateaux_a_ignorer:
+            self._dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] = 1
         else:
-            self.dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] += 1
+            self._dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] += 1
 
     def __ignorer_le_plateau(self, plateau_a_ignorer: Plateau):
         "Ignore un plateau et met a jour les ensembles et compteurs"
         # Ignorer le plateau
-        self.ensemble_des_plateaux_a_ignorer.add(plateau_a_ignorer.plateau_ligne_texte)
+        self._ensemble_des_plateaux_a_ignorer.add(plateau_a_ignorer.plateau_ligne_texte)
         # Compter l'occurence
         self.__compter_plateau_a_ignorer(plateau_a_ignorer)
         # Optimiser la memoire
@@ -216,27 +234,55 @@ class LotDePlateaux():
     def __reduire_memoire(self):
         "Optimisation memoire quand la memoire maximum est atteinte"
         # Trier par valeur croissantes
+        if len(self._ensemble_des_plateaux_a_ignorer) > self._nb_plateaux_max:
         if len(self.ensemble_des_plateaux_a_ignorer) > self.nb_plateaux_max:
             dico_trie_par_valeur_croissantes = dict(sorted(self.dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
+            dico_trie_par_valeur_croissantes = dict(sorted(self._dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
 
             # Vider les memoires et compteurs
+            self._dico_compteur_des_plateaux_a_ignorer.clear()
+            self._ensemble_des_plateaux_a_ignorer.clear()
             self.dico_compteur_des_plateaux_a_ignorer.clear()
             self.ensemble_des_plateaux_a_ignorer.clear()
 
-            for i in range(int(self.nb_plateaux_max/10)):
+            for i in range(int(self._nb_plateaux_max/10)):
                 if len(dico_trie_par_valeur_croissantes) == 0:
                     break
                 # Reconduire les 10% les plus sollicites
                 key, value = dico_trie_par_valeur_croissantes.popitem()
                 self.ensemble_des_plateaux_a_ignorer.add(key)
                 self.dico_compteur_des_plateaux_a_ignorer[key] = 1
+                self._ensemble_des_plateaux_a_ignorer.add(key)
+                self._dico_compteur_des_plateaux_a_ignorer[key] = 1
             dico_trie_par_valeur_croissantes.clear()
 
     def fixer_taille_memoire_max(self, nb_plateaux_max):
         "Fixe le nombre maximum de plateau a memoriser"
         if nb_plateaux_max > 0:
-            self.nb_plateaux_max = nb_plateaux_max
+            self._nb_plateaux_max = nb_plateaux_max
         self.__reduire_memoire()
+
+    def exporter_fichier_json(self, nb_colonnes, nb_lignes):
+        """Enregistre un fichier JSON avec les plateaux valides"""
+        infos_plateau = {}
+        infos_plateau['colonnes']= nb_colonnes
+        infos_plateau['lignes']= nb_lignes
+
+        infos_plateau['debut']= self.debut
+        infos_plateau['fin']= self.fin
+        if self.duree < 1:
+            infos_plateau['duree']= f"{int(self.duree*1000)} millisecondes"
+        else:
+            infos_plateau['duree']= f"{int(self.duree)} secondes"
+
+        infos_plateau['nombre_plateaux']= len(self.plateaux_valides)
+        infos_plateau['liste_plateaux']= list(self.plateaux_valides)
+
+        # Enregistrement des donnees dans un fichier JSON
+        with open(f"Plateaux_{nb_colonnes}x{nb_lignes}.json", "w", encoding='utf-8') as fichier:
+            #json.dump(infos_plateau, fichier, ensure_ascii=False, indent=4)
+            json.dump(infos_plateau, fichier, ensure_ascii=False)
+
 
 def afficher_heure():
     "Fonction pour obtenir et afficher l'heure actuelle"
@@ -247,38 +293,17 @@ def afficher_heure():
 def lire_heure():
     return datetime.datetime.now().timestamp()
 
-def enregistrer_la_liste_de_plateaux_ligne(plateaux_ligne_texte, nb_colonnes, nb_lignes, debut=None, fin=None):
-    """"plateaux_ligne = [['A', 'A', 'B', 'B', ' ', ' ', 'B', 'A', 'B', 'A', ' ', ' ']]
-     enregistrement plateaux_lignes_string = ['AABB  ', 'BABA  ']"""
-    infos_plateau = {}
-    infos_plateau['COLONNES']= nb_colonnes
-    infos_plateau['LIGNES']= nb_lignes
-    if debut:
-        infos_plateau['debut']= debut
-    if fin:
-        infos_plateau['fin']= fin
-    if debut and fin:
-        infos_plateau['duree']= int(fin - debut)
-    infos_plateau['nombre_plateaux']= len(plateaux_ligne_texte)
-    infos_plateau['liste_plateaux']= list(plateaux_ligne_texte)
-
-    # Enregistrement des donnees dans un fichier JSON
-    with open(f"Plateaux_{nb_colonnes}x{nb_lignes}.json", "w", encoding='utf-8') as fichier:
-        #json.dump(infos_plateau, fichier, ensure_ascii=False, indent=4)
-        json.dump(infos_plateau, fichier, ensure_ascii=False)
-
 
 
 for lignes in LIGNES:
     for colonnes in COLONNES:
         print(f"*** Generatrice {colonnes}x{lignes}: DEBUT")
-        debut = lire_heure()
         afficher_heure()
         plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
         plateau.creer_plateau_initial()
         plateau.afficher()
         lot_de_plateaux = LotDePlateaux()
-        lot_de_plateaux.fixer_taille_memoire_max(10)
+        # lot_de_plateaux.fixer_taille_memoire_max(5)
         for permutation_courante in permutations(plateau.pour_permutations):
             # Verifier que ce plateau est nouveau
             plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
@@ -290,9 +315,8 @@ for lignes in LIGNES:
         print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
         print(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
         lot_de_plateaux.arret_des_enregistrements()
-        fin = lire_heure()
-        enregistrer_la_liste_de_plateaux_ligne(lot_de_plateaux.plateaux_valides, colonnes, lignes, debut, fin)
-        if (fin - debut) < 10:
-            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int((fin - debut)*1000)} millisecondes")
+        lot_de_plateaux.exporter_fichier_json(colonnes, lignes)
+        if (lot_de_plateaux.duree) < 10:
+            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int((lot_de_plateaux.duree)*1000)} millisecondes")
         else:
-            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int(fin - debut)} secondes")
+            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int(lot_de_plateaux.duree)} secondes")
