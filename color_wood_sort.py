@@ -235,23 +235,17 @@ class LotDePlateaux():
         "Optimisation memoire quand la memoire maximum est atteinte"
         # Trier par valeur croissantes
         if len(self._ensemble_des_plateaux_a_ignorer) > self._nb_plateaux_max:
-        if len(self.ensemble_des_plateaux_a_ignorer) > self.nb_plateaux_max:
-            dico_trie_par_valeur_croissantes = dict(sorted(self.dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
             dico_trie_par_valeur_croissantes = dict(sorted(self._dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
 
             # Vider les memoires et compteurs
             self._dico_compteur_des_plateaux_a_ignorer.clear()
             self._ensemble_des_plateaux_a_ignorer.clear()
-            self.dico_compteur_des_plateaux_a_ignorer.clear()
-            self.ensemble_des_plateaux_a_ignorer.clear()
 
             for i in range(int(self._nb_plateaux_max/10)):
                 if len(dico_trie_par_valeur_croissantes) == 0:
                     break
                 # Reconduire les 10% les plus sollicites
                 key, value = dico_trie_par_valeur_croissantes.popitem()
-                self.ensemble_des_plateaux_a_ignorer.add(key)
-                self.dico_compteur_des_plateaux_a_ignorer[key] = 1
                 self._ensemble_des_plateaux_a_ignorer.add(key)
                 self._dico_compteur_des_plateaux_a_ignorer[key] = 1
             dico_trie_par_valeur_croissantes.clear()
