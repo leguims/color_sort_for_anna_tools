@@ -1,7 +1,19 @@
+"Module pour créer, résoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
 from itertools import permutations #, product, combinations#, combinations_with_replacement
 import datetime
 import json
 
+# TODO : enregistrer les combinaisons petit à petit dans le fichier afin de pouvoir reprendre.
+# TODO : commencer à chercher les solutions.
+#        Idée d'algo :
+#          - Pour les N colonnes, créer un Thread qui vérifie si la colonne N peut-être jouée.
+#          - Chaque Thread identifie les D colonnes destinations de la colonne de départ N
+#          - Pour chaque colonne D, créer un Thread qui calcule le 'plateau' après le coup de la colonne N vers D.
+#          - Pour les 'N x D' plateaux obtenus, calcule si la position est gagnante.
+#              - GAGNANTE : Enregistre la partie et les nombres de coups dans un fichier correspondant à la position de départ
+#              - BLOQUEE : s'arréter là dans la recherche.
+#              - REPETEE : s'arréter là dans la recherche.
+#          - Recommencer l'opération jusqu'à MAX_COUPS de profondeur
 
 COLONNES = range(2, 5) #11
 LIGNES = [2] #4
@@ -9,6 +21,7 @@ COLONNES_VIDES_MAX = 1
 
 
 class Plateau():
+    "Classe qui implémente un plateau. Son contenu et ses différentes représentations."
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides=1):
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
@@ -25,15 +38,44 @@ class Plateau():
         self._str_format = ""
         self._nb_familles = nb_colonnes - nb_colonnes_vides
         self._liste_familles = []
-    
+        self.__creer_les_familles()
+
     def __str__(self):
         if not self._str_format:
             for ligne in self.plateau_rectangle:
                 self._str_format += f"{ligne}\n"
         return self._str_format
 
+    def __eq__(self, autre):
+        if not isinstance(autre, Plateau):
+            # Ne sont pas comparables
+            return NotImplemented
+        # Comparer la taille
+        if self._nb_colonnes == autre._nb_colonnes \
+            or self._nb_lignes == autre._nb_lignes \
+            or self._nb_colonnes_vides == autre._nb_colonnes_vides :
+            return False
+        # Comparer le contenu
+        return self._plateau_ligne == autre._plateau_ligne
+
+    @property
+    def nb_colonnes(self):
+        "Nombre de colonnes du plateau"
+        return self._nb_colonnes
+
+    @property
+    def nb_lignes(self):
+        "Nombre de lignes du plateau"
+        return self._nb_lignes
+
+    @property
+    def nb_colonnes_vides(self):
+        "Nombre de colonnes vides du plateau"
+        return self._nb_colonnes_vides
+
     @property
     def plateau_ligne(self):
+        "Représentation en 1 ligne du plateau (liste)"
         return self._plateau_ligne
 
     @plateau_ligne.setter
@@ -45,18 +87,21 @@ class Plateau():
 
     @property
     def plateau_ligne_texte(self):
+        "Représentation en 1 ligne du plateau (texte)"
         if not self._plateau_ligne_texte:
             self.__creer_plateau_ligne_texte()
         return self._plateau_ligne_texte
 
     @property
     def plateau_rectangle(self):
+        "Représentation en rectangle (colonnes et lignes) du plateau (liste)"
         if not self._plateau_rectangle:
             self.__creer_plateau_rectangle()
         return self._plateau_rectangle
 
     @property
     def plateau_rectangle_texte(self):
+        "Représentation en rectangle (colonnes et lignes) du plateau (texte)"
         if not self._plateau_rectangle_texte:
             self.__creer_plateau_rectangle_texte()
         return self._plateau_rectangle_texte
@@ -70,9 +115,11 @@ class Plateau():
 
     @property
     def pour_permutations(self):
+        "Format du plateau utilisé pour les permutations"
         return self.plateau_ligne
 
     def afficher(self):
+        "Afficher le plateau"
         print(self)
 
     def __creer_plateau_ligne_texte(self):
@@ -85,20 +132,24 @@ class Plateau():
         if self._plateau_ligne:
             self._plateau_rectangle = []
             for colonne in range(self._nb_colonnes):
-                self._plateau_rectangle.append(self._plateau_ligne[colonne*self._nb_lignes : (colonne + 1)*self._nb_lignes])
+                self._plateau_rectangle.append(
+                    self._plateau_ligne[colonne*self._nb_lignes : (colonne + 1)*self._nb_lignes])
 
     def __creer_plateau_rectangle_texte(self):
         """"['A', 'A', 'B', 'B', ' ', ' '] => ['AA', 'BB', '  ']"""
         if self._plateau_ligne:
             self._plateau_rectangle_texte = []
             for colonne in range(self._nb_colonnes):
-                self._plateau_rectangle_texte.append(''.join(self._plateau_ligne[colonne*self._nb_lignes : (colonne + 1)*self._nb_lignes]))
+                self._plateau_rectangle_texte.append(''.join(
+                    self._plateau_ligne[colonne*self._nb_lignes : (colonne + 1)*self._nb_lignes]))
 
     @property
     def nb_familles(self):
+        "Nombre de familles de couleurs dans le plateau"
         return self._nb_familles
 
-    def creer_les_familles(self):
+    def __creer_les_familles(self):
+        "Créer une liste des familles"
         if not self._liste_familles:
             self._liste_familles = [chr(ord('A')+F) for F in range(self._nb_familles) ]
         return self._liste_familles
@@ -106,10 +157,11 @@ class Plateau():
     def creer_plateau_initial(self):
         """"Cree un plateau en ligne initial = ['A', 'A', 'B', 'B', ' ', ' ']"""
         if not self._plateau_ligne:
-            liste_familles = self.creer_les_familles()
             self.plateau_ligne = tuple(
-                [self._liste_familles[famille] for famille in range(self._nb_familles) for membre in range(self._nb_lignes)]
-                +[' ' for vide in range(self._nb_colonnes_vides) for membre in range(self._nb_lignes)] )
+                [self._liste_familles[famille] for famille in range(self._nb_familles)
+                                                 for membre in range(self._nb_lignes)]
+                +[' ' for vide in range(self._nb_colonnes_vides)
+                         for membre in range(self._nb_lignes)] )
 
     @property
     def est_valide(self):
@@ -137,22 +189,25 @@ class Plateau():
         return False
 
 class LotDePlateaux():
+    "Classe qui gère les lots de plateaux pour parcourir l'immensité des plateaux existants"
     def __init__(self):
         self._ensemble_des_plateaux_valides = set()
         self._ensemble_des_plateaux_a_ignorer = set()
-        self._dico_compteur_des_plateaux_a_ignorer = dict()
+        self._dico_compteur_des_plateaux_a_ignorer = {}
         self._nb_plateaux_max = 1_000_000
         self._debut = datetime.datetime.now().timestamp()
         self._fin = None
 
     def arret_des_enregistrements(self):
+        "Méthode qui finalise la recherche de plateaux"
         self._ensemble_des_plateaux_a_ignorer.clear()
         self._dico_compteur_des_plateaux_a_ignorer.clear()
         self._fin = datetime.datetime.now().timestamp()
 
     def est_connu(self, plateau: Plateau):
         "Retourne 'True' si le plateau est deja connu"
-        if plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_valides and plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_a_ignorer:
+        if plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_valides \
+            and plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_a_ignorer:
             # plateau.afficher()
             # Verifier que la plateau est valide
             if plateau.est_valide:
@@ -162,35 +217,39 @@ class LotDePlateaux():
                 # Plateau invalide, on l'ignore
                 self.__ignorer_le_plateau(plateau)
             return False
-        else:
-            self.__compter_plateau_a_ignorer(plateau)
-            return True
+        self.__compter_plateau_a_ignorer(plateau)
+        return True
 
     @property
     def plateaux_valides(self):
+        "Ensemble des plateaux valides"
         return self._ensemble_des_plateaux_valides
 
     @property
     def nb_plateaux_valides(self):
+        "Nombre de plateaux valides"
         return len(self._ensemble_des_plateaux_valides)
 
     @property
     def nb_plateaux_ignores(self):
+        "Nombre de plateaux ignorés"
         return len(self._ensemble_des_plateaux_a_ignorer)
 
     @property
     def debut(self):
+        "Heure de début de la recherche"
         return self._debut
 
     @property
     def fin(self):
+        "Heure de fin (ou courante) de la recherche"
         if self._fin:
             return self._fin
-        else:
-            return datetime.datetime.now().timestamp()
+        return datetime.datetime.now().timestamp()
 
     @property
     def duree(self):
+        "Durée de la recherche"
         return self.fin - self.debut
 
     def __ajouter_le_plateau(self, plateau: Plateau):
@@ -206,10 +265,11 @@ class LotDePlateaux():
             # Tester si la permutation était déjà dans les plateaux valides
             if plateau_a_ignorer.plateau_ligne_texte in self._ensemble_des_plateaux_valides:
                 nouveau_plateau = False
-            
+
             # Si nouveau plateau : on enregistre seulement les permutations dans 'IGNORER'
             # Sinon : on enregistre tout dans 'IGNORER'
-            if not nouveau_plateau or plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
+            if not nouveau_plateau \
+                or plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
                 self.__ignorer_le_plateau(plateau_a_ignorer)
 
         if nouveau_plateau:
@@ -235,20 +295,28 @@ class LotDePlateaux():
         "Optimisation memoire quand la memoire maximum est atteinte"
         # Trier par valeur croissantes
         if len(self._ensemble_des_plateaux_a_ignorer) > self._nb_plateaux_max:
-            dico_trie_par_valeur_croissantes = dict(sorted(self._dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
+            # print('*' * 80)
+            dico_trie_par_valeur_croissantes = dict(sorted(
+                self._dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
+            # for key, value in dico_trie_par_valeur_croissantes.items():
+            #     print(f"[reduire_memoire] ({key}, {value})")
 
             # Vider les memoires et compteurs
             self._dico_compteur_des_plateaux_a_ignorer.clear()
             self._ensemble_des_plateaux_a_ignorer.clear()
+            # print(len(self._dico_compteur_des_plateaux_a_ignorer))
+            # print(len(self._ensemble_des_plateaux_a_ignorer))
 
-            for i in range(int(self._nb_plateaux_max/10)):
+            for _ in range(int(self._nb_plateaux_max/10)):
                 if len(dico_trie_par_valeur_croissantes) == 0:
                     break
                 # Reconduire les 10% les plus sollicites
-                key, value = dico_trie_par_valeur_croissantes.popitem()
+                key, _ = dico_trie_par_valeur_croissantes.popitem()
+                # print(f"[reduire_memoire] Conservation de ({key}, {_})")
                 self._ensemble_des_plateaux_a_ignorer.add(key)
                 self._dico_compteur_des_plateaux_a_ignorer[key] = 1
             dico_trie_par_valeur_croissantes.clear()
+            # print(len(dico_trie_par_valeur_croissantes))
 
     def fixer_taille_memoire_max(self, nb_plateaux_max):
         "Fixe le nombre maximum de plateau a memoriser"
@@ -278,21 +346,112 @@ class LotDePlateaux():
             json.dump(infos_plateau, fichier, ensure_ascii=False)
 
 
-def afficher_heure():
-    "Fonction pour obtenir et afficher l'heure actuelle"
-    # Obtention de l'heure actuelle
-    heure_actuelle = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print("L'heure actuelle est :", heure_actuelle)
+class ResoudrePlateau():
+    "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
+    def __init__(self, plateau_initial: Plateau):
+        self._plateau_initial = plateau_initial
+        self._liste_des_choix_possibles = None
+        # TODO : ResoudrePlateau().__init__()
+        # Enregistrer les solutions
+        # Statistiques des solutions:
+        #   - la plus longue
+        #   - la plus courte
+        #   - la moyenne
+        #   - le nombre de solution
+        pass
 
-def lire_heure():
-    return datetime.datetime.now().timestamp()
+    def __ensemble_des_choix_possibles(self):
+        "Liste tous les choix possible pour un plateau (valide et invalides)"
+        if not self._liste_des_choix_possibles:
+            # Liste de tous les possibles à construire selon la dimension du plateau
+            self._liste_des_choix_possibles = []
+            for depart in range(self._plateau_initial.nb_colonnes):
+                for arrivee in range(self._plateau_initial.nb_colonnes):
+                    if depart != arrivee:
+                        self._liste_des_choix_possibles.append(list(depart, arrivee))
+        # Nombre de choix = (nb_colonnes * (nb_colonnes-1))
+        return self._liste_des_choix_possibles
 
+    def __ajouter_choix(self, plateau: Plateau, choix):
+        "Enregistre un choix et modifie le plateau selon ce choix"
+        # Enregistrer le choix
+        # Modifier le plateau
+        return True
 
+    def __retirer_choix(self, plateau: Plateau, choix):
+        "Annule le dernier choix et restaure le plateau precedent"
+        # TODO : ResoudrePlateau().__retirer_choix()
+        # Attention : il faut trouver comment identifier les couleurs à laisser
+        #             dans la colonne d'arrivée pour 'retirer le choix'.
+        return True
+
+    def __est_valide(self, plateau: Plateau, choix):
+        "Vérifie la validité du choix"
+        # TODO : ResoudrePlateau().__est_valide()
+        # INVALIDE Si les colonnes de départ et d'arrivée sont identiques
+        # INVALIDE Si la colonne de départ est vide
+        # INVALIDE Si la colonne de départ est pleine et monocouleur
+        # INVALIDE Si la colonne d'arrivée est pleine
+        # INVALIDE Si la colonne d'arrivée n'a pas la même couleur au sommet
+        # INVALIDE Si la colonne d'arrivée n'a pas assez de place
+        return True
+
+    def __solution_complete(self, plateau: Plateau):
+        "Evalue si le plateau est terminé (gagné ou bloqué)"
+        if plateau.a_gagne():
+            # TODO : ResoudrePlateau().__solution_complete()
+            # Gagné si toutes les colonnes sont pleines ou vides
+            #    ET que les colonnes pleines soient monocouleurs
+            pass
+
+        # Peut-etre des tableaux "bloqués"
+        return True
+
+    def __enregistrer_solution(self, plateau: Plateau):
+        "Enregistre le parcours de la solution pour la restituer"
+        # TODO : ResoudrePlateau().__enregistrer_solution()
+        pass
+
+    def backtracking(self, plateau: Plateau):
+        "Parcours de tous les choix afin de débusquer toutes les solutions"
+        if self.__solution_complete(plateau):   # Condition d'arrêt
+            self.__enregistrer_solution(plateau)
+            return
+
+        for choix in self.__ensemble_des_choix_possibles():
+            if self.__est_valide(plateau, choix):  # Vérifier si le choix est valide
+                self.__ajouter_choix(plateau, choix)  # Prendre ce choix
+                self.backtracking(plateau)  # Appeler récursivement la fonction
+                self.__retirer_choix(plateau, choix)  # Annuler le choix (retour en arrière)
+
+    def exporter_fichier_json(self):
+        """Enregistre un fichier JSON avec les solutions et les statistiques du plateau"""
+        # TODO : ResoudrePlateau().exporter_fichier_json()
+        pass
+
+    @property
+    def nb_solutions(self):
+        # TODO : ResoudrePlateau().nb_solutions
+        pass
+
+    @property
+    def solution_la_plus_courte(self):
+        # TODO : ResoudrePlateau().solution_la_plus_courte
+        pass
+
+    @property
+    def solution_la_plus_longue(self):
+        # TODO : ResoudrePlateau().solution_la_plus_longue
+        pass
+
+    @property
+    def solution_moyenne(self):
+        # TODO : ResoudrePlateau().solution_moyenne
+        pass
 
 for lignes in LIGNES:
     for colonnes in COLONNES:
         print(f"*** Generatrice {colonnes}x{lignes}: DEBUT")
-        afficher_heure()
         plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
         plateau.creer_plateau_initial()
         plateau.afficher()
@@ -311,6 +470,8 @@ for lignes in LIGNES:
         lot_de_plateaux.arret_des_enregistrements()
         lot_de_plateaux.exporter_fichier_json(colonnes, lignes)
         if (lot_de_plateaux.duree) < 10:
-            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int((lot_de_plateaux.duree)*1000)} millisecondes")
+            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
+                int((lot_de_plateaux.duree)*1000)} millisecondes")
         else:
-            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {int(lot_de_plateaux.duree)} secondes")
+            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
+                int(lot_de_plateaux.duree)} secondes")
