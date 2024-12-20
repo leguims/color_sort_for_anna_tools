@@ -519,10 +519,12 @@ class ExportJSON():
 
     def importer(self):
         """Lit dans un fichier JSON les informations totales ou de la dernière itération réalisée."""
-        with open(self._nom_enregistrement+".json", "r", encoding='utf-8') as fichier:
-            dico_json = json.load(fichier)
-        return dico_json
-
+        try:
+            with open(self._nom_enregistrement+".json", "r", encoding='utf-8') as fichier:
+                dico_json = json.load(fichier)
+            return dico_json
+        except FileNotFoundError:
+            return {}
 
 for lignes in LIGNES:
     for colonnes in COLONNES:
