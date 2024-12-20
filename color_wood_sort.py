@@ -303,12 +303,6 @@ class LotDePlateaux():
 
         if nouveau_plateau:
             self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
-            if self._nb_colonnes is None:
-                self.__init_export_json(plateau.nb_colonnes, plateau.nb_lignes)
-                data_json = self._export_json.importer()
-                if data_json['recherche_terminee'] is True:
-                    raise FileExistsError(f"Ce lot de plateau existe déjà et est terminé ({nom}).")
-            # Export JSON
             self._export_json.exporter(self)
 
     def __compter_plateau_a_ignorer(self, plateau_a_ignorer: Plateau):
@@ -543,13 +537,9 @@ for lignes in LIGNES:
                 # Verifier que ce plateau est nouveau
                 plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
                 plateau_courant.plateau_ligne = permutation_courante
-                try:
-                    if not lot_de_plateaux.est_ignore(plateau_courant):
-                        if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
-                            print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-                except FileExistsError as e:
-                    print(f"Erreur sur le lot de plateaux : {e}")
-                    break
+                if not lot_de_plateaux.est_ignore(plateau_courant):
+                    if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
+                        print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
 
             lot_de_plateaux.arret_des_enregistrements()
             # lot_de_plateaux.exporter_fichier_json()
