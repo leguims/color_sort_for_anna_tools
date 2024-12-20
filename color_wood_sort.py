@@ -3,7 +3,8 @@ from itertools import permutations #, product, combinations#, combinations_with_
 import datetime
 import json
 
-# TODO : enregistrer les combinaisons petit à petit dans le fichier afin de pouvoir reprendre.
+# TODO : enregistrer les combinaisons petit à petit dans le fichier => ok
+# TODO : reprendre l'enregistrement à partir du fichier.
 # TODO : commencer à chercher les solutions.
 #        Idée d'algo :
 #          - Pour les N colonnes, créer un Thread qui vérifie si la colonne N peut-être jouée.
@@ -15,9 +16,10 @@ import json
 #              - REPETEE : s'arréter là dans la recherche.
 #          - Recommencer l'opération jusqu'à MAX_COUPS de profondeur
 
-COLONNES = range(2, 5) #11
+COLONNES = range(2, 7) #11
 LIGNES = [2] #4
 COLONNES_VIDES_MAX = 1
+MEMOIRE_MAX = 500_000_000
 
 
 class Plateau():
@@ -194,29 +196,56 @@ class LotDePlateaux():
         self._ensemble_des_plateaux_valides = set()
         self._ensemble_des_plateaux_a_ignorer = set()
         self._dico_compteur_des_plateaux_a_ignorer = {}
-        self._nb_plateaux_max = 1_000_000
+        self._nb_plateaux_max = MEMOIRE_MAX
         self._debut = datetime.datetime.now().timestamp()
         self._fin = None
+        self._export_json = None
+        self._nb_colonnes = None
+        self._nb_lignes = None
+    
+    def __len__(self):
+        return self.nb_plateaux_valides
+
+    def to_dict(self):
+        dict_lot_de_plateaux = {}
+        if self._nb_colonnes is not None:
+            dict_lot_de_plateaux['colonnes']= self._nb_colonnes
+            dict_lot_de_plateaux['lignes']= self._nb_lignes
+
+        dict_lot_de_plateaux['debut']= self.debut
+        dict_lot_de_plateaux['fin']= self.fin
+        if self.duree < 1:
+            dict_lot_de_plateaux['duree']= f"{int(self.duree*1000)} millisecondes"
+        else:
+            dict_lot_de_plateaux['duree']= f"{int(self.duree)} secondes"
+        
+        dict_lot_de_plateaux['recherche_terminee'] = self._fin is not None
+
+        dict_lot_de_plateaux['nombre_plateaux']= len(self.plateaux_valides)
+        dict_lot_de_plateaux['liste_plateaux']= list(self.plateaux_valides)
+        return dict_lot_de_plateaux
 
     def arret_des_enregistrements(self):
         "Méthode qui finalise la recherche de plateaux"
         self._ensemble_des_plateaux_a_ignorer.clear()
         self._dico_compteur_des_plateaux_a_ignorer.clear()
         self._fin = datetime.datetime.now().timestamp()
+        self.exporter_fichier_json()
 
-    def est_connu(self, plateau: Plateau):
+    def est_ignore(self, plateau: Plateau):
         "Retourne 'True' si le plateau est deja connu"
         if plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_valides \
             and plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_a_ignorer:
             # plateau.afficher()
             # Verifier que la plateau est valide
             if plateau.est_valide:
-                # Enregistrer la permutation courante qui est un plateau valide
+                # Enregistrer la permutation courante qui est un nouveau plateau valide
                 self.__ajouter_le_plateau(plateau)
+                return False
             else:
-                # Plateau invalide, on l'ignore
+                # Nouveau Plateau invalide, on l'ignore
                 self.__ignorer_le_plateau(plateau)
-            return False
+                return True
         self.__compter_plateau_a_ignorer(plateau)
         return True
 
@@ -274,6 +303,13 @@ class LotDePlateaux():
 
         if nouveau_plateau:
             self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
+            if self._nb_colonnes is None:
+                self.__init_export_json(plateau.nb_colonnes, plateau.nb_lignes)
+                data_json = self._export_json.importer()
+                if data_json['recherche_terminee'] is True:
+                    raise FileExistsError(f"Ce lot de plateau existe déjà et est terminé ({nom}).")
+            # Export JSON
+            self._export_json.exporter(self)
 
     def __compter_plateau_a_ignorer(self, plateau_a_ignorer: Plateau):
         "Compte un plateau a ignorer"
@@ -295,7 +331,7 @@ class LotDePlateaux():
         "Optimisation memoire quand la memoire maximum est atteinte"
         # Trier par valeur croissantes
         if len(self._ensemble_des_plateaux_a_ignorer) > self._nb_plateaux_max:
-            # print('*' * 80)
+            print('*' * 80 + ' Réduction mémoire.')
             dico_trie_par_valeur_croissantes = dict(sorted(
                 self._dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
             # for key, value in dico_trie_par_valeur_croissantes.items():
@@ -324,33 +360,33 @@ class LotDePlateaux():
             self._nb_plateaux_max = nb_plateaux_max
         self.__reduire_memoire()
 
-    def exporter_fichier_json(self, nb_colonnes, nb_lignes):
+    def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les plateaux valides"""
-        infos_plateau = {}
-        infos_plateau['colonnes']= nb_colonnes
-        infos_plateau['lignes']= nb_lignes
-
-        infos_plateau['debut']= self.debut
-        infos_plateau['fin']= self.fin
-        if self.duree < 1:
-            infos_plateau['duree']= f"{int(self.duree*1000)} millisecondes"
-        else:
-            infos_plateau['duree']= f"{int(self.duree)} secondes"
-
-        infos_plateau['nombre_plateaux']= len(self.plateaux_valides)
-        infos_plateau['liste_plateaux']= list(self.plateaux_valides)
-
         # Enregistrement des donnees dans un fichier JSON
-        with open(f"Plateaux_{nb_colonnes}x{nb_lignes}.json", "w", encoding='utf-8') as fichier:
-            #json.dump(infos_plateau, fichier, ensure_ascii=False, indent=4)
-            json.dump(infos_plateau, fichier, ensure_ascii=False)
+        if self.nb_plateaux_valides > 0:
+            self._export_json.forcer_export(self)
 
+    def est_deja_termine(self, nb_colonnes, nb_lignes):
+        self.__init_export_json(nb_colonnes, nb_lignes)
+        data_json = self._export_json.importer()
+        # TODO : Gerer le fichier absent
+        # TODO : Copier le JSON dans les données de la classe
+        return 'recherche_terminee' in data_json and data_json['recherche_terminee'] is True
+    
+    def __init_export_json(self, nb_colonnes, nb_lignes):
+        self._nb_colonnes = nb_colonnes
+        self._nb_lignes = nb_lignes
+        nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
+        self._export_json = ExportJSON(delai=60, longueur=100, nom=nom)
 
 class ResoudrePlateau():
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
     def __init__(self, plateau_initial: Plateau):
         self._plateau_initial = plateau_initial
         self._liste_des_choix_possibles = None
+        nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}_Resolution"
+        self._export_json = ExportJSON(delai=60, longueur=100, nom=nom)
+
         # TODO : ResoudrePlateau().__init__()
         # Enregistrer les solutions
         # Statistiques des solutions:
@@ -359,6 +395,16 @@ class ResoudrePlateau():
         #   - la moyenne
         #   - le nombre de solution
         pass
+
+    def __len__(self):
+        # TODO : implémenter la longueur = nombre de solutions trouvées
+        pass
+        return 0
+
+    def to_dict(self):
+        # TODO : implémenter la conversion de la classe en dictionnaire pour l'enregistrement JSON
+        pass
+        return dict()
 
     def __ensemble_des_choix_possibles(self):
         "Liste tous les choix possible pour un plateau (valide et invalides)"
@@ -410,6 +456,8 @@ class ResoudrePlateau():
     def __enregistrer_solution(self, plateau: Plateau):
         "Enregistre le parcours de la solution pour la restituer"
         # TODO : ResoudrePlateau().__enregistrer_solution()
+        #        Enregistrer solution complet + màj statistiques
+        self._export_json.exporter(self)
         pass
 
     def backtracking(self, plateau: Plateau):
@@ -426,7 +474,7 @@ class ResoudrePlateau():
 
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les solutions et les statistiques du plateau"""
-        # TODO : ResoudrePlateau().exporter_fichier_json()
+        self._export_json.forcer_export(self)
         pass
 
     @property
@@ -449,6 +497,39 @@ class ResoudrePlateau():
         # TODO : ResoudrePlateau().solution_moyenne
         pass
 
+class ExportJSON():
+    def __init__(self, delai, longueur, nom):
+        self._delai_enregistrement = delai
+        self._longueur_enregistrement = longueur
+        self._nom_enregistrement = nom
+
+        self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
+        self._longueur_dernier_enregistrement = 0
+
+    def exporter(self, contenu):
+        """Enregistre un fichier JSON selon des critères de nombres et de temps"""
+        if (len(contenu) - self._longueur_dernier_enregistrement >= self._longueur_enregistrement):
+            self.forcer_export(contenu)
+
+        if (datetime.datetime.now().timestamp() - self._timestamp_dernier_enregistrement >= self._delai_enregistrement) \
+            and (len(contenu) > self._longueur_dernier_enregistrement):
+            self.forcer_export(contenu)
+
+    def forcer_export(self, contenu):
+        """Enregistre un fichier JSON en ignorant les critères"""
+        # Enregistrement des donnees dans un fichier JSON
+        with open(self._nom_enregistrement+".json", "w", encoding='utf-8') as fichier:
+            json.dump(contenu.to_dict(), fichier, ensure_ascii=False)
+        self._longueur_dernier_enregistrement = len(contenu)
+        self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
+
+    def importer(self):
+        """Lit dans un fichier JSON les informations totales ou de la dernière itération réalisée."""
+        with open(self._nom_enregistrement+".json", "r", encoding='utf-8') as fichier:
+            dico_json = json.load(fichier)
+        return dico_json
+
+
 for lignes in LIGNES:
     for colonnes in COLONNES:
         print(f"*** Generatrice {colonnes}x{lignes}: DEBUT")
@@ -456,22 +537,30 @@ for lignes in LIGNES:
         plateau.creer_plateau_initial()
         plateau.afficher()
         lot_de_plateaux = LotDePlateaux()
-        # lot_de_plateaux.fixer_taille_memoire_max(5)
-        for permutation_courante in permutations(plateau.pour_permutations):
-            # Verifier que ce plateau est nouveau
-            plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
-            plateau_courant.plateau_ligne = permutation_courante
-            if not lot_de_plateaux.est_connu(plateau_courant):
-                if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
-                    print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+        if not lot_de_plateaux.est_deja_termine(colonnes, lignes):
+            # lot_de_plateaux.fixer_taille_memoire_max(5)
+            for permutation_courante in permutations(plateau.pour_permutations):
+                # Verifier que ce plateau est nouveau
+                plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
+                plateau_courant.plateau_ligne = permutation_courante
+                try:
+                    if not lot_de_plateaux.est_ignore(plateau_courant):
+                        if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
+                            print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+                except FileExistsError as e:
+                    print(f"Erreur sur le lot de plateaux : {e}")
+                    break
+
+            lot_de_plateaux.arret_des_enregistrements()
+            # lot_de_plateaux.exporter_fichier_json()
+            if (lot_de_plateaux.duree) < 10:
+                print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
+                    int((lot_de_plateaux.duree)*1000)} millisecondes")
+            else:
+                print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
+                    int(lot_de_plateaux.duree)} secondes")
+        else:
+            print("Ce lot de plateaux est déjà terminé")
 
         print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
         print(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
-        lot_de_plateaux.arret_des_enregistrements()
-        lot_de_plateaux.exporter_fichier_json(colonnes, lignes)
-        if (lot_de_plateaux.duree) < 10:
-            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
-                int((lot_de_plateaux.duree)*1000)} millisecondes")
-        else:
-            print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
-                int(lot_de_plateaux.duree)} secondes")
