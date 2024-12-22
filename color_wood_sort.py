@@ -2,9 +2,11 @@
 from itertools import permutations #, product, combinations#, combinations_with_replacement
 import datetime
 import json
+import cProfile
+import pstats
 
-# TODO : enregistrer les combinaisons petit à petit dans le fichier => ok
-# TODO : reprendre l'enregistrement à partir du fichier.
+
+# TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
 # TODO : commencer à chercher les solutions.
 #        Idée d'algo :
 #          - Pour les N colonnes, créer un Thread qui vérifie si la colonne N peut-être jouée.
@@ -29,6 +31,7 @@ class Plateau():
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
         self._est_valide = None
+        self._dico_validite_index_vide = {}
         # plateau_ligne : ['A', 'A', 'B', 'B', ' ', ' ']
         self._plateau_ligne = None
         # plateau_ligne_texte : ['AABB  ']
@@ -41,6 +44,15 @@ class Plateau():
         self._nb_familles = nb_colonnes - nb_colonnes_vides
         self._liste_familles = []
         self.__creer_les_familles()
+
+    def clear(self):
+        "Efface le plateau pour en écrire un nouveau"
+        self._est_valide = None
+        self._plateau_ligne = None
+        self._plateau_ligne_texte = None
+        self._plateau_rectangle = None
+        self._plateau_rectangle_texte = None
+        self._str_format = ""
 
     def __str__(self):
         if not self._str_format:
@@ -93,6 +105,14 @@ class Plateau():
         if not self._plateau_ligne_texte:
             self.__creer_plateau_ligne_texte()
         return self._plateau_ligne_texte
+
+    @plateau_ligne_texte.setter
+    def plateau_ligne_texte(self, plateau_ligne_texte):
+        # Pas de verification sur la validite,
+        # pour pouvoir traiter les plateaux invalides
+        # a ignorer.
+        self._plateau_ligne_texte = plateau_ligne_texte
+        self.plateau_ligne = [c for c in plateau_ligne_texte] # via setter
 
     @property
     def plateau_rectangle(self):
@@ -171,19 +191,36 @@ class Plateau():
         if self._plateau_ligne and self._est_valide is None:
             # Pour chaque colonne, les cases vides sont sur les dernieres cases
             case_vide = ' '
+
+            # Construction de la position des cases vides
+            count = self._plateau_ligne.count(case_vide)
+            index_vide = []
+            index_courant = -1
+            for _ in range(count):
+                index_courant = self._plateau_ligne.index(case_vide, index_courant+1)
+                index_vide.append(index_courant)
+            index_vide = tuple(index_vide) # l'index_vide devient invariable
+            
+            # Est-ce que cet index est valide ?
+            if index_vide in self._dico_validite_index_vide:
+                return self._dico_validite_index_vide.get(index_vide)
+            
+            # Index inconnu, identifier sa validité
             for colonne in range(self._nb_colonnes):
                 case_vide_presente = False
                 for ligne in range(self._nb_lignes):
                     if not case_vide_presente:
                         # Chercher la premiere case vide de la colonne
-                        if self.plateau_ligne[colonne * self._nb_lignes + ligne] == case_vide:
+                        if (colonne * self._nb_lignes + ligne) in index_vide:
                             case_vide_presente = True
                     else:
                         # Toutes les autres case de la lignes doivent etre vides
-                        if self.plateau_ligne[colonne * self._nb_lignes + ligne] != case_vide:
+                        if (colonne * self._nb_lignes + ligne) not in index_vide:
                             self._est_valide = False
+                            self._dico_validite_index_vide[index_vide] = self._est_valide
                             return self._est_valide
             self._est_valide = True
+            self._dico_validite_index_vide[index_vide] = self._est_valide
         return self._est_valide
 
     def a_gagne(self):
@@ -216,8 +253,10 @@ class LotDePlateaux():
         dict_lot_de_plateaux['fin']= self.fin
         if self.duree < 1:
             dict_lot_de_plateaux['duree']= f"{int(self.duree*1000)} millisecondes"
-        else:
+        elif self.duree < 60:
             dict_lot_de_plateaux['duree']= f"{int(self.duree)} secondes"
+        else:
+            dict_lot_de_plateaux['duree']= f"{int(self.duree / 60)} minutes {int(self.duree % 60)} secondes"
         
         dict_lot_de_plateaux['recherche_terminee'] = self._fin is not None
 
@@ -363,9 +402,18 @@ class LotDePlateaux():
     def est_deja_termine(self, nb_colonnes, nb_lignes):
         self.__init_export_json(nb_colonnes, nb_lignes)
         data_json = self._export_json.importer()
-        # TODO : Gerer le fichier absent
-        # TODO : Copier le JSON dans les données de la classe
-        return 'recherche_terminee' in data_json and data_json['recherche_terminee'] is True
+
+        recherche_terminee = 'recherche_terminee' in data_json and data_json['recherche_terminee'] is True
+        # Rejouer les plateaux déjà trouvés
+        if recherche_terminee is False \
+            and 'nombre_plateaux' in data_json \
+            and data_json['nombre_plateaux'] > 0:
+            plateau_courant = Plateau(nb_colonnes, nb_lignes, COLONNES_VIDES_MAX)
+            for plateau_valide in data_json['liste_plateaux']:
+                plateau_courant.plateau_ligne_texte = plateau_valide
+                self.est_ignore(plateau_courant)
+                plateau_courant.clear()
+        return recherche_terminee
     
     def __init_export_json(self, nb_colonnes, nb_lignes):
         self._nb_colonnes = nb_colonnes
@@ -526,6 +574,10 @@ class ExportJSON():
         except FileNotFoundError:
             return {}
 
+# Profilage du code
+profil = cProfile.Profile()
+profil.enable()
+
 for lignes in LIGNES:
     for colonnes in COLONNES:
         print(f"*** Generatrice {colonnes}x{lignes}: DEBUT")
@@ -535,13 +587,14 @@ for lignes in LIGNES:
         lot_de_plateaux = LotDePlateaux()
         if not lot_de_plateaux.est_deja_termine(colonnes, lignes):
             # lot_de_plateaux.fixer_taille_memoire_max(5)
+            plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
             for permutation_courante in permutations(plateau.pour_permutations):
                 # Verifier que ce plateau est nouveau
-                plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
                 plateau_courant.plateau_ligne = permutation_courante
                 if not lot_de_plateaux.est_ignore(plateau_courant):
                     if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
                         print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+                plateau_courant.clear()
 
             lot_de_plateaux.arret_des_enregistrements()
             # lot_de_plateaux.exporter_fichier_json()
@@ -556,3 +609,15 @@ for lignes in LIGNES:
 
         print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
         print(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
+
+# Fin du profilage
+profil.disable()
+
+# Affichage des statistiques de profilage
+stats = pstats.Stats(profil).sort_stats('cumulative')
+stats.print_stats()
+
+# Exporter les statistiques dans un fichier texte
+with open('profiling_results.txt', 'w') as fichier:
+    stats = pstats.Stats(profil, stream=fichier)
+    stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
