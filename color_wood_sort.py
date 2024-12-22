@@ -19,7 +19,7 @@ from pathlib import Path
 #              - REPETEE : s'arréter là dans la recherche.
 #          - Recommencer l'opération jusqu'à MAX_COUPS de profondeur
 
-COLONNES = range(2, 6) #11
+COLONNES = range(2, 7) #11
 LIGNES = [2] #4
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000_000
@@ -497,6 +497,7 @@ class ResoudrePlateau():
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
         nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
         self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom)
+        # TODO : Ajouter un debut/fin
 
         # TODO : ResoudrePlateau().__init__()
         # Enregistrer les solutions
@@ -520,6 +521,9 @@ class ResoudrePlateau():
         dict_resoudre_plateau['solution la plus longue'] = self.solution_la_plus_longue
         dict_resoudre_plateau['solution moyenne'] = self.solution_moyenne
         dict_resoudre_plateau['liste_solutions'] = self._liste_des_solutions
+        # TODO : Ajouter la notion de 'recherche_terminee'
+        # TODO : Ajouter une methode d'import + mise à jour de la classe en lisant le fichier.
+        # TODO : Si recherche teminée, pas de recherche de solution.
         return dict_resoudre_plateau
 
     def __ensemble_des_choix_possibles(self):
@@ -755,7 +759,8 @@ for lignes in LIGNES:
             plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
             resolution = ResoudrePlateau(plateau)
             resolution.backtracking()
-            print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, solution moyenne = {resolution.solution_moyenne}, la plus courte = {resolution.solution_la_plus_courte}, la plus longue = {resolution.solution_la_plus_longue}")
+            # print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, solution moyenne = {resolution.solution_moyenne}, la plus courte = {resolution.solution_la_plus_courte}, la plus longue = {resolution.solution_la_plus_longue}")
+            print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, la plus courte = {resolution.solution_la_plus_courte}")
         print('*'*80)
 
 # print('*'*60 + ' RESOLUTION')
