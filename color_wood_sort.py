@@ -5,7 +5,7 @@ import json
 import cProfile
 import pstats
 import copy
-
+from pathlib import Path
 
 # TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
 # TODO : commencer à chercher les solutions.
@@ -483,7 +483,7 @@ class LotDePlateaux():
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
         nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
-        self._export_json = ExportJSON(delai=60, longueur=100, nom=nom)
+        self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
 
 class ResoudrePlateau():
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
@@ -494,8 +494,9 @@ class ResoudrePlateau():
         self._liste_plateaux_gagnants = None
         self._liste_des_choix_possibles = None
         self._liste_des_choix_courants = None
+        nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
         nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
-        self._export_json = ExportJSON(delai=60, longueur=100, nom=nom)
+        self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom)
 
         # TODO : ResoudrePlateau().__init__()
         # Enregistrer les solutions
@@ -676,10 +677,10 @@ class ResoudrePlateau():
         return None
 
 class ExportJSON():
-    def __init__(self, delai, longueur, nom):
+    def __init__(self, delai, longueur, nom_plateau, nom_export):
         self._delai_enregistrement = delai
         self._longueur_enregistrement = longueur
-        self._nom_enregistrement = nom
+        self._chemin_enregistrement = Path(nom_plateau) / (nom_export+'.json')
 
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         self._longueur_dernier_enregistrement = 0
@@ -696,7 +697,9 @@ class ExportJSON():
     def forcer_export(self, contenu):
         """Enregistre un fichier JSON en ignorant les critères"""
         # Enregistrement des donnees dans un fichier JSON
-        with open(self._nom_enregistrement+".json", "w", encoding='utf-8') as fichier:
+        if not self._chemin_enregistrement.parent.exists():
+            self._chemin_enregistrement.parent.mkdir()
+        with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
             json.dump(contenu.to_dict(), fichier, ensure_ascii=False)
         self._longueur_dernier_enregistrement = len(contenu)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
@@ -704,7 +707,7 @@ class ExportJSON():
     def importer(self):
         """Lit dans un fichier JSON les informations totales ou de la dernière itération réalisée."""
         try:
-            with open(self._nom_enregistrement+".json", "r", encoding='utf-8') as fichier:
+            with open(self._chemin_enregistrement, "r", encoding='utf-8') as fichier:
                 dico_json = json.load(fichier)
             return dico_json
         except FileNotFoundError:
