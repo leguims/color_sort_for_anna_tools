@@ -4,6 +4,7 @@ import datetime
 import json
 import cProfile
 import pstats
+import copy
 
 
 # TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
@@ -18,11 +19,11 @@ import pstats
 #              - REPETEE : s'arréter là dans la recherche.
 #          - Recommencer l'opération jusqu'à MAX_COUPS de profondeur
 
-COLONNES = range(2, 7) #11
+COLONNES = range(2, 6) #11
 LIGNES = [2] #4
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000_000
-
+PROFILER_LE_CODE = False
 
 class Plateau():
     "Classe qui implémente un plateau. Son contenu et ses différentes représentations."
@@ -97,6 +98,7 @@ class Plateau():
         # Pas de verification sur la validite,
         # pour pouvoir traiter les plateaux invalides
         # a ignorer.
+        self.clear()
         self._plateau_ligne = tuple(plateau_ligne)
 
     @property
@@ -111,8 +113,8 @@ class Plateau():
         # Pas de verification sur la validite,
         # pour pouvoir traiter les plateaux invalides
         # a ignorer.
-        self._plateau_ligne_texte = plateau_ligne_texte
         self.plateau_ligne = [c for c in plateau_ligne_texte] # via setter
+        self._plateau_ligne_texte = plateau_ligne_texte
 
     @property
     def plateau_rectangle(self):
@@ -223,6 +225,60 @@ class Plateau():
             self._dico_validite_index_vide[index_vide] = self._est_valide
         return self._est_valide
 
+    def la_colonne_est_vide(self, colonne):
+        if colonne >= self.nb_colonnes:
+            raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
+        return self.plateau_rectangle_texte[colonne].isspace()
+
+    def la_colonne_est_pleine(self, colonne):
+        if colonne >= self.nb_colonnes:
+            raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
+        return self.plateau_rectangle_texte[colonne].count(' ') == 0
+
+    def la_colonne_est_pleine_et_monocouleur(self, colonne):
+        est_pleine = self.la_colonne_est_pleine(colonne)
+        colonne_texte = self.plateau_rectangle_texte[colonne]
+        premiere_case = colonne_texte[0]
+        return est_pleine and colonne_texte.count(premiere_case) == self.nb_lignes
+
+    def la_couleur_au_sommet_de_la_colonne(self, colonne):
+        if colonne >= self.nb_colonnes:
+            raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
+        colonne_texte = self.plateau_rectangle_texte[colonne]
+        derniere_case_non_vide = colonne_texte.strip()[-1]
+        return derniere_case_non_vide
+
+    def nombre_de_case_vide_de_la_colonne(self, colonne):
+        if colonne >= self.nb_colonnes:
+            raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
+        colonne_texte = self.plateau_rectangle_texte[colonne]
+        return colonne_texte.count(' ')
+
+    def nombre_de_cases_monocouleur_au_sommet_de_la_colonne(self, colonne):
+        couleur = self.la_couleur_au_sommet_de_la_colonne(colonne)
+        colonne_texte = self.plateau_rectangle_texte[colonne]
+        return colonne_texte.count(couleur)
+
+    def deplacer_blocs(self, colonne_depart, colonne_arrivee, nombre_blocs = 1):
+        if nombre_blocs != self.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(colonne_depart):
+            raise ValueError("Le nombre de bloc à déplacer est différent à celui du plateau")
+        self.annuler_le_deplacer_blocs(colonne_arrivee, colonne_depart, nombre_blocs)
+
+    def annuler_le_deplacer_blocs(self, colonne_depart_a_annuler, colonne_arrivee_a_annuler, nombre_blocs = 1):
+        if nombre_blocs > self.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(colonne_arrivee_a_annuler):
+            raise ValueError("Le nombre de bloc à déplacer est supérieur à celui du plateau")
+        if nombre_blocs > self.nombre_de_case_vide_de_la_colonne(colonne_depart_a_annuler):
+            raise ValueError("Le nombre de bloc à déplacer est plus grand que ce que la colonne peut recevoir")
+        couleur = self.la_couleur_au_sommet_de_la_colonne(colonne_arrivee_a_annuler)
+        case_vide = ' '
+        plateau = self.plateau_rectangle_texte
+        # Inverser la colonne pour remplacer les couleur du haut, puis rétablir l'ordre
+        # colonne de depart : 'ABAA' => 'AABA' => '  BA' => 'AB  '
+        plateau[colonne_arrivee_a_annuler] = plateau[colonne_arrivee_a_annuler][::-1].replace(couleur, case_vide, nombre_blocs)[::-1]
+        # colonne d'arrivee : 'C   ' => 'CAA '
+        plateau[colonne_depart_a_annuler] = plateau[colonne_depart_a_annuler].replace(case_vide, couleur, nombre_blocs)
+        self.plateau_rectangle_texte = plateau
+
     def a_gagne(self):
         """"Verifie si le plateau actuel est gagnant"""
         return False
@@ -251,8 +307,10 @@ class LotDePlateaux():
 
         dict_lot_de_plateaux['debut']= self.debut
         dict_lot_de_plateaux['fin']= self.fin
-        if self.duree < 1:
-            dict_lot_de_plateaux['duree']= f"{int(self.duree*1000)} millisecondes"
+        if self.duree < 0.001:
+            dict_lot_de_plateaux['duree']= f"{int(self.duree*1_000_000)} microsecondes"
+        elif self.duree < 1:
+            dict_lot_de_plateaux['duree']= f"{int(self.duree*1_000)} millisecondes"
         elif self.duree < 60:
             dict_lot_de_plateaux['duree']= f"{int(self.duree)} secondes"
         else:
@@ -405,14 +463,20 @@ class LotDePlateaux():
 
         recherche_terminee = 'recherche_terminee' in data_json and data_json['recherche_terminee'] is True
         # Rejouer les plateaux déjà trouvés
-        if recherche_terminee is False \
-            and 'nombre_plateaux' in data_json \
+        if 'nombre_plateaux' in data_json \
             and data_json['nombre_plateaux'] > 0:
-            plateau_courant = Plateau(nb_colonnes, nb_lignes, COLONNES_VIDES_MAX)
-            for plateau_valide in data_json['liste_plateaux']:
-                plateau_courant.plateau_ligne_texte = plateau_valide
-                self.est_ignore(plateau_courant)
-                plateau_courant.clear()
+            if recherche_terminee is False:
+                # Récupération des plateaux valides et des ignorés
+                plateau_courant = Plateau(nb_colonnes, nb_lignes, COLONNES_VIDES_MAX)
+                for plateau_valide in data_json['liste_plateaux']:
+                    plateau_courant.plateau_ligne_texte = plateau_valide
+                    self.est_ignore(plateau_courant)
+                    plateau_courant.clear()
+            elif recherche_terminee is True:
+                # Récupération des plateaux valides uniquement
+                plateau_courant = Plateau(nb_colonnes, nb_lignes, COLONNES_VIDES_MAX)
+                for plateau_valide in data_json['liste_plateaux']:
+                    self._ensemble_des_plateaux_valides.add(plateau_valide)
         return recherche_terminee
     
     def __init_export_json(self, nb_colonnes, nb_lignes):
@@ -425,8 +489,12 @@ class ResoudrePlateau():
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
     def __init__(self, plateau_initial: Plateau):
         self._plateau_initial = plateau_initial
+        self._liste_des_solutions = []
+        self._statistiques = {}
+        self._liste_plateaux_gagnants = None
         self._liste_des_choix_possibles = None
-        nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}_Resolution"
+        self._liste_des_choix_courants = None
+        nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
         self._export_json = ExportJSON(delai=60, longueur=100, nom=nom)
 
         # TODO : ResoudrePlateau().__init__()
@@ -444,9 +512,14 @@ class ResoudrePlateau():
         return 0
 
     def to_dict(self):
-        # TODO : implémenter la conversion de la classe en dictionnaire pour l'enregistrement JSON
-        pass
-        return dict()
+        dict_resoudre_plateau = {}
+        dict_resoudre_plateau['plateau'] = self._plateau_initial.plateau_ligne_texte
+        dict_resoudre_plateau['nb_solutions'] = self.nb_solutions
+        dict_resoudre_plateau['solution la plus courte'] = self.solution_la_plus_courte
+        dict_resoudre_plateau['solution la plus longue'] = self.solution_la_plus_longue
+        dict_resoudre_plateau['solution moyenne'] = self.solution_moyenne
+        dict_resoudre_plateau['liste_solutions'] = self._liste_des_solutions
+        return dict_resoudre_plateau
 
     def __ensemble_des_choix_possibles(self):
         "Liste tous les choix possible pour un plateau (valide et invalides)"
@@ -456,63 +529,121 @@ class ResoudrePlateau():
             for depart in range(self._plateau_initial.nb_colonnes):
                 for arrivee in range(self._plateau_initial.nb_colonnes):
                     if depart != arrivee:
-                        self._liste_des_choix_possibles.append(list(depart, arrivee))
+                        self._liste_des_choix_possibles.append(tuple([depart, arrivee]))
         # Nombre de choix = (nb_colonnes * (nb_colonnes-1))
         return self._liste_des_choix_possibles
+
+    def __ensemble_des_plateaux_gagnants(self):
+        "Liste tous les plateaux gagnants"
+        if self._liste_plateaux_gagnants is None:
+            plateau_gagnant = Plateau(self._plateau_initial.nb_colonnes, self._plateau_initial.nb_lignes, COLONNES_VIDES_MAX)
+            plateau_gagnant.creer_plateau_initial()
+
+            self._liste_plateaux_gagnants = []
+            for permutation_courante in permutations(plateau_gagnant.plateau_rectangle_texte):
+                plateau_gagnant_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
+                plateau_gagnant_courant.plateau_rectangle_texte = permutation_courante
+                self._liste_plateaux_gagnants.append(plateau_gagnant_courant.plateau_ligne_texte)
+        return self._liste_plateaux_gagnants
 
     def __ajouter_choix(self, plateau: Plateau, choix):
         "Enregistre un choix et modifie le plateau selon ce choix"
         # Enregistrer le choix
+        self._liste_des_choix_courants.append(choix[0:2])
         # Modifier le plateau
-        return True
+        plateau.deplacer_blocs(*choix)
 
     def __retirer_choix(self, plateau: Plateau, choix):
         "Annule le dernier choix et restaure le plateau precedent"
-        # TODO : ResoudrePlateau().__retirer_choix()
-        # Attention : il faut trouver comment identifier les couleurs à laisser
-        #             dans la colonne d'arrivée pour 'retirer le choix'.
-        return True
+        # Désenregistrer le choix
+        self._liste_des_choix_courants.pop()
+        # Modifier le plateau
+        plateau.annuler_le_deplacer_blocs(*choix)
 
     def __est_valide(self, plateau: Plateau, choix):
         "Vérifie la validité du choix"
         # TODO : ResoudrePlateau().__est_valide()
+        c_depart, c_arrivee = choix
         # INVALIDE Si les colonnes de départ et d'arrivée sont identiques
+        if c_depart == c_arrivee:
+            return False
         # INVALIDE Si la colonne de départ est vide
+        if plateau.la_colonne_est_vide(c_depart):
+            return False
         # INVALIDE Si la colonne de départ est pleine et monocouleur
+        if plateau.la_colonne_est_pleine_et_monocouleur(c_depart):
+            return False
         # INVALIDE Si la colonne d'arrivée est pleine
-        # INVALIDE Si la colonne d'arrivée n'a pas la même couleur au sommet
+        if plateau.la_colonne_est_pleine(c_arrivee):
+            return False
+        # INVALIDE Si la colonne d'arrivée n'est pas vide et n'a pas la même couleur au sommet
+        if not plateau.la_colonne_est_vide(c_arrivee) and \
+            plateau.la_couleur_au_sommet_de_la_colonne(c_depart) != plateau.la_couleur_au_sommet_de_la_colonne(c_arrivee):
+            return False
         # INVALIDE Si la colonne d'arrivée n'a pas assez de place
+        if plateau.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(c_depart) > plateau.nombre_de_case_vide_de_la_colonne(c_arrivee):
+            return False
         return True
 
     def __solution_complete(self, plateau: Plateau):
         "Evalue si le plateau est terminé (gagné ou bloqué)"
-        if plateau.a_gagne():
-            # TODO : ResoudrePlateau().__solution_complete()
-            # Gagné si toutes les colonnes sont pleines ou vides
-            #    ET que les colonnes pleines soient monocouleurs
-            pass
-
-        # Peut-etre des tableaux "bloqués"
-        return True
+        if plateau.plateau_ligne_texte in self.__ensemble_des_plateaux_gagnants():
+            return True
+        # TODO : Evaluer si le plateau est "bloqué"
+        return False
 
     def __enregistrer_solution(self, plateau: Plateau):
         "Enregistre le parcours de la solution pour la restituer"
+        # Enregistrer la liste des choix courant comme la solution
+        self._liste_des_solutions.append(copy.deepcopy(self._liste_des_choix_courants))
+
+        if 'solution la plus longue' not in self._statistiques \
+            or len(self._liste_des_choix_courants) > self._statistiques['solution la plus longue']:
+            self._statistiques['solution la plus longue'] = len(self._liste_des_choix_courants)
+            
+        if 'solution la plus courte' not in self._statistiques \
+            or len(self._liste_des_choix_courants) < self._statistiques['solution la plus courte']:
+            self._statistiques['solution la plus courte'] = len(self._liste_des_choix_courants)
+
+        if 'nombre de solution' not in self._statistiques:
+            self._statistiques['nombre de solution'] = 1
+        else:
+            self._statistiques['nombre de solution'] += 1
+
         # TODO : ResoudrePlateau().__enregistrer_solution()
         #        Enregistrer solution complet + màj statistiques
         self._export_json.exporter(self)
-        pass
 
-    def backtracking(self, plateau: Plateau):
+    def backtracking(self, plateau: Plateau = None):
         "Parcours de tous les choix afin de débusquer toutes les solutions"
+        if plateau is None:
+            plateau = self._plateau_initial
+            self._liste_des_choix_courants = []
+            self._profondeur_recursion = -1
+        
+        self._profondeur_recursion += 1
+        # print(self._profondeur_recursion)
+        if self._profondeur_recursion > 50:
+            raise RuntimeError("Appels récursifs infinis !")
+        
         if self.__solution_complete(plateau):   # Condition d'arrêt
             self.__enregistrer_solution(plateau)
+            self._profondeur_recursion -= 1
             return
 
         for choix in self.__ensemble_des_choix_possibles():
             if self.__est_valide(plateau, choix):  # Vérifier si le choix est valide
+                # Enrichir le choix du nombre de cases à déplacer (pour pouvoir rétablir)
+                nb_cases_deplacees = plateau.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(choix[0])
+                choix += tuple([nb_cases_deplacees])
                 self.__ajouter_choix(plateau, choix)  # Prendre ce choix
                 self.backtracking(plateau)  # Appeler récursivement la fonction
                 self.__retirer_choix(plateau, choix)  # Annuler le choix (retour en arrière)
+        
+        if self._profondeur_recursion == 0:
+            # fin de toutes les recherches
+            self.exporter_fichier_json()
+        self._profondeur_recursion -= 1
 
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les solutions et les statistiques du plateau"""
@@ -521,23 +652,28 @@ class ResoudrePlateau():
 
     @property
     def nb_solutions(self):
-        # TODO : ResoudrePlateau().nb_solutions
-        pass
+        if 'nombre de solution' in self._statistiques:
+            return self._statistiques['nombre de solution']
+        return 0
 
     @property
     def solution_la_plus_courte(self):
-        # TODO : ResoudrePlateau().solution_la_plus_courte
-        pass
+        if 'solution la plus courte' in self._statistiques:
+            return self._statistiques['solution la plus courte']
+        return None
 
     @property
     def solution_la_plus_longue(self):
-        # TODO : ResoudrePlateau().solution_la_plus_longue
-        pass
+        if 'solution la plus longue' in self._statistiques:
+            return self._statistiques['solution la plus longue']
+        return None
 
     @property
     def solution_moyenne(self):
         # TODO : ResoudrePlateau().solution_moyenne
-        pass
+        if 'solution moyenne' in self._statistiques:
+            return self._statistiques['solution moyenne']
+        return None
 
 class ExportJSON():
     def __init__(self, delai, longueur, nom):
@@ -574,9 +710,10 @@ class ExportJSON():
         except FileNotFoundError:
             return {}
 
-# Profilage du code
-profil = cProfile.Profile()
-profil.enable()
+if PROFILER_LE_CODE:
+    # Profilage du code
+    profil = cProfile.Profile()
+    profil.enable()
 
 for lignes in LIGNES:
     for colonnes in COLONNES:
@@ -604,20 +741,64 @@ for lignes in LIGNES:
             else:
                 print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
                     int(lot_de_plateaux.duree)} secondes")
+            print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+            print(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
         else:
             print("Ce lot de plateaux est déjà terminé")
 
-        print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-        print(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
+        print('*'*60 + ' RESOLUTION')
+        for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
+            plateau.clear()
+            plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
+            resolution = ResoudrePlateau(plateau)
+            resolution.backtracking()
+            print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, solution moyenne = {resolution.solution_moyenne}, la plus courte = {resolution.solution_la_plus_courte}, la plus longue = {resolution.solution_la_plus_longue}")
+        print('*'*80)
 
-# Fin du profilage
-profil.disable()
+# print('*'*60 + ' RESOLUTION')
+# plateau_initial = Plateau(2,2)
+# plateau_initial.plateau_ligne_texte = "AA  "
+# resolution = ResoudrePlateau(plateau_initial)
+# resolution.backtracking()
+# print(f"nb_solutions = {resolution.nb_solutions}")
+# print(f"solution_moyenne = {resolution.solution_moyenne}")
+# print(f"solution_la_plus_courte = {resolution.solution_la_plus_courte}")
+# print(f"solution_la_plus_longue = {resolution.solution_la_plus_longue}")
+# print('*'*80)
 
-# Affichage des statistiques de profilage
-stats = pstats.Stats(profil).sort_stats('cumulative')
-stats.print_stats()
+# print('*'*60 + ' RESOLUTION')
+# plateau_initial = Plateau(2,2)
+# plateau_initial.plateau_ligne_texte = "A A "
+# resolution = ResoudrePlateau(plateau_initial)
+# resolution.backtracking()
+# print(f"nb_solutions = {resolution.nb_solutions}")
+# print(f"solution_moyenne = {resolution.solution_moyenne}")
+# print(f"solution_la_plus_courte = {resolution.solution_la_plus_courte}")
+# print(f"solution_la_plus_longue = {resolution.solution_la_plus_longue}")
+# print('*'*80)
 
-# Exporter les statistiques dans un fichier texte
-with open('profiling_results.txt', 'w') as fichier:
-    stats = pstats.Stats(profil, stream=fichier)
-    stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
+# print('*'*60 + ' RESOLUTION')
+# plateau_initial = Plateau(3,2)
+# plateau_initial.plateau_ligne_texte = "ABBA  "
+# resolution = ResoudrePlateau(plateau_initial)
+# resolution.backtracking()
+# print(f"nb_solutions = {resolution.nb_solutions}")
+# print(f"solution_moyenne = {resolution.solution_moyenne}")
+# print(f"solution_la_plus_courte = {resolution.solution_la_plus_courte}")
+# print(f"solution_la_plus_longue = {resolution.solution_la_plus_longue}")
+# print('*'*80)
+
+
+if PROFILER_LE_CODE:
+    # Fin du profilage
+    profil.disable()
+
+    # Affichage des statistiques de profilage
+    stats = pstats.Stats(profil).sort_stats('cumulative')
+    stats.print_stats()
+
+    # Exporter les statistiques dans un fichier texte
+    with open('profiling_results.txt', 'w') as fichier:
+        stats = pstats.Stats(profil, stream=fichier)
+        #stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
+        stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats()
