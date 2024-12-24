@@ -5,8 +5,6 @@ import pstats
 
 import color_wood_sort as cws
 
-# TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
-
 COLONNES = range(2, 5) # range(2, 5) #11
 LIGNES = [2] # [2,3] #4
 COLONNES_VIDES_MAX = 1

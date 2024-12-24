@@ -6,8 +6,8 @@ import time
 
 import color_wood_sort as cws
 
-COLONNES = range(2, 12) # [2] # range(2, 12)
-LIGNES = range(2, 5) # [2] # range(2, 5)
+COLONNES = [3] # range(2, 12) # [2] # range(2, 12)
+LIGNES = [3] # range(2, 5) # [2] # range(2, 5)
 PERIODE_SCRUTATION_SECONDES = 10 # 10*60
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000_000
@@ -31,7 +31,7 @@ while(True):
 
                 if lot_de_plateaux.nb_plateaux_valides != lot_de_plateaux.nb_plateaux_solutionnes:
                     if lot_de_plateaux.nb_plateaux_valides < lot_de_plateaux.nb_plateaux_solutionnes:
-                        print("Il y a plus de plateaus de solutions que de plateaux valides ! Il y a un probleme !")
+                        print("Il y a plus de plateaux de solutions que de plateaux valides ! Il y a un probleme !")
                     print(f"Il reste des solutions à trouver : {lot_de_plateaux.nb_plateaux_valides} != {lot_de_plateaux.nb_plateaux_solutionnes}")
                     for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
                         plateau.clear()

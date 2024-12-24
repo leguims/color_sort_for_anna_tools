@@ -6,10 +6,8 @@ import time
 
 import color_wood_sort as cws
 
-# TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
-
-COLONNES = range(2, 5) # range(2, 5) #11
-LIGNES = [2] # [2,3] #4
+COLONNES = [3] # range(2, 5) # range(2, 5) #11
+LIGNES = [3] # [2,3] #4
 PERIODE_SCRUTATION_SECONDES = 10 # 10*60
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000_000

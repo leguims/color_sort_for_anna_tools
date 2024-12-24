@@ -493,8 +493,9 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             if recherche_terminee is False:
                 # Récupération des plateaux valides et des ignorés
                 for plateau_valide in data_json['liste plateaux']:
-                    # TODO : La lecture du JSON entraine des ecritures dans le JSON
-                    #        Trouver un moyen plus propre de faie une lecture sans modifier le fichier
+                    # 'self.est_ignore()' n'est pas utilisé, car il va modifier le fichier
+                    #  d'export quand des plateaux valides sont ajoutés. Dans noter cas, il
+                    #  faut ajouter les plateaux depuis l'export en considérant qu'il sont fiables.
                     self._ensemble_des_plateaux_valides.add(plateau_valide)
             elif recherche_terminee is True:
                 # Récupération des plateaux valides uniquement
@@ -567,7 +568,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
 class ResoudrePlateau():
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
     def __init__(self, plateau_initial: Plateau):
-        self._plateau_initial = plateau_initial
+        self._plateau_initial = copy.deepcopy(plateau_initial)
         self._liste_des_solutions = []
         # Statistiques des solutions:
         #   - la plus longue
@@ -673,7 +674,7 @@ class ResoudrePlateau():
         "Evalue si le plateau est terminé (gagné ou bloqué)"
         if plateau.plateau_ligne_texte in self.__ensemble_des_plateaux_gagnants():
             return True
-        # TODO : Evaluer si le plateau est "bloqué" => à observer, mais vérification unitile jusque là.
+        # TODO : Evaluer si le plateau est "bloqué" => à observer, mais vérification inutile jusque là.
         return False
 
     def __enregistrer_solution(self, plateau: Plateau):
@@ -766,6 +767,8 @@ class ResoudrePlateau():
         if 'solution la plus longue' in self._statistiques:
             return self._statistiques['solution la plus longue']
         return None
+    #TODO : Sur quelques plateaux, la solution la plus courte était différente en longueru de la plus longue.
+    #       C'était sur un plateau 4x3 je crois. Voir s'il faut en tenir compte avec de grands ecarts.
 
     @property
     def solution_moyenne(self):
