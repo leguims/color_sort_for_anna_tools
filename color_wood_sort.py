@@ -2,19 +2,10 @@
 from itertools import permutations #, product, combinations#, combinations_with_replacement
 import datetime
 import json
-import cProfile
-import pstats
 import copy
 from pathlib import Path
 
 # TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
-
-COLONNES = range(2, 7) #11
-LIGNES = [2] #4
-COLONNES_VIDES_MAX = 1
-MEMOIRE_MAX = 500_000_000
-PROFILER_LE_CODE = False
-REPERTOIRE_SAUVEGARDES = Path('Analyses')
 
 class Plateau():
     "Classe qui implémente un plateau. Son contenu et ses différentes représentations."
@@ -275,17 +266,19 @@ class Plateau():
         return False
 
 class LotDePlateaux():
-    "Classe qui gère les lots de plateaux pour parcourir l'immensité des plateaux existants"
-    def __init__(self):
+    """Classe qui gère les lots de plateaux pour parcourir l'immensité des plateaux existants.
+Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la recherche."""
+    def __init__(self, nb_plateaux_max = 1_000_000):
         self._ensemble_des_plateaux_valides = set()
         self._ensemble_des_plateaux_a_ignorer = set()
         self._dico_compteur_des_plateaux_a_ignorer = {}
-        self._nb_plateaux_max = MEMOIRE_MAX
+        self._nb_plateaux_max = nb_plateaux_max
         self._debut_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
         self._fin_recherche_des_plateaux_valides = None
         self._export_json = None
         self._nb_colonnes = None
         self._nb_lignes = None
+        self._nb_colonnes_vides = None
         self._ensemble_des_difficultes_de_plateaux = {}
         self._debut_recherche_des_solutions = None
         self._fin_recherche_des_solutions = None
@@ -299,6 +292,7 @@ class LotDePlateaux():
         if self._nb_colonnes is not None:
             dict_lot_de_plateaux['colonnes']= self._nb_colonnes
             dict_lot_de_plateaux['lignes']= self._nb_lignes
+            dict_lot_de_plateaux['colonnes vides']= self._nb_colonnes_vides
 
         dict_lot_de_plateaux['debut']= self.debut
         dict_lot_de_plateaux['fin']= self.fin
@@ -397,7 +391,7 @@ class LotDePlateaux():
         # le plateau.
         nouveau_plateau = True
         for permutation_courante in permutations(plateau.plateau_rectangle_texte):
-            plateau_a_ignorer = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
+            plateau_a_ignorer = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
 
             # Tester si la permutation était déjà dans les plateaux valides
@@ -483,6 +477,8 @@ class LotDePlateaux():
             self._nb_colonnes = data_json["colonnes"]
         if "lignes" in data_json:
             self._nb_lignes = data_json["lignes"]
+        if "colonnes vides" in data_json:
+            self._nb_colonnes_vides = data_json["colonnes vides"]
         if "debut" in data_json:
             self._debut_recherche_des_plateaux_valides = data_json["debut"]
         if "recherche terminee" in data_json and not data_json["recherche terminee"]:
@@ -496,15 +492,13 @@ class LotDePlateaux():
             and data_json['nombre plateaux'] > 0:
             if recherche_terminee is False:
                 # Récupération des plateaux valides et des ignorés
-                plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, COLONNES_VIDES_MAX)
                 for plateau_valide in data_json['liste plateaux']:
-                    plateau_courant.plateau_ligne_texte = plateau_valide
-                    self.est_ignore(plateau_courant)
-                    self._a_change = False # Tous les ajouts sont deja connus
-                    plateau_courant.clear()
+                    # TODO : La lecture du JSON entraine des ecritures dans le JSON
+                    #        Trouver un moyen plus propre de faie une lecture sans modifier le fichier
+                    self._ensemble_des_plateaux_valides.add(plateau_valide)
             elif recherche_terminee is True:
                 # Récupération des plateaux valides uniquement
-                plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, COLONNES_VIDES_MAX)
+                plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
                 for plateau_valide in data_json['liste plateaux']:
                     self._ensemble_des_plateaux_valides.add(plateau_valide)
 
@@ -520,16 +514,17 @@ class LotDePlateaux():
                 for plateau in liste_plateaux:
                     self._ensemble_des_difficultes_de_plateaux[difficulte].append(plateau)
 
-    def est_deja_termine(self, nb_colonnes, nb_lignes):
-        self.__init_export_json(nb_colonnes, nb_lignes)
+    def est_deja_termine(self, nb_colonnes, nb_lignes, nb_colonnes_vides):
+        self.__init_export_json(nb_colonnes, nb_lignes, nb_colonnes_vides)
         self.__importer_fichier_json()
 
         recherche_terminee = self._fin_recherche_des_plateaux_valides is not None
         return recherche_terminee
     
-    def __init_export_json(self, nb_colonnes, nb_lignes):
+    def __init_export_json(self, nb_colonnes, nb_lignes, nb_colonnes_vides):
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
+        self._nb_colonnes_vides = nb_colonnes_vides
         nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
         self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
 
@@ -564,6 +559,10 @@ class LotDePlateaux():
         "Ensemble des difficultés de plateaux résolus"
         return self._ensemble_des_difficultes_de_plateaux
 
+    @property
+    def nb_plateaux_solutionnes(self):
+        "Nombre de plateaux valides"
+        return sum([len(plateaux) for difficulte, plateaux in self._ensemble_des_difficultes_de_plateaux.items()])
 
 class ResoudrePlateau():
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
@@ -619,12 +618,15 @@ class ResoudrePlateau():
     def __ensemble_des_plateaux_gagnants(self):
         "Liste tous les plateaux gagnants"
         if self._liste_plateaux_gagnants is None:
-            plateau_gagnant = Plateau(self._plateau_initial.nb_colonnes, self._plateau_initial.nb_lignes, COLONNES_VIDES_MAX)
+            nb_c = self._plateau_initial.nb_colonnes
+            nb_l = self._plateau_initial.nb_lignes
+            nb_cv = self._plateau_initial.nb_colonnes_vides
+            plateau_gagnant = Plateau(nb_c, nb_l, nb_cv)
             plateau_gagnant.creer_plateau_initial()
 
             self._liste_plateaux_gagnants = []
             for permutation_courante in permutations(plateau_gagnant.plateau_rectangle_texte):
-                plateau_gagnant_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
+                plateau_gagnant_courant = Plateau(nb_c, nb_l, nb_cv)
                 plateau_gagnant_courant.plateau_rectangle_texte = permutation_courante
                 self._liste_plateaux_gagnants.append(plateau_gagnant_courant.plateau_ligne_texte)
         return self._liste_plateaux_gagnants
@@ -776,7 +778,7 @@ class ExportJSON():
     def __init__(self, delai, longueur, nom_plateau, nom_export):
         self._delai_enregistrement = delai
         self._longueur_enregistrement = longueur
-        self._chemin_enregistrement = REPERTOIRE_SAUVEGARDES / nom_plateau / (nom_export+'.json')
+        self._chemin_enregistrement = Path('Analyses') / nom_plateau / (nom_export+'.json')
 
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         self._longueur_dernier_enregistrement = 0
@@ -813,71 +815,3 @@ Retourne True si l'export a été réalisé"""
             return dico_json
         except FileNotFoundError:
             return {}
-
-if PROFILER_LE_CODE:
-    # Profilage du code
-    profil = cProfile.Profile()
-    profil.enable()
-
-for lignes in LIGNES:
-    for colonnes in COLONNES:
-        print(f"*** Generatrice {colonnes}x{lignes}: DEBUT")
-        plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
-        plateau.creer_plateau_initial()
-        plateau.afficher()
-        lot_de_plateaux = LotDePlateaux()
-        if not lot_de_plateaux.est_deja_termine(colonnes, lignes):
-            # lot_de_plateaux.fixer_taille_memoire_max(5)
-            plateau_courant = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
-            for permutation_courante in permutations(plateau.pour_permutations):
-                # Verifier que ce plateau est nouveau
-                plateau_courant.plateau_ligne = permutation_courante
-                if not lot_de_plateaux.est_ignore(plateau_courant):
-                    if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
-                        print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-                plateau_courant.clear()
-
-            lot_de_plateaux.arret_des_enregistrements()
-            # lot_de_plateaux.exporter_fichier_json()
-            if (lot_de_plateaux.duree) < 10:
-                print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
-                    int((lot_de_plateaux.duree)*1000)} millisecondes")
-            else:
-                print(f"*** Generatrice {colonnes}x{lignes}: FIN en {
-                    int(lot_de_plateaux.duree)} secondes")
-            print(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-            print(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
-        else:
-            print("Ce lot de plateaux est déjà terminé")
-
-        print('*'*60 + ' RESOLUTION')
-        for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
-            plateau.clear()
-            plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
-            resolution = ResoudrePlateau(plateau)
-            resolution.backtracking()
-            lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.solution_la_plus_courte)
-            # print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, solution moyenne = {resolution.solution_moyenne}, la plus courte = {resolution.solution_la_plus_courte}, la plus longue = {resolution.solution_la_plus_longue}")
-            # print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, la plus courte = {resolution.solution_la_plus_courte}")
-
-        lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
-        for difficulte, liste_plateaux in lot_de_plateaux.difficulte_plateaux.items():
-            # print(f"*** Difficulté : {difficulte}")
-            # print(f"{' '*5}'{liste_plateaux}'")
-            print(f"*** Difficulté : {difficulte} - {len(liste_plateaux)} plateau{'x' if len(liste_plateaux) > 1 else ''}")
-        print('*'*80)
-
-
-if PROFILER_LE_CODE:
-    # Fin du profilage
-    profil.disable()
-
-    # Affichage des statistiques de profilage
-    stats = pstats.Stats(profil).sort_stats('cumulative')
-    stats.print_stats()
-
-    # Exporter les statistiques dans un fichier texte
-    with open('profiling_results.txt', 'w') as fichier:
-        stats = pstats.Stats(profil, stream=fichier)
-        #stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
-        stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats()
