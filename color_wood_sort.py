@@ -295,6 +295,8 @@ class LotDePlateaux():
         self._export_json = None
         self._nb_colonnes = None
         self._nb_lignes = None
+        self._ensemble_des_difficultes_de_plateaux = {}
+        self._a_change = False
     
     def __len__(self):
         return self.nb_plateaux_valides
@@ -316,10 +318,12 @@ class LotDePlateaux():
         else:
             dict_lot_de_plateaux['duree']= f"{int(self.duree / 60)} minutes {int(self.duree % 60)} secondes"
         
-        dict_lot_de_plateaux['recherche_terminee'] = self._fin is not None
+        dict_lot_de_plateaux['recherche terminee'] = self._fin is not None
 
-        dict_lot_de_plateaux['nombre_plateaux']= len(self.plateaux_valides)
-        dict_lot_de_plateaux['liste_plateaux']= list(self.plateaux_valides)
+        dict_lot_de_plateaux['nombre plateaux']= len(self.plateaux_valides)
+        dict_lot_de_plateaux['liste plateaux']= list(self.plateaux_valides)
+        # La difficulté est un entier, mais est enregistrée comme une chaine de caracteres dans le JSON. Surement car c'est une clé.
+        dict_lot_de_plateaux['liste difficulte des plateaux']= self._ensemble_des_difficultes_de_plateaux
         return dict_lot_de_plateaux
 
     def arret_des_enregistrements(self):
@@ -400,7 +404,14 @@ class LotDePlateaux():
 
         if nouveau_plateau:
             self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
-            self._export_json.exporter(self)
+            self._a_change = True
+            # _a_change | exporter() || _a_change
+            # ===================================
+            #   False   |   False    ||  False
+            #   False   |   True     ||  False
+            #   True    |   False    ||  True
+            #   False   |   True     ||  False
+            self._a_change = self._a_change and not self._export_json.exporter(self)
 
     def __compter_plateau_a_ignorer(self, plateau_a_ignorer: Plateau):
         "Compte un plateau a ignorer"
@@ -454,29 +465,52 @@ class LotDePlateaux():
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les plateaux valides"""
         # Enregistrement des donnees dans un fichier JSON
-        if self.nb_plateaux_valides > 0:
-            self._export_json.forcer_export(self)
+        if self.nb_plateaux_valides > 0 and self._a_change:
+            self._a_change = self._a_change and not self._export_json.forcer_export(self)
 
-    def est_deja_termine(self, nb_colonnes, nb_lignes):
-        self.__init_export_json(nb_colonnes, nb_lignes)
+    def __importer_fichier_json(self):
+        """Lit l'enregistrement JSON s'il existe"""
         data_json = self._export_json.importer()
+        if "colonnes" in data_json:
+            self._nb_colonnes = data_json["colonnes"]
+        if "lignes" in data_json:
+            self._nb_lignes = data_json["lignes"]
+        if "debut" in data_json:
+            self._debut = data_json["debut"]
+        if "recherche terminee" in data_json and not data_json["recherche terminee"]:
+            self._fin = None
+        elif "fin" in data_json:
+            self._fin = data_json["fin"]
 
-        recherche_terminee = 'recherche_terminee' in data_json and data_json['recherche_terminee'] is True
+        recherche_terminee = 'recherche terminee' in data_json and data_json['recherche terminee'] is True
         # Rejouer les plateaux déjà trouvés
-        if 'nombre_plateaux' in data_json \
-            and data_json['nombre_plateaux'] > 0:
+        if 'nombre plateaux' in data_json \
+            and data_json['nombre plateaux'] > 0:
             if recherche_terminee is False:
                 # Récupération des plateaux valides et des ignorés
-                plateau_courant = Plateau(nb_colonnes, nb_lignes, COLONNES_VIDES_MAX)
-                for plateau_valide in data_json['liste_plateaux']:
+                plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, COLONNES_VIDES_MAX)
+                for plateau_valide in data_json['liste plateaux']:
                     plateau_courant.plateau_ligne_texte = plateau_valide
                     self.est_ignore(plateau_courant)
+                    self._a_change = False # Tous les ajouts sont deja connus
                     plateau_courant.clear()
             elif recherche_terminee is True:
                 # Récupération des plateaux valides uniquement
-                plateau_courant = Plateau(nb_colonnes, nb_lignes, COLONNES_VIDES_MAX)
-                for plateau_valide in data_json['liste_plateaux']:
+                plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, COLONNES_VIDES_MAX)
+                for plateau_valide in data_json['liste plateaux']:
                     self._ensemble_des_plateaux_valides.add(plateau_valide)
+        if 'liste difficulte des plateaux' in data_json:
+            for difficulte, liste_plateaux in data_json['liste difficulte des plateaux'].items():
+                if difficulte not in self._ensemble_des_difficultes_de_plateaux:
+                    self._ensemble_des_difficultes_de_plateaux[difficulte] = []
+                for plateau in liste_plateaux:
+                    self._ensemble_des_difficultes_de_plateaux[difficulte].append(plateau)
+
+    def est_deja_termine(self, nb_colonnes, nb_lignes):
+        self.__init_export_json(nb_colonnes, nb_lignes)
+        self.__importer_fichier_json()
+
+        recherche_terminee = self._fin is not None
         return recherche_terminee
     
     def __init_export_json(self, nb_colonnes, nb_lignes):
@@ -485,11 +519,25 @@ class LotDePlateaux():
         nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
         self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
 
+    def definir_difficulte_plateau(self, plateau: Plateau, difficulte):
+        if str(difficulte) not in self._ensemble_des_difficultes_de_plateaux:
+            self._ensemble_des_difficultes_de_plateaux[str(difficulte)] = []
+        if plateau.plateau_ligne_texte not in self._ensemble_des_difficultes_de_plateaux[str(difficulte)]:
+            self._ensemble_des_difficultes_de_plateaux[str(difficulte)].append(plateau.plateau_ligne_texte)
+            self._a_change = True
+
 class ResoudrePlateau():
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
     def __init__(self, plateau_initial: Plateau):
         self._plateau_initial = plateau_initial
         self._liste_des_solutions = []
+        # Statistiques des solutions:
+        #   - la plus longue
+        #   - la plus courte
+        #   - la moyenne
+        #   - le nombre de solution
+        # Les longueurs sont toutes égales (courtes et longues).
+        # La longueur de la solution est la grandeur qui quantifie la difficulte du plateau.
         self._statistiques = {}
         self._liste_plateaux_gagnants = None
         self._liste_des_choix_possibles = None
@@ -497,16 +545,8 @@ class ResoudrePlateau():
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
         nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
         self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom)
+        self.__importer_fichier_json()
         # TODO : Ajouter un debut/fin
-
-        # TODO : ResoudrePlateau().__init__()
-        # Enregistrer les solutions
-        # Statistiques des solutions:
-        #   - la plus longue
-        #   - la plus courte
-        #   - la moyenne
-        #   - le nombre de solution
-        pass
 
     def __len__(self):
         # TODO : implémenter la longueur = nombre de solutions trouvées
@@ -516,12 +556,12 @@ class ResoudrePlateau():
     def to_dict(self):
         dict_resoudre_plateau = {}
         dict_resoudre_plateau['plateau'] = self._plateau_initial.plateau_ligne_texte
-        dict_resoudre_plateau['nb_solutions'] = self.nb_solutions
+        dict_resoudre_plateau['nombre de solutions'] = self.nb_solutions
         dict_resoudre_plateau['solution la plus courte'] = self.solution_la_plus_courte
         dict_resoudre_plateau['solution la plus longue'] = self.solution_la_plus_longue
         dict_resoudre_plateau['solution moyenne'] = self.solution_moyenne
-        dict_resoudre_plateau['liste_solutions'] = self._liste_des_solutions
-        # TODO : Ajouter la notion de 'recherche_terminee'
+        dict_resoudre_plateau['liste des solutions'] = self._liste_des_solutions
+        # TODO : Ajouter la notion de 'recherche terminee'
         # TODO : Ajouter une methode d'import + mise à jour de la classe en lisant le fichier.
         # TODO : Si recherche teminée, pas de recherche de solution.
         return dict_resoudre_plateau
@@ -622,6 +662,9 @@ class ResoudrePlateau():
     def backtracking(self, plateau: Plateau = None):
         "Parcours de tous les choix afin de débusquer toutes les solutions"
         if plateau is None:
+            if len(self._liste_des_solutions) != 0:
+                # Le plateau est déjà résolu et enregistré
+                return
             plateau = self._plateau_initial
             self._liste_des_choix_courants = []
             self._profondeur_recursion = -1
@@ -653,7 +696,21 @@ class ResoudrePlateau():
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les solutions et les statistiques du plateau"""
         self._export_json.forcer_export(self)
-        pass
+
+    def __importer_fichier_json(self):
+        """Lit l'enregistrement JSON s'il existe"""
+        data_json = self._export_json.importer()
+        if 'nombre de solutions' in data_json:
+            self._statistiques['nombre de solution'] = data_json['nombre de solutions']
+        if 'solution la plus courte' in data_json:
+            self._statistiques['solution la plus courte'] = data_json['solution la plus courte']
+        if 'solution la plus longue' in data_json:
+            self._statistiques['solution la plus longue'] = data_json['solution la plus longue']
+        if 'solution moyenne' in data_json:
+            self._statistiques['solution moyenne'] = data_json['solution moyenne']
+        if 'liste des solutions' in data_json:
+            for solution in data_json['liste des solutions']:
+                self._liste_des_solutions.append(solution)
 
     @property
     def nb_solutions(self):
@@ -690,16 +747,20 @@ class ExportJSON():
         self._longueur_dernier_enregistrement = 0
 
     def exporter(self, contenu):
-        """Enregistre un fichier JSON selon des critères de nombres et de temps"""
+        """Enregistre un fichier JSON selon des critères de nombres et de temps.
+Retourne True si l'export a été réalisé"""
         if (len(contenu) - self._longueur_dernier_enregistrement >= self._longueur_enregistrement):
-            self.forcer_export(contenu)
+            return self.forcer_export(contenu)
 
         if (datetime.datetime.now().timestamp() - self._timestamp_dernier_enregistrement >= self._delai_enregistrement) \
             and (len(contenu) > self._longueur_dernier_enregistrement):
-            self.forcer_export(contenu)
+            return self.forcer_export(contenu)
+        
+        return False
 
     def forcer_export(self, contenu):
-        """Enregistre un fichier JSON en ignorant les critères"""
+        """Enregistre un fichier JSON en ignorant les critères.
+Retourne True si l'export a été réalisé"""
         # Enregistrement des donnees dans un fichier JSON
         if not self._chemin_enregistrement.parent.exists():
             self._chemin_enregistrement.parent.mkdir()
@@ -707,6 +768,7 @@ class ExportJSON():
             json.dump(contenu.to_dict(), fichier, ensure_ascii=False)
         self._longueur_dernier_enregistrement = len(contenu)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
+        return True
 
     def importer(self):
         """Lit dans un fichier JSON les informations totales ou de la dernière itération réalisée."""
@@ -759,9 +821,11 @@ for lignes in LIGNES:
             plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
             resolution = ResoudrePlateau(plateau)
             resolution.backtracking()
+            lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.solution_la_plus_courte)
             # print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, solution moyenne = {resolution.solution_moyenne}, la plus courte = {resolution.solution_la_plus_courte}, la plus longue = {resolution.solution_la_plus_longue}")
             print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, la plus courte = {resolution.solution_la_plus_courte}")
         print('*'*80)
+        lot_de_plateaux.exporter_fichier_json()
 
 # print('*'*60 + ' RESOLUTION')
 # plateau_initial = Plateau(2,2)
