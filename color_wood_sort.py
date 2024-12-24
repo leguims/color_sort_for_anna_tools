@@ -14,6 +14,7 @@ LIGNES = [2] #4
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000_000
 PROFILER_LE_CODE = False
+REPERTOIRE_SAUVEGARDES = Path('Analyses')
 
 class Plateau():
     "Classe qui implémente un plateau. Son contenu et ses différentes représentations."
@@ -775,7 +776,7 @@ class ExportJSON():
     def __init__(self, delai, longueur, nom_plateau, nom_export):
         self._delai_enregistrement = delai
         self._longueur_enregistrement = longueur
-        self._chemin_enregistrement = Path(nom_plateau) / (nom_export+'.json')
+        self._chemin_enregistrement = REPERTOIRE_SAUVEGARDES / nom_plateau / (nom_export+'.json')
 
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         self._longueur_dernier_enregistrement = 0
@@ -797,7 +798,7 @@ Retourne True si l'export a été réalisé"""
 Retourne True si l'export a été réalisé"""
         # Enregistrement des donnees dans un fichier JSON
         if not self._chemin_enregistrement.parent.exists():
-            self._chemin_enregistrement.parent.mkdir()
+            self._chemin_enregistrement.parent.mkdir(parents=True, exist_ok=True)
         with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
             json.dump(contenu.to_dict(), fichier, ensure_ascii=False)
         self._longueur_dernier_enregistrement = len(contenu)
