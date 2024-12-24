@@ -8,16 +8,6 @@ import copy
 from pathlib import Path
 
 # TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
-# TODO : commencer à chercher les solutions.
-#        Idée d'algo :
-#          - Pour les N colonnes, créer un Thread qui vérifie si la colonne N peut-être jouée.
-#          - Chaque Thread identifie les D colonnes destinations de la colonne de départ N
-#          - Pour chaque colonne D, créer un Thread qui calcule le 'plateau' après le coup de la colonne N vers D.
-#          - Pour les 'N x D' plateaux obtenus, calcule si la position est gagnante.
-#              - GAGNANTE : Enregistre la partie et les nombres de coups dans un fichier correspondant à la position de départ
-#              - BLOQUEE : s'arréter là dans la recherche.
-#              - REPETEE : s'arréter là dans la recherche.
-#          - Recommencer l'opération jusqu'à MAX_COUPS de profondeur
 
 COLONNES = range(2, 7) #11
 LIGNES = [2] #4
@@ -290,12 +280,14 @@ class LotDePlateaux():
         self._ensemble_des_plateaux_a_ignorer = set()
         self._dico_compteur_des_plateaux_a_ignorer = {}
         self._nb_plateaux_max = MEMOIRE_MAX
-        self._debut = datetime.datetime.now().timestamp()
-        self._fin = None
+        self._debut_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
+        self._fin_recherche_des_plateaux_valides = None
         self._export_json = None
         self._nb_colonnes = None
         self._nb_lignes = None
         self._ensemble_des_difficultes_de_plateaux = {}
+        self._debut_recherche_des_solutions = None
+        self._fin_recherche_des_solutions = None
         self._a_change = False
     
     def __len__(self):
@@ -318,10 +310,25 @@ class LotDePlateaux():
         else:
             dict_lot_de_plateaux['duree']= f"{int(self.duree / 60)} minutes {int(self.duree % 60)} secondes"
         
-        dict_lot_de_plateaux['recherche terminee'] = self._fin is not None
+        dict_lot_de_plateaux['recherche terminee'] = self._fin_recherche_des_plateaux_valides is not None
 
         dict_lot_de_plateaux['nombre plateaux']= len(self.plateaux_valides)
         dict_lot_de_plateaux['liste plateaux']= list(self.plateaux_valides)
+
+        # Solutions
+        dict_lot_de_plateaux['debut solutions']= self._debut_recherche_des_solutions
+        dict_lot_de_plateaux['fin solutions']= self._fin_recherche_des_solutions
+        if self._debut_recherche_des_solutions is not None \
+            and self._debut_recherche_des_solutions is not None:
+            duree_solution = self._fin_recherche_des_solutions - self._debut_recherche_des_solutions
+            if duree_solution < 0.001:
+                dict_lot_de_plateaux['duree solutions']= f"{int(duree_solution*1_000_000)} microsecondes"
+            elif duree_solution < 1:
+                dict_lot_de_plateaux['duree solutions']= f"{int(duree_solution*1_000)} millisecondes"
+            elif duree_solution < 60:
+                dict_lot_de_plateaux['duree solutions']= f"{int(duree_solution)} secondes"
+            else:
+                dict_lot_de_plateaux['duree solutions']= f"{int(duree_solution / 60)} minutes {int(duree_solution % 60)} secondes"
         # La difficulté est un entier, mais est enregistrée comme une chaine de caracteres dans le JSON. Surement car c'est une clé.
         dict_lot_de_plateaux['liste difficulte des plateaux']= self._ensemble_des_difficultes_de_plateaux
         return dict_lot_de_plateaux
@@ -330,7 +337,7 @@ class LotDePlateaux():
         "Méthode qui finalise la recherche de plateaux"
         self._ensemble_des_plateaux_a_ignorer.clear()
         self._dico_compteur_des_plateaux_a_ignorer.clear()
-        self._fin = datetime.datetime.now().timestamp()
+        self._fin_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
         self.exporter_fichier_json()
 
     def est_ignore(self, plateau: Plateau):
@@ -368,13 +375,13 @@ class LotDePlateaux():
     @property
     def debut(self):
         "Heure de début de la recherche"
-        return self._debut
+        return self._debut_recherche_des_plateaux_valides
 
     @property
     def fin(self):
         "Heure de fin (ou courante) de la recherche"
-        if self._fin:
-            return self._fin
+        if self._fin_recherche_des_plateaux_valides:
+            return self._fin_recherche_des_plateaux_valides
         return datetime.datetime.now().timestamp()
 
     @property
@@ -476,11 +483,11 @@ class LotDePlateaux():
         if "lignes" in data_json:
             self._nb_lignes = data_json["lignes"]
         if "debut" in data_json:
-            self._debut = data_json["debut"]
+            self._debut_recherche_des_plateaux_valides = data_json["debut"]
         if "recherche terminee" in data_json and not data_json["recherche terminee"]:
-            self._fin = None
+            self._fin_recherche_des_plateaux_valides = None
         elif "fin" in data_json:
-            self._fin = data_json["fin"]
+            self._fin_recherche_des_plateaux_valides = data_json["fin"]
 
         recherche_terminee = 'recherche terminee' in data_json and data_json['recherche terminee'] is True
         # Rejouer les plateaux déjà trouvés
@@ -499,6 +506,12 @@ class LotDePlateaux():
                 plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, COLONNES_VIDES_MAX)
                 for plateau_valide in data_json['liste plateaux']:
                     self._ensemble_des_plateaux_valides.add(plateau_valide)
+
+        # Solutions
+        if "debut solutions" in data_json:
+            self._debut_recherche_des_solutions = data_json["debut solutions"]
+        if "fin solutions" in data_json:
+            self._fin_recherche_des_solutions = data_json["fin solutions"]
         if 'liste difficulte des plateaux' in data_json:
             for difficulte, liste_plateaux in data_json['liste difficulte des plateaux'].items():
                 if difficulte not in self._ensemble_des_difficultes_de_plateaux:
@@ -510,7 +523,7 @@ class LotDePlateaux():
         self.__init_export_json(nb_colonnes, nb_lignes)
         self.__importer_fichier_json()
 
-        recherche_terminee = self._fin is not None
+        recherche_terminee = self._fin_recherche_des_plateaux_valides is not None
         return recherche_terminee
     
     def __init_export_json(self, nb_colonnes, nb_lignes):
@@ -520,11 +533,36 @@ class LotDePlateaux():
         self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
 
     def definir_difficulte_plateau(self, plateau: Plateau, difficulte):
+        "Méthode qui enregistre l'enregistrement des difficultés des plateaux"
+        if self._debut_recherche_des_solutions is None:
+            self._debut_recherche_des_solutions = datetime.datetime.now().timestamp()
         if str(difficulte) not in self._ensemble_des_difficultes_de_plateaux:
             self._ensemble_des_difficultes_de_plateaux[str(difficulte)] = []
         if plateau.plateau_ligne_texte not in self._ensemble_des_difficultes_de_plateaux[str(difficulte)]:
             self._ensemble_des_difficultes_de_plateaux[str(difficulte)].append(plateau.plateau_ligne_texte)
             self._a_change = True
+            self._fin_recherche_des_solutions = datetime.datetime.now().timestamp()
+
+    def arret_des_enregistrements_de_difficultes_plateaux(self):
+        "Méthode qui finalise l'arret des enregistrements des difficultés de plateaux"
+        cles_dico = list(self._ensemble_des_difficultes_de_plateaux.keys())
+        if None in cles_dico:
+            cles_dico.remove(None) # None est inclassable avec 'list().sort()'
+        cles_dico_classees = copy.deepcopy(cles_dico)
+        cles_dico_classees.sort()
+        if cles_dico != cles_dico_classees:
+            # Ordonner l'ensemble par difficulté croissante
+            dico_classe = {k: self._ensemble_des_difficultes_de_plateaux.get(k) for k in cles_dico_classees}
+            if None in self._ensemble_des_difficultes_de_plateaux:
+                dico_classe[None] = self._ensemble_des_difficultes_de_plateaux.get(None)
+            self._ensemble_des_difficultes_de_plateaux = copy.deepcopy(dico_classe)
+        self.exporter_fichier_json()
+
+    @property
+    def difficulte_plateaux(self):
+        "Ensemble des difficultés de plateaux résolus"
+        return self._ensemble_des_difficultes_de_plateaux
+
 
 class ResoudrePlateau():
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
@@ -546,11 +584,13 @@ class ResoudrePlateau():
         nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
         self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom)
         self.__importer_fichier_json()
-        # TODO : Ajouter un debut/fin
+        # TODO : Ajouter un debut/fin => Abandonné. La résolution d'un plateau est trop courte.
 
     def __len__(self):
-        # TODO : implémenter la longueur = nombre de solutions trouvées
-        pass
+        "La longueur de la solution définit la difficulté"
+        # Le nombre de soltuioon n'a pas d'incidence sur la difficulté
+        if self.solution_la_plus_courte:
+            return self.solution_la_plus_courte
         return 0
 
     def to_dict(self):
@@ -561,9 +601,6 @@ class ResoudrePlateau():
         dict_resoudre_plateau['solution la plus longue'] = self.solution_la_plus_longue
         dict_resoudre_plateau['solution moyenne'] = self.solution_moyenne
         dict_resoudre_plateau['liste des solutions'] = self._liste_des_solutions
-        # TODO : Ajouter la notion de 'recherche terminee'
-        # TODO : Ajouter une methode d'import + mise à jour de la classe en lisant le fichier.
-        # TODO : Si recherche teminée, pas de recherche de solution.
         return dict_resoudre_plateau
 
     def __ensemble_des_choix_possibles(self):
@@ -607,7 +644,6 @@ class ResoudrePlateau():
 
     def __est_valide(self, plateau: Plateau, choix):
         "Vérifie la validité du choix"
-        # TODO : ResoudrePlateau().__est_valide()
         c_depart, c_arrivee = choix
         # INVALIDE Si les colonnes de départ et d'arrivée sont identiques
         if c_depart == c_arrivee:
@@ -634,7 +670,7 @@ class ResoudrePlateau():
         "Evalue si le plateau est terminé (gagné ou bloqué)"
         if plateau.plateau_ligne_texte in self.__ensemble_des_plateaux_gagnants():
             return True
-        # TODO : Evaluer si le plateau est "bloqué"
+        # TODO : Evaluer si le plateau est "bloqué" => à observer, mais vérification unitile jusque là.
         return False
 
     def __enregistrer_solution(self, plateau: Plateau):
@@ -655,8 +691,6 @@ class ResoudrePlateau():
         else:
             self._statistiques['nombre de solution'] += 1
 
-        # TODO : ResoudrePlateau().__enregistrer_solution()
-        #        Enregistrer solution complet + màj statistiques
         self._export_json.exporter(self)
 
     def backtracking(self, plateau: Plateau = None):
@@ -732,7 +766,7 @@ class ResoudrePlateau():
 
     @property
     def solution_moyenne(self):
-        # TODO : ResoudrePlateau().solution_moyenne
+        # TODO : ResoudrePlateau().solution_moyenne => ABANDONNE, nettoyer le code de la 'moyenne' !
         if 'solution moyenne' in self._statistiques:
             return self._statistiques['solution moyenne']
         return None
@@ -823,42 +857,14 @@ for lignes in LIGNES:
             resolution.backtracking()
             lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.solution_la_plus_courte)
             # print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, solution moyenne = {resolution.solution_moyenne}, la plus courte = {resolution.solution_la_plus_courte}, la plus longue = {resolution.solution_la_plus_longue}")
-            print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, la plus courte = {resolution.solution_la_plus_courte}")
+            # print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, la plus courte = {resolution.solution_la_plus_courte}")
+
+        lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
+        for difficulte, liste_plateaux in lot_de_plateaux.difficulte_plateaux.items():
+            # print(f"*** Difficulté : {difficulte}")
+            # print(f"{' '*5}'{liste_plateaux}'")
+            print(f"*** Difficulté : {difficulte} - {len(liste_plateaux)} plateau{'x' if len(liste_plateaux) > 1 else ''}")
         print('*'*80)
-        lot_de_plateaux.exporter_fichier_json()
-
-# print('*'*60 + ' RESOLUTION')
-# plateau_initial = Plateau(2,2)
-# plateau_initial.plateau_ligne_texte = "AA  "
-# resolution = ResoudrePlateau(plateau_initial)
-# resolution.backtracking()
-# print(f"nb_solutions = {resolution.nb_solutions}")
-# print(f"solution_moyenne = {resolution.solution_moyenne}")
-# print(f"solution_la_plus_courte = {resolution.solution_la_plus_courte}")
-# print(f"solution_la_plus_longue = {resolution.solution_la_plus_longue}")
-# print('*'*80)
-
-# print('*'*60 + ' RESOLUTION')
-# plateau_initial = Plateau(2,2)
-# plateau_initial.plateau_ligne_texte = "A A "
-# resolution = ResoudrePlateau(plateau_initial)
-# resolution.backtracking()
-# print(f"nb_solutions = {resolution.nb_solutions}")
-# print(f"solution_moyenne = {resolution.solution_moyenne}")
-# print(f"solution_la_plus_courte = {resolution.solution_la_plus_courte}")
-# print(f"solution_la_plus_longue = {resolution.solution_la_plus_longue}")
-# print('*'*80)
-
-# print('*'*60 + ' RESOLUTION')
-# plateau_initial = Plateau(3,2)
-# plateau_initial.plateau_ligne_texte = "ABBA  "
-# resolution = ResoudrePlateau(plateau_initial)
-# resolution.backtracking()
-# print(f"nb_solutions = {resolution.nb_solutions}")
-# print(f"solution_moyenne = {resolution.solution_moyenne}")
-# print(f"solution_la_plus_courte = {resolution.solution_la_plus_courte}")
-# print(f"solution_la_plus_longue = {resolution.solution_la_plus_longue}")
-# print('*'*80)
 
 
 if PROFILER_LE_CODE:
