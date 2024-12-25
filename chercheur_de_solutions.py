@@ -1,26 +1,17 @@
 "Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoordSort'"
 from itertools import permutations #, product, combinations#, combinations_with_replacement
-import cProfile
-import pstats
 import time
 
 import color_wood_sort as cws
 
-COLONNES = [3] # range(2, 12) # [2] # range(2, 12)
-LIGNES = [3] # range(2, 5) # [2] # range(2, 5)
+COLONNES = range(2, 12) # [2] # range(2, 12)
+LIGNES = range(2, 5) # [2] # range(2, 5)
 PERIODE_SCRUTATION_SECONDES = 10 # 10*60
 COLONNES_VIDES_MAX = 1
-MEMOIRE_MAX = 500_000_000
+MEMOIRE_MAX = 500_000
 PROFILER_LE_CODE = False
 
-if PROFILER_LE_CODE:
-    # Profilage du code
-    profil = cProfile.Profile()
-    profil.enable()
-
-while(True):
-    for lignes in LIGNES:
-        for colonnes in COLONNES:
+def chercher_des_solutions(colonnes, lignes):
             print(f"\n\r*** Generatrice {colonnes}x{lignes}: DEBUT")
             plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
             plateau.creer_plateau_initial()
@@ -47,19 +38,21 @@ while(True):
                     print("Toutes les solutions sont trouvées")
             else:
                 print("Ce lot de plateaux n'est pas encore terminé, pas de recherche de solution")
-    time.sleep(PERIODE_SCRUTATION_SECONDES)
 
+def chercher_en_boucle():
+    while(True):
+        for lignes in LIGNES:
+            for colonnes in COLONNES:
+                chercher_des_solutions(colonnes, lignes)
+        time.sleep(PERIODE_SCRUTATION_SECONDES)
 
-if PROFILER_LE_CODE:
-    # Fin du profilage
-    profil.disable()
+def main():
+    profil = cws.ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
+    profil.start()
+    for lignes in LIGNES:
+        for colonnes in COLONNES:
+            chercher_des_solutions(colonnes, lignes)
+    profil.stop()
 
-    # Affichage des statistiques de profilage
-    stats = pstats.Stats(profil).sort_stats('cumulative')
-    stats.print_stats()
-
-    # Exporter les statistiques dans un fichier texte
-    with open('profiling_results.txt', 'w') as fichier:
-        stats = pstats.Stats(profil, stream=fichier)
-        #stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
-        stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats()
+if __name__ == "__main__":
+    main()

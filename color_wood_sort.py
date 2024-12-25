@@ -4,10 +4,14 @@ import datetime
 import json
 import copy
 from pathlib import Path
+from multiprocessing import Pool
+
+import cProfile
+import pstats
 
 # TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
 
-class Plateau():
+class Plateau:
     "Classe qui implémente un plateau. Son contenu et ses différentes représentations."
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides=1):
         self._nb_colonnes = nb_colonnes
@@ -265,7 +269,7 @@ class Plateau():
         """"Verifie si le plateau actuel est gagnant"""
         return False
 
-class LotDePlateaux():
+class LotDePlateaux:
     """Classe qui gère les lots de plateaux pour parcourir l'immensité des plateaux existants.
 Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la recherche."""
     def __init__(self, nb_plateaux_max = 1_000_000):
@@ -565,7 +569,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         "Nombre de plateaux valides"
         return sum([len(plateaux) for difficulte, plateaux in self._ensemble_des_difficultes_de_plateaux.items()])
 
-class ResoudrePlateau():
+class ResoudrePlateau:
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
     def __init__(self, plateau_initial: Plateau):
         self._plateau_initial = copy.deepcopy(plateau_initial)
@@ -777,7 +781,7 @@ class ResoudrePlateau():
             return self._statistiques['solution moyenne']
         return None
 
-class ExportJSON():
+class ExportJSON:
     def __init__(self, delai, longueur, nom_plateau, nom_export):
         self._delai_enregistrement = delai
         self._longueur_enregistrement = longueur
@@ -818,3 +822,62 @@ Retourne True si l'export a été réalisé"""
             return dico_json
         except FileNotFoundError:
             return {}
+
+class ProfilerLeCode:
+    def __init__(self, nom, actif = False):
+        self.actif = actif
+        self._nom = nom
+
+    def start(self):
+        if self.actif:
+            # Profilage du code
+            self._profil = cProfile.Profile()
+            self._profil.enable()
+
+    def stop(self):
+        if self.actif:
+            # Fin du profilage
+            self._profil.disable()
+
+            # Affichage des statistiques de profilage
+            self._stats = pstats.Stats(self._profil).sort_stats('cumulative')
+            self._stats.print_stats()
+
+            # Exporter les statistiques dans un fichier texte
+            with open(f'profiling_results_{self._nom}.txt', 'w') as fichier:
+                self._stats = pstats.Stats(self._profil, stream=fichier)
+                #stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
+                self._stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats()
+
+class CreerLesTaches:
+    def __init__(self, nom, nb_colonnes, nb_lignes):
+        self._nom = nom
+        self._taches = [{'colonnes': c, 'lignes': l, 'complexite': c*l, 'terminee': False} for c in range(2, nb_colonnes) for l in range(2, nb_lignes)]
+        self._taches.sort(key=lambda x: x['complexite'])
+
+    def exporter(self):
+        with open(f'{self._nom}.json', 'w', encoding='utf-8') as fichier:
+            json.dump(self._taches, fichier, ensure_ascii=False, indent=4)
+
+    def importer(self):
+        with open(f'{self._nom}.json', 'r', encoding='utf-8') as fichier:
+            self._taches = json.load(fichier)
+
+    def mettre_a_jour_tache(self, colonnes, lignes):
+        for tache in self._taches:
+            if tache['colonnes'] == colonnes and tache['lignes'] == lignes:
+                tache['terminee'] = True
+                break
+        self.exporter()
+
+    def executer_taches(self, fonction, nb_processus=None):
+        with Pool(processes=nb_processus) as pool:
+            for tache in self._taches:
+                if not tache['terminee']:
+                    pool.apply_async(fonction, (tache['colonnes'], tache['lignes']), callback=lambda _: self.mettre_a_jour_tache(tache['colonnes'], tache['lignes']))
+            pool.close()
+            pool.join()
+
+    @property
+    def taches(self):
+        return self._taches
