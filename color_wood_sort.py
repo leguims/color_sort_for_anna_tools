@@ -1,5 +1,5 @@
 "Module pour créer, résoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
-from itertools import permutations #, product, combinations#, combinations_with_replacement
+from itertools import permutations
 import datetime
 import json
 import copy
@@ -8,6 +8,8 @@ from multiprocessing import Pool
 
 import cProfile
 import pstats
+
+REPERTOIRE_SORTIE_RACINE = 'Analyses'
 
 # TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
 
@@ -785,7 +787,7 @@ class ExportJSON:
     def __init__(self, delai, longueur, nom_plateau, nom_export):
         self._delai_enregistrement = delai
         self._longueur_enregistrement = longueur
-        self._chemin_enregistrement = Path('Analyses') / nom_plateau / (nom_export+'.json')
+        self._chemin_enregistrement = Path(REPERTOIRE_SORTIE_RACINE) / nom_plateau / (nom_export+'.json')
 
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         self._longueur_dernier_enregistrement = 0
@@ -863,7 +865,7 @@ class CreerLesTaches:
         with open(f'{self._nom}.json', 'r', encoding='utf-8') as fichier:
             self._taches = json.load(fichier)
 
-    def mettre_a_jour_tache(self, colonnes, lignes):
+    def __mettre_a_jour_tache(self, colonnes, lignes):
         for tache in self._taches:
             if tache['colonnes'] == colonnes and tache['lignes'] == lignes:
                 tache['terminee'] = True
@@ -874,7 +876,7 @@ class CreerLesTaches:
         with Pool(processes=nb_processus) as pool:
             for tache in self._taches:
                 if not tache['terminee']:
-                    pool.apply_async(fonction, (tache['colonnes'], tache['lignes']), callback=lambda _: self.mettre_a_jour_tache(tache['colonnes'], tache['lignes']))
+                    pool.apply_async(fonction, (tache['colonnes'], tache['lignes']), callback=lambda _: self.__mettre_a_jour_tache(tache['colonnes'], tache['lignes']))
             pool.close()
             pool.join()
 
