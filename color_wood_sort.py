@@ -295,44 +295,59 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
 
     def to_dict(self):
         dict_lot_de_plateaux = {}
-        if self._nb_colonnes is not None:
-            dict_lot_de_plateaux['colonnes']= self._nb_colonnes
-            dict_lot_de_plateaux['lignes']= self._nb_lignes
-            dict_lot_de_plateaux['colonnes vides']= self._nb_colonnes_vides
-
-        dict_lot_de_plateaux['debut']= self.debut
-        dict_lot_de_plateaux['fin']= self.fin
-        if self.duree < 0.001:
-            dict_lot_de_plateaux['duree']= f"{int(self.duree*1_000_000)} microsecondes"
-        elif self.duree < 1:
-            dict_lot_de_plateaux['duree']= f"{int(self.duree*1_000)} millisecondes"
-        elif self.duree < 60:
-            dict_lot_de_plateaux['duree']= f"{int(self.duree)} secondes"
-        else:
-            dict_lot_de_plateaux['duree']= f"{int(self.duree / 60)} minutes {int(self.duree % 60)} secondes"
         
+        # Ajouter les informations de colonnes et lignes si disponibles
+        if self._nb_colonnes is not None:
+            dict_lot_de_plateaux['colonnes'] = self._nb_colonnes
+            dict_lot_de_plateaux['lignes'] = self._nb_lignes
+            dict_lot_de_plateaux['colonnes vides'] = self._nb_colonnes_vides
+
+        # Ajouter les timestamps de début et de fin
+        dict_lot_de_plateaux['debut'] = self.debut
+        dict_lot_de_plateaux['fin'] = self.fin
+
+        # Formater la durée de manière lisible
+        dict_lot_de_plateaux['duree'] = self.formater_duree(self.duree)
+        
+        # Indiquer si la recherche est terminée
         dict_lot_de_plateaux['recherche terminee'] = self._fin_recherche_des_plateaux_valides is not None
 
-        dict_lot_de_plateaux['nombre plateaux']= len(self.plateaux_valides)
-        dict_lot_de_plateaux['liste plateaux']= list(self.plateaux_valides)
+        # Ajouter le nombre de plateaux et la liste des plateaux valides
+        dict_lot_de_plateaux['nombre plateaux'] = len(self.plateaux_valides)
+        dict_lot_de_plateaux['liste plateaux'] = list(self.plateaux_valides)
 
-        # Solutions
-        dict_lot_de_plateaux['debut solutions']= self._debut_recherche_des_solutions
-        dict_lot_de_plateaux['fin solutions']= self._fin_recherche_des_solutions
+        # Ajouter les timestamps de début et de fin des solutions
+        dict_lot_de_plateaux['debut solutions'] = self._debut_recherche_des_solutions
+        dict_lot_de_plateaux['fin solutions'] = self._fin_recherche_des_solutions
+
+        # Ajouter la duree de recherche des solutions
         if self._debut_recherche_des_solutions is not None \
             and self._debut_recherche_des_solutions is not None:
             duree_solution = self._fin_recherche_des_solutions - self._debut_recherche_des_solutions
-            if duree_solution < 0.001:
-                dict_lot_de_plateaux['duree solutions']= f"{int(duree_solution*1_000_000)} microsecondes"
-            elif duree_solution < 1:
-                dict_lot_de_plateaux['duree solutions']= f"{int(duree_solution*1_000)} millisecondes"
-            elif duree_solution < 60:
-                dict_lot_de_plateaux['duree solutions']= f"{int(duree_solution)} secondes"
-            else:
-                dict_lot_de_plateaux['duree solutions']= f"{int(duree_solution / 60)} minutes {int(duree_solution % 60)} secondes"
+            dict_lot_de_plateaux['duree solutions'] = self.formater_duree(duree_solution)
         # La difficulté est un entier, mais est enregistrée comme une chaine de caracteres dans le JSON. Surement car c'est une clé.
         dict_lot_de_plateaux['liste difficulte des plateaux']= self._ensemble_des_difficultes_de_plateaux
+
         return dict_lot_de_plateaux
+
+    def formater_duree(self, duree):
+        """Formater la durée en une chaîne de caractères lisible."""
+        if duree < 0.001:
+            return f"{int(duree * 1_000_000)} microsecondes"
+        elif duree < 1:
+            return f"{int(duree * 1_000)} millisecondes"
+        elif duree < 60:
+            return f"{int(duree)} secondes"
+        else:
+            minutes, secondes = divmod(duree, 60)
+            heures, minutes = divmod(minutes, 60)
+            jours, heures = divmod(heures, 24)
+            if jours > 0:
+                return f"{int(jours)} jours {int(heures)} heures"
+            elif heures > 0:
+                return f"{int(heures)} heures {int(minutes)} minutes"
+            else:
+                return f"{int(minutes)} minutes {int(secondes)} secondes"
 
     def arret_des_enregistrements(self):
         "Méthode qui finalise la recherche de plateaux"

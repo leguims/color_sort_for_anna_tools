@@ -29,18 +29,7 @@ def chercher_des_plateaux(colonnes, lignes):
         lot_de_plateaux.arret_des_enregistrements()
         # lot_de_plateaux.exporter_fichier_json()
 
-        if lot_de_plateaux.duree < 0.001:
-            print(f"[{colonnes}x{lignes}] duree={int(lot_de_plateaux.duree*1_000_000)} microsecondes")
-        elif lot_de_plateaux.duree < 1:
-            print(f"[{colonnes}x{lignes}] duree={int(lot_de_plateaux.duree*1_000)} millisecondes")
-        elif lot_de_plateaux.duree < 60:
-            print(f"[{colonnes}x{lignes}] duree={int(lot_de_plateaux.duree)} secondes")
-        elif lot_de_plateaux.duree < 60*60:
-            print(f"[{colonnes}x{lignes}] duree={int(lot_de_plateaux.duree / 60)} minutes {int(lot_de_plateaux.duree % 60)} secondes")
-        elif lot_de_plateaux.duree < 60*60*24:
-            print(f"[{colonnes}x{lignes}] duree={int(lot_de_plateaux.duree / (60*60))} heures {int(lot_de_plateaux.duree % (60*60))} minutes")
-        else:
-            print(f"[{colonnes}x{lignes}] duree={int(lot_de_plateaux.duree / (60*60*24))} jours {int(lot_de_plateaux.duree % (60*60*24))} heures")
+        print(f"[{colonnes}x{lignes}] duree={lot_de_plateaux.formater_duree(lot_de_plateaux.duree)}")
 
         print(f"[{colonnes}x{lignes}] nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
         print(f"[{colonnes}x{lignes}] nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
