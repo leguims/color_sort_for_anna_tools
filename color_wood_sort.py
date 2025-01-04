@@ -411,7 +411,8 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         # permutation effacée. Il faut vérifier les permutations avant d'ajouter définitivement
         # le plateau.
         nouveau_plateau = True
-        for permutation_courante in permutations(plateau.plateau_rectangle_texte):
+        # 'set()' est utilisé pour éliminer les permutations identiques
+        for permutation_courante in set(permutations(plateau.plateau_rectangle_texte)):
             plateau_a_ignorer = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
 
@@ -647,7 +648,8 @@ class ResoudrePlateau:
             plateau_gagnant.creer_plateau_initial()
 
             self._liste_plateaux_gagnants = []
-            for permutation_courante in permutations(plateau_gagnant.plateau_rectangle_texte):
+            # 'set()' est utilisé pour éliminer les permutations identiques
+            for permutation_courante in set(permutations(plateau_gagnant.plateau_rectangle_texte)):
                 plateau_gagnant_courant = Plateau(nb_c, nb_l, nb_cv)
                 plateau_gagnant_courant.plateau_rectangle_texte = permutation_courante
                 self._liste_plateaux_gagnants.append(plateau_gagnant_courant.plateau_ligne_texte)

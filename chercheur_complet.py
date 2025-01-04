@@ -18,7 +18,8 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
     if not lot_de_plateaux.est_deja_termine(colonnes, lignes, COLONNES_VIDES_MAX):
         # lot_de_plateaux.fixer_taille_memoire_max(5)
         plateau_courant = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
-        for permutation_courante in permutations(plateau.pour_permutations):
+        # 'set()' est utilisé pour éliminer les permutations identiques
+        for permutation_courante in set(permutations(plateau.pour_permutations)):
             # Verifier que ce plateau est nouveau
             plateau_courant.plateau_ligne = permutation_courante
             if not lot_de_plateaux.est_ignore(plateau_courant):
