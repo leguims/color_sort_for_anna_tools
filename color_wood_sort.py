@@ -368,7 +368,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                 return False
             else:
                 # Nouveau Plateau invalide, on l'ignore
-                self.__ignorer_le_plateau(plateau)
+                self.__ignorer_le_plateau_et_ses_permutations(plateau)
                 return True
         self.__compter_plateau_a_ignorer(plateau)
         return True
@@ -420,13 +420,14 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             if plateau_a_ignorer.plateau_ligne_texte in self._ensemble_des_plateaux_valides:
                 nouveau_plateau = False
 
-            # Si nouveau plateau : on enregistre seulement les permutations dans 'IGNORER'
-            # Sinon : on enregistre tout dans 'IGNORER'
-            if not nouveau_plateau \
-                or plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
+            # Ignorer toutes les permutations
+            if plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
                 self.__ignorer_le_plateau(plateau_a_ignorer)
 
-        if nouveau_plateau:
+        if not nouveau_plateau:
+            # Ignorer un "Faux" nouveau plateau
+            self.__ignorer_le_plateau(plateau)
+        else:
             self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
             self._a_change = True
             # _a_change | exporter() || _a_change
@@ -443,6 +444,13 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             self._dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] = 1
         else:
             self._dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] += 1
+
+    def __ignorer_le_plateau_et_ses_permutations(self, plateau_a_ignorer: Plateau):
+        # 'set()' est utilisé pour éliminer les permutations identiques
+        for permutation_courante in set(permutations(plateau_a_ignorer.plateau_rectangle_texte)):
+            plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+            plateau.plateau_rectangle_texte = permutation_courante
+            self.__ignorer_le_plateau(plateau)
 
     def __ignorer_le_plateau(self, plateau_a_ignorer: Plateau):
         "Ignore un plateau et met a jour les ensembles et compteurs"
@@ -512,18 +520,13 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         # Rejouer les plateaux déjà trouvés
         if 'nombre plateaux' in data_json \
             and data_json['nombre plateaux'] > 0:
-            if recherche_terminee is False:
-                # Récupération des plateaux valides et des ignorés
-                for plateau_valide in data_json['liste plateaux']:
-                    # 'self.est_ignore()' n'est pas utilisé, car il va modifier le fichier
-                    #  d'export quand des plateaux valides sont ajoutés. Dans noter cas, il
-                    #  faut ajouter les plateaux depuis l'export en considérant qu'il sont fiables.
-                    self._ensemble_des_plateaux_valides.add(plateau_valide)
-            elif recherche_terminee is True:
-                # Récupération des plateaux valides uniquement
-                plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-                for plateau_valide in data_json['liste plateaux']:
-                    self._ensemble_des_plateaux_valides.add(plateau_valide)
+            # Récupération des plateaux valides que la recherche soit terminée ou non
+            # pas d'optilmisation identifiée pour accelerer la poursuite de la recherche
+            for plateau_valide in data_json['liste plateaux']:
+                # 'self.est_ignore()' n'est pas utilisé, car il va modifier le fichier
+                #  d'export quand des plateaux valides sont ajoutés. Dans notre cas, il
+                #  faut ajouter les plateaux depuis l'export en considérant qu'il sont fiables.
+                self._ensemble_des_plateaux_valides.add(plateau_valide)
 
         # Solutions
         if "debut solutions" in data_json:

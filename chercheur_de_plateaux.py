@@ -19,7 +19,17 @@ def chercher_des_plateaux(colonnes, lignes):
         # lot_de_plateaux.fixer_taille_memoire_max(5)
         plateau_courant = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
         # 'set()' est utilisé pour éliminer les permutations identiques
+        # TODO : Ne fonctionne (probablement) pas pour les permutations immenses.
+        #permutation_realisees = set()
         for permutation_courante in set(permutations(plateau.pour_permutations)):
+            # if permutation_courante in permutation_realisees:
+            #     continue
+            # else:
+            #     if len(permutation_realisees) < MEMOIRE_MAX:
+            #         permutation_realisees.add(permutation_courante)
+            #     else:
+            #         permutation_realisees.clear()
+
             # Verifier que ce plateau est nouveau
             plateau_courant.plateau_ligne = permutation_courante
             if not lot_de_plateaux.est_ignore(plateau_courant):
