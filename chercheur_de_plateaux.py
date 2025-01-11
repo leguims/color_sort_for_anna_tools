@@ -10,7 +10,7 @@ MEMOIRE_MAX = 5_000_000
 PROFILER_LE_CODE = False
 
 def chercher_des_plateaux(colonnes, lignes):
-    print(f"[{colonnes}x{lignes}] DEBUT")
+    print(f"{' '*colonnes}[{colonnes}x{lignes}] DEBUT")
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
     # plateau.afficher()
@@ -27,12 +27,12 @@ def chercher_des_plateaux(colonnes, lignes):
         lot_de_plateaux.arret_des_enregistrements()
         # lot_de_plateaux.exporter_fichier_json()
 
-        print(f"[{colonnes}x{lignes}] duree={lot_de_plateaux.formater_duree(lot_de_plateaux.duree)}")
+        print(f"{' '*colonnes}[{colonnes}x{lignes}] duree={lot_de_plateaux.formater_duree(lot_de_plateaux.duree)}")
 
-        print(f"[{colonnes}x{lignes}] nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-        print(f"[{colonnes}x{lignes}] nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
+        print(f"{' '*colonnes}[{colonnes}x{lignes}] nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+        print(f"{' '*colonnes}[{colonnes}x{lignes}] nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
     else:
-        print(f"[{colonnes}x{lignes}] Ce lot de plateaux est déjà terminé")
+        print(f"{' '*colonnes}[{colonnes}x{lignes}] Ce lot de plateaux est déjà terminé")
 
 
 def chercher_en_sequence():
@@ -45,7 +45,8 @@ def chercher_en_parallele():
     profil.start()
 
     taches = cws.CreerLesTaches(nom="chercher_des_plateaux", nb_colonnes=12, nb_lignes=5)
-    taches.exporter()
+    # taches.exporter()
+    taches.importer()
     taches.executer_taches(chercher_des_plateaux)
 
     profil.stop()

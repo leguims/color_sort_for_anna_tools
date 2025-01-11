@@ -923,7 +923,7 @@ class CreerLesTaches:
         with Pool(processes=nb_processus) as pool:
             for tache in self._taches:
                 if not tache['terminee']:
-                    pool.apply_async(fonction, (tache['colonnes'], tache['lignes']), callback=lambda _: self.__mettre_a_jour_tache(tache['colonnes'], tache['lignes']))
+                    pool.apply_async(fonction, (tache['colonnes'], tache['lignes']), callback=lambda _, c=tache['colonnes'], l=tache['lignes']: self.__mettre_a_jour_tache(c, l))
             pool.close()
             pool.join()
 
