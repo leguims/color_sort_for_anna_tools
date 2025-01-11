@@ -14,28 +14,15 @@ def chercher_des_plateaux(colonnes, lignes):
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
     # plateau.afficher()
-    lot_de_plateaux = cws.LotDePlateaux(nb_plateaux_max = MEMOIRE_MAX)
+    lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
     if not lot_de_plateaux.est_deja_termine(colonnes, lignes, COLONNES_VIDES_MAX):
         # lot_de_plateaux.fixer_taille_memoire_max(5)
-        plateau_courant = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
-        # 'set()' est utilisé pour éliminer les permutations identiques
-        # TODO : Ne fonctionne (probablement) pas pour les permutations immenses.
-        #permutation_realisees = set()
-        for permutation_courante in set(permutations(plateau.pour_permutations)):
-            # if permutation_courante in permutation_realisees:
-            #     continue
-            # else:
-            #     if len(permutation_realisees) < MEMOIRE_MAX:
-            #         permutation_realisees.add(permutation_courante)
-            #     else:
-            #         permutation_realisees.clear()
-
+        for permutation_courante in permutations(plateau.pour_permutations):
             # Verifier que ce plateau est nouveau
-            plateau_courant.plateau_ligne = permutation_courante
-            if not lot_de_plateaux.est_ignore(plateau_courant):
+            permutation_courante = ''.join(permutation_courante)
+            if not lot_de_plateaux.est_ignore(permutation_courante):
                 if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
-                    print(f"[{colonnes}x{lignes}] nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-            plateau_courant.clear()
+                    print(f"{' '*colonnes}[{colonnes}x{lignes}] nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
 
         lot_de_plateaux.arret_des_enregistrements()
         # lot_de_plateaux.exporter_fichier_json()

@@ -274,9 +274,18 @@ class Plateau:
 class LotDePlateaux:
     """Classe qui gère les lots de plateaux pour parcourir l'immensité des plateaux existants.
 Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la recherche."""
-    def __init__(self, nb_plateaux_max = 1_000_000):
+    def __init__(self, dim_plateau, nb_plateaux_max = 1_000_000):
+        # Plateau de base
+        self._nb_colonnes = dim_plateau[0]
+        self._nb_lignes = dim_plateau[1]
+        self._nb_colonnes_vides = dim_plateau[2]
+        self._plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+
+        # Gestion du lot de plateau
+        self._ignorer_ensemble_des_plateaux_valides_connus = set()
         self._ensemble_des_plateaux_valides = set()
         self._ensemble_des_plateaux_a_ignorer = set()
+        self._ensemble_des_plateaux_iteres = set()
         self._dico_compteur_des_plateaux_a_ignorer = {}
         self._nb_plateaux_max = nb_plateaux_max
         self._debut_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
@@ -356,21 +365,38 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         self._fin_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
         self.exporter_fichier_json()
 
-    def est_ignore(self, plateau: Plateau):
+    def est_ignore(self, permutation_plateau):
         "Retourne 'True' si le plateau est deja connu"
-        if plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_valides \
-            and plateau.plateau_ligne_texte not in self._ensemble_des_plateaux_a_ignorer:
+        # Ignorer toutes les permutations jusqu'à ce que toute les solutions connues soient trouvées
+        if len(self._ignorer_ensemble_des_plateaux_valides_connus) > 0 :
+            self._ignorer_ensemble_des_plateaux_valides_connus.discard(permutation_plateau)
+            if len(self._ignorer_ensemble_des_plateaux_valides_connus) == 0:
+                print(f"[{self._nb_colonnes}x{self._nb_lignes}] Fin de parcours des plateaux déjà connus.")
+            return True
+        
+        # Ignorer les permutations en doublon
+        if permutation_plateau in self._ensemble_des_plateaux_iteres:
+            return True
+        else:
+            if len(self._ensemble_des_plateaux_iteres) > self._nb_plateaux_max:
+                self._ensemble_des_plateaux_iteres.clear()
+            self._ensemble_des_plateaux_iteres.add(permutation_plateau)
+        
+        if permutation_plateau not in self._ensemble_des_plateaux_valides \
+            and permutation_plateau not in self._ensemble_des_plateaux_a_ignorer:
+            self._plateau_courant.clear()
+            self._plateau_courant.plateau_ligne_texte = permutation_plateau
             # plateau.afficher()
             # Verifier que la plateau est valide
-            if plateau.est_valide:
+            if self._plateau_courant.est_valide:
                 # Enregistrer la permutation courante qui est un nouveau plateau valide
-                self.__ajouter_le_plateau(plateau)
+                self.__ajouter_le_plateau(self._plateau_courant)
                 return False
             else:
                 # Nouveau Plateau invalide, on l'ignore
-                self.__ignorer_le_plateau_et_ses_permutations(plateau)
+                self.__ignorer_le_plateau_et_ses_permutations(self._plateau_courant)
                 return True
-        self.__compter_plateau_a_ignorer(plateau)
+        self.__compter_plateau_a_ignorer(self._plateau_courant)
         return True
 
     @property
@@ -545,6 +571,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         self.__importer_fichier_json()
 
         recherche_terminee = self._fin_recherche_des_plateaux_valides is not None
+        self._ignorer_ensemble_des_plateaux_valides_connus = copy.deepcopy(self._ensemble_des_plateaux_valides)
         return recherche_terminee
     
     def __init_export_json(self, nb_colonnes, nb_lignes, nb_colonnes_vides):
