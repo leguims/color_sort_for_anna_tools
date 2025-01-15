@@ -4,7 +4,7 @@ import datetime
 import json
 import copy
 from pathlib import Path
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 import cProfile
 import pstats
@@ -900,8 +900,8 @@ class ProfilerLeCode:
 
 class CreerLesTaches:
     def __init__(self, nom, nb_colonnes, nb_lignes):
-        self._nom = nom
-        self._taches = [{'colonnes': c, 'lignes': l, 'complexite': c*l, 'terminee': False} for c in range(2, nb_colonnes) for l in range(2, nb_lignes)]
+        self._nom = f'{nom}_{nb_colonnes}x{nb_lignes}'
+        self._taches = [{'colonnes': c, 'lignes': l, 'complexite': c*l, 'terminee': False, 'en_cours': False} for c in range(2, nb_colonnes) for l in range(2, nb_lignes)]
         self._taches.sort(key=lambda x: x['complexite'])
 
     def exporter(self):
@@ -909,21 +909,33 @@ class CreerLesTaches:
             json.dump(self._taches, fichier, ensure_ascii=False, indent=4)
 
     def importer(self):
-        with open(f'{self._nom}.json', 'r', encoding='utf-8') as fichier:
-            self._taches = json.load(fichier)
+        if Path(f'{self._nom}.json').exists():
+            with open(f'{self._nom}.json', 'r', encoding='utf-8') as fichier:
+                self._taches = json.load(fichier)
 
     def __mettre_a_jour_tache(self, colonnes, lignes):
         for tache in self._taches:
             if tache['colonnes'] == colonnes and tache['lignes'] == lignes:
                 tache['terminee'] = True
+                tache['en_cours'] = False
                 break
         self.exporter()
 
     def executer_taches(self, fonction, nb_processus=None):
+        if nb_processus:
+            cpt_processus = nb_processus
+        else:
+            cpt_processus = cpu_count()
+
         with Pool(processes=nb_processus) as pool:
             for tache in self._taches:
-                if not tache['terminee']:
+                if not tache['terminee'] and not tache['en_cours']:
                     pool.apply_async(fonction, (tache['colonnes'], tache['lignes']), callback=lambda _, c=tache['colonnes'], l=tache['lignes']: self.__mettre_a_jour_tache(c, l))
+                    if cpt_processus and cpt_processus > 0:
+                        print(f"Lancement [{tache['colonnes']}x{tache['lignes']}]")
+                        cpt_processus -= 1
+                        tache['en_cours'] = True
+                        self.exporter()
             pool.close()
             pool.join()
 
