@@ -236,16 +236,27 @@ class Plateau:
         derniere_case_non_vide = colonne_texte.strip()[-1]
         return derniere_case_non_vide
 
+    def _compter_les_couleurs_identiques_au_sommet(self, colonne_texte, couleur):
+        nb = 0
+        colonne_inversee = list(colonne_texte.rstrip())
+        colonne_inversee.reverse()
+        for case in colonne_inversee:
+            if case == couleur:
+                nb += 1
+            else:
+                break
+        return nb
+
     def nombre_de_case_vide_de_la_colonne(self, colonne):
         if colonne >= self.nb_colonnes:
             raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         colonne_texte = self.plateau_rectangle_texte[colonne]
-        return colonne_texte.count(' ')
+        return len(colonne_texte) - len(colonne_texte.rstrip())
 
     def nombre_de_cases_monocouleur_au_sommet_de_la_colonne(self, colonne):
         couleur = self.la_couleur_au_sommet_de_la_colonne(colonne)
         colonne_texte = self.plateau_rectangle_texte[colonne]
-        return colonne_texte.count(couleur)
+        return self._compter_les_couleurs_identiques_au_sommet(colonne_texte, couleur)
 
     def deplacer_blocs(self, colonne_depart, colonne_arrivee, nombre_blocs = 1):
         if nombre_blocs != self.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(colonne_depart):
@@ -559,7 +570,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             self._debut_recherche_des_solutions = data_json["debut solutions"]
         if "fin solutions" in data_json:
             self._fin_recherche_des_solutions = data_json["fin solutions"]
-        if 'liste difficulte des plateaux' in data_json:
+        if 'liste difficulte des plateaux' in data_json and data_json['liste difficulte des plateaux']:
             for difficulte, liste_plateaux in data_json['liste difficulte des plateaux'].items():
                 if difficulte not in self._ensemble_des_difficultes_de_plateaux:
                     self._ensemble_des_difficultes_de_plateaux[difficulte] = []
@@ -635,7 +646,8 @@ class ResoudrePlateau:
         self._liste_des_choix_courants = None
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
         nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
-        self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom)
+        self._export_json_analyses = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = 'Analyses')
+        self._export_json_solutions = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = 'Solutions')
         self.__importer_fichier_json()
         # TODO : Ajouter un debut/fin => Abandonné. La résolution d'un plateau est trop courte.
 
@@ -748,7 +760,7 @@ class ResoudrePlateau:
         else:
             self._statistiques['nombre de solution'] += 1
 
-        self._export_json.exporter(self)
+        self._export_json_solutions.exporter(self)
 
     def backtracking(self, plateau: Plateau = None):
         "Parcours de tous les choix afin de débusquer toutes les solutions"
@@ -786,11 +798,11 @@ class ResoudrePlateau:
 
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les solutions et les statistiques du plateau"""
-        self._export_json.forcer_export(self)
+        self._export_json_solutions.forcer_export(self)
 
     def __importer_fichier_json(self):
         """Lit l'enregistrement JSON s'il existe"""
-        data_json = self._export_json.importer()
+        data_json = self._export_json_analyses.importer()
         if 'nombre de solutions' in data_json:
             self._statistiques['nombre de solution'] = data_json['nombre de solutions']
         if 'solution la plus courte' in data_json:
@@ -831,10 +843,10 @@ class ResoudrePlateau:
         return None
 
 class ExportJSON:
-    def __init__(self, delai, longueur, nom_plateau, nom_export):
+    def __init__(self, delai, longueur, nom_plateau, nom_export, repertoire = REPERTOIRE_SORTIE_RACINE):
         self._delai_enregistrement = delai
         self._longueur_enregistrement = longueur
-        self._chemin_enregistrement = Path(REPERTOIRE_SORTIE_RACINE) / nom_plateau / (nom_export+'.json')
+        self._chemin_enregistrement = Path(repertoire) / nom_plateau / (nom_export+'.json')
 
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         self._longueur_dernier_enregistrement = 0

@@ -61,10 +61,13 @@ def chercher_en_boucle():
 def chercher():
     profil = cws.ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
     profil.start()
+    messages = ""
     for lignes in LIGNES:
         for colonnes in COLONNES:
-            chercher_des_solutions(colonnes, lignes)
+            message = chercher_des_solutions(colonnes, lignes)
+            messages += message
     profil.stop()
+    print(messages)
 
 if __name__ == "__main__":
     chercher_en_boucle()
