@@ -18,7 +18,7 @@ def chercher_des_solutions(colonnes, lignes):
     plateau.creer_plateau_initial()
     # plateau.afficher()
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
-    if lot_de_plateaux.est_deja_termine(colonnes, lignes, COLONNES_VIDES_MAX):
+    if lot_de_plateaux.est_deja_termine():
         message += " - Ce lot de plateaux est terminé"
 
         if lot_de_plateaux.nb_plateaux_valides != lot_de_plateaux.nb_plateaux_solutionnes:

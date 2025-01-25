@@ -39,6 +39,7 @@ class Plateau:
         self._est_valide = None
         self._plateau_ligne = None
         self._plateau_ligne_texte = None
+        self._plateau_ligne_texte_universel = None
         self._plateau_rectangle = None
         self._plateau_rectangle_texte = None
         self._str_format = ""
@@ -96,6 +97,13 @@ class Plateau:
             self.__creer_plateau_ligne_texte()
         return self._plateau_ligne_texte
 
+    @property
+    def plateau_ligne_texte_universel(self):
+        "Représentation en 1 ligne du plateau (texte)"
+        if not self._plateau_ligne_texte_universel:
+            self.__creer_plateau_ligne_texte_universel()
+        return self._plateau_ligne_texte_universel
+
     @plateau_ligne_texte.setter
     def plateau_ligne_texte(self, plateau_ligne_texte):
         # Pas de verification sur la validite,
@@ -138,6 +146,13 @@ class Plateau:
         """['A', 'A', 'B', 'B', ' ', ' '] => ['AABB  ']"""
         if self._plateau_ligne:
             self._plateau_ligne_texte = ''.join(self._plateau_ligne)
+
+    def __creer_plateau_ligne_texte_universel(self):
+        """['A', 'A', 'B', 'B', ' ', ' '] => ['AA.BB.  ']"""
+        if not self._plateau_rectangle_texte:
+            self.__creer_plateau_rectangle_texte()
+        if self._plateau_rectangle_texte:
+            self._plateau_ligne_texte_universel = '.'.join(self._plateau_rectangle_texte)
 
     def __creer_plateau_rectangle(self):
         """"['A', 'A', 'B', 'B', ' ', ' '] => [['A', 'A'], ['B', 'B'], [' ', ' ']]"""
@@ -302,9 +317,6 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         self._debut_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
         self._fin_recherche_des_plateaux_valides = None
         self._export_json = None
-        self._nb_colonnes = None
-        self._nb_lignes = None
-        self._nb_colonnes_vides = None
         self._ensemble_des_difficultes_de_plateaux = {}
         self._debut_recherche_des_solutions = None
         self._fin_recherche_des_solutions = None
@@ -577,18 +589,15 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                 for plateau in liste_plateaux:
                     self._ensemble_des_difficultes_de_plateaux[difficulte].append(plateau)
 
-    def est_deja_termine(self, nb_colonnes, nb_lignes, nb_colonnes_vides):
-        self.__init_export_json(nb_colonnes, nb_lignes, nb_colonnes_vides)
+    def est_deja_termine(self):
+        self.__init_export_json()
         self.__importer_fichier_json()
 
         recherche_terminee = self._fin_recherche_des_plateaux_valides is not None
         self._ignorer_ensemble_des_plateaux_valides_connus = copy.deepcopy(self._ensemble_des_plateaux_valides)
         return recherche_terminee
     
-    def __init_export_json(self, nb_colonnes, nb_lignes, nb_colonnes_vides):
-        self._nb_colonnes = nb_colonnes
-        self._nb_lignes = nb_lignes
-        self._nb_colonnes_vides = nb_colonnes_vides
+    def __init_export_json(self):
         nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
         self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
 
@@ -869,11 +878,20 @@ Retourne True si l'export a été réalisé"""
         # Enregistrement des donnees dans un fichier JSON
         if not self._chemin_enregistrement.parent.exists():
             self._chemin_enregistrement.parent.mkdir(parents=True, exist_ok=True)
-        with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
-            json.dump(contenu.to_dict(), fichier, ensure_ascii=False)
+        if type(contenu) == dict:
+            with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
+                json.dump(contenu, fichier, ensure_ascii=False)
+        else:
+            # Enregistrement d'une classe
+            with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
+                json.dump(contenu.to_dict(), fichier, ensure_ascii=False)
         self._longueur_dernier_enregistrement = len(contenu)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         return True
+
+    def effacer(self):
+        """Effacer le contenu du fichier existant"""
+        return self.forcer_export(dict())
 
     def importer(self):
         """Lit dans un fichier JSON les informations totales ou de la dernière itération réalisée."""
