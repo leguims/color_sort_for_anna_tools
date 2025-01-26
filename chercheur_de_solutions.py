@@ -28,9 +28,10 @@ def chercher_des_solutions(colonnes, lignes):
             for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
                 plateau.clear()
                 plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
-                resolution = cws.ResoudrePlateau(plateau)
-                resolution.backtracking()
-                lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.solution_la_plus_courte)
+                if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):
+                    resolution = cws.ResoudrePlateau(plateau)
+                    resolution.backtracking()
+                    lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.solution_la_plus_courte)
 
             lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
             for difficulte, liste_plateaux in lot_de_plateaux.difficulte_plateaux.items():

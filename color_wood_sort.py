@@ -600,6 +600,15 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
         self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
 
+    def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
+        "Méthode qui vérifie si le plateau est déjà résolu"
+        est_connu = False
+        for difficulte in self._ensemble_des_difficultes_de_plateaux.keys():
+            if plateau.plateau_ligne_texte in self._ensemble_des_difficultes_de_plateaux[difficulte]:
+                est_connu = True
+                break
+        return est_connu
+
     def definir_difficulte_plateau(self, plateau: Plateau, difficulte):
         "Méthode qui enregistre l'enregistrement des difficultés des plateaux"
         if self._debut_recherche_des_solutions is None:
