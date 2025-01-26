@@ -4,15 +4,16 @@ import time
 
 import color_wood_sort as cws
 
-COLONNES = range(2, 8) # [2] # range(2, 12)
-LIGNES = range(2, 8) # [2] # range(2, 5)
+# Filtrer les plateaux à 2 lignes ou 2 colonnes qui sont trop triviaux et repetitifs.
+COLONNES = range(3, 8) # [2] # range(2, 12)
+LIGNES = range(3, 8) # [2] # range(2, 5)
 PERIODE_SCRUTATION_SECONDES = 30*60
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000
 PROFILER_LE_CODE = False
 
 
-def classer_les_solutions(colonnes, lignes):
+def classer_les_solutions(colonnes, lignes, difficulte_min = 3):
     message = f"\n\r*** Classer les Solutions {colonnes}x{lignes}:"
     # plateau.afficher()
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
@@ -27,14 +28,16 @@ def classer_les_solutions(colonnes, lignes):
         if "liste difficulte des plateaux" not in solutions_classees:
             solutions_classees["liste difficulte des plateaux"] = {}
         dict_difficulte = solutions_classees["liste difficulte des plateaux"]
+        # Filtrer les plateaux sans solutions ou trop triviaux
         for difficulte, liste_plateaux in liste_plateaux_avec_solutions.items():
             message += f"\n\r - Difficulté : {difficulte} - {len(liste_plateaux)} plateau{pluriel(liste_plateaux, 'x')}"
-            if difficulte not in dict_difficulte:
-                dict_difficulte[difficulte] = []
-            for plateau_ligne_texte in liste_plateaux:
-                plateau.clear()
-                plateau.plateau_ligne_texte = plateau_ligne_texte
-                dict_difficulte[difficulte].append(plateau.plateau_ligne_texte_universel)
+            if difficulte != 'None' and int(difficulte) >= difficulte_min :
+                if difficulte not in dict_difficulte:
+                    dict_difficulte[difficulte] = []
+                for plateau_ligne_texte in liste_plateaux:
+                    plateau.clear()
+                    plateau.plateau_ligne_texte = plateau_ligne_texte
+                    dict_difficulte[difficulte].append(plateau.plateau_ligne_texte_universel)
         solutions_classees_json.forcer_export(solutions_classees)
     else:
         message += " - Ce lot de plateaux n'est pas encore terminé, pas de classement de solutions."
