@@ -565,7 +565,6 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         elif "fin" in data_json:
             self._fin_recherche_des_plateaux_valides = data_json["fin"]
 
-        recherche_terminee = 'recherche terminee' in data_json and data_json['recherche terminee'] is True
         # Rejouer les plateaux déjà trouvés
         if 'nombre plateaux' in data_json \
             and data_json['nombre plateaux'] > 0:

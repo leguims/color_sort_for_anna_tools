@@ -17,7 +17,7 @@ def classer_les_solutions(colonnes, lignes, difficulte_min = 3):
     message = f"\n\r*** Classer les Solutions {colonnes}x{lignes}:"
     # plateau.afficher()
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
-    if lot_de_plateaux.est_deja_termine():
+    if lot_de_plateaux.est_deja_termine() or True: # True = Classe toutes les solutions à l'heure actuel.
         message += " - Ce lot de plateaux est terminé"
 
         solutions_classees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire='Solutions')
