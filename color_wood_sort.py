@@ -952,10 +952,19 @@ class CreerLesTaches:
                 self._taches = json.load(fichier)
 
     def __mettre_a_jour_tache(self, colonnes, lignes):
+        print(f"Fin [{colonnes}x{lignes}]")
+        tache_courante_traitee = False
         for tache in self._taches:
             if tache['colonnes'] == colonnes and tache['lignes'] == lignes:
                 tache['terminee'] = True
                 tache['en_cours'] = False
+                tache_courante_traitee = True
+                continue
+            elif tache_courante_traitee and not tache['terminee'] and not tache['en_cours']:
+                # Tâche suivant celle qui vient de s'achever => indiquer son lancement
+                tache_courante_traitee = False
+                print(f"Lancement [{tache['colonnes']}x{tache['lignes']}]")
+                tache['en_cours'] = True
                 break
         self.exporter()
 
