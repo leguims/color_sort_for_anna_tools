@@ -10,24 +10,24 @@ PROFILER_LE_CODE = False
 
 TAILLE = 10
 
-def tronquer_les_solutions():
+def tronquer_les_solutions(taille = TAILLE, decallage = 0):
     message = f"\n\r*** Tronquer le classement des Solutions :"
 
     solutions_classees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire='Solutions')
     solutions_classees = solutions_classees_json.importer()
-    solutions_classees_tronquees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_{TAILLE}', repertoire='Solutions')
+    solutions_classees_tronquees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{taille}_D{decallage}', repertoire='Solutions')
 
     if "liste difficulte des plateaux" in solutions_classees:
         dict_difficulte = solutions_classees["liste difficulte des plateaux"]
         # Filtrer les plateaux sans solutions ou trop triviaux
         for difficulte, liste_plateaux in dict_difficulte.items():
-            dict_difficulte[difficulte] = liste_plateaux[:TAILLE]
+            dict_difficulte[difficulte] = liste_plateaux[decallage:decallage+taille]
         solutions_classees_tronquees_json.forcer_export(solutions_classees)
     return message
 
-def afficher_synthese():
+def afficher_synthese(taille = TAILLE, decallage = 0):
     message = f"\n\r*** Synthèse des Solutions:"
-    solutions_classees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_{TAILLE}', repertoire='Solutions')
+    solutions_classees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{taille}_D{decallage}', repertoire='Solutions')
     solutions_classees = solutions_classees_json.importer()
 
     somme_plateaux = 0
@@ -59,17 +59,18 @@ def chercher():
     profil = cws.ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
     profil.start()
 
-    # Effacer l'existant
-    solutions_classees_json = cws.ExportJSON(0, 0, '', nom_export=f'Solutions_classees_{TAILLE}', repertoire='Solutions')
-    solutions_classees_json.effacer()
-    
-    messages = ""
-    message = tronquer_les_solutions()
-    messages += message
-    profil.stop()
-    print(messages)
+    for i in range(10):
+        # Effacer l'existant
+        solutions_classees_json = cws.ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{TAILLE}_D{i * TAILLE}', repertoire='Solutions')
+        solutions_classees_json.effacer()
+        
+        messages = ""
+        message = tronquer_les_solutions(TAILLE, i * TAILLE)
+        messages += message
+        profil.stop()
+        print(messages)
 
-    afficher_synthese()
+        afficher_synthese()
 
 if __name__ == "__main__":
     # chercher_en_boucle()
