@@ -1,4 +1,5 @@
-"Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoordSort'"
+"""Découpe l'ensemble des solutions inter-plateaux en des ensembles plus petits de solutions
+Adapté pour avoir un fichier de solutions restreint pour le jeu"""
 import datetime
 import time
 
@@ -61,11 +62,13 @@ def chercher():
 
     for i in range(10):
         # Effacer l'existant
-        solutions_classees_json = cws.ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{TAILLE}_D{i * TAILLE}', repertoire='Solutions')
+        #solutions_classees_json = cws.ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{TAILLE}_D{i * TAILLE}', repertoire='Solutions')
+        solutions_classees_json = cws.ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{(i+1)*TAILLE}_D{0}', repertoire='Solutions')
         solutions_classees_json.effacer()
         
         messages = ""
-        message = tronquer_les_solutions(TAILLE, i * TAILLE)
+        #message = tronquer_les_solutions(TAILLE, i * TAILLE)
+        message = tronquer_les_solutions((i+1) * TAILLE, 0)
         messages += message
         profil.stop()
         print(messages)

@@ -1,4 +1,4 @@
-"Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoordSort'"
+"Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoodSort'"
 import datetime
 import time
 
@@ -31,7 +31,7 @@ def chercher_des_solutions(colonnes, lignes):
                 if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):
                     resolution = cws.ResoudrePlateau(plateau)
                     resolution.backtracking()
-                    lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.solution_la_plus_courte)
+                    lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, resolution.solution_la_plus_courte)
 
             lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
             for difficulte, liste_plateaux in lot_de_plateaux.difficulte_plateaux.items():

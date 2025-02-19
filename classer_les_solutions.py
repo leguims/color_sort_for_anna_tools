@@ -1,4 +1,4 @@
-"Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoordSort'"
+"Parcourt les plateaux résolus et les rassemble dans le fichier 'Solutions_classees.json' par difficulté avec une écriture universelle"
 import datetime
 import time
 
@@ -9,7 +9,6 @@ COLONNES = range(3, 8) # [2] # range(2, 12)
 LIGNES = range(3, 8) # [2] # range(2, 5)
 PERIODE_SCRUTATION_SECONDES = 30*60
 COLONNES_VIDES_MAX = 1
-MEMOIRE_MAX = 500_000
 PROFILER_LE_CODE = False
 
 
@@ -50,7 +49,7 @@ def afficher_synthese():
 
     somme_plateaux = 0
     for difficulte, liste_plateaux in solutions_classees.get('liste difficulte des plateaux').items():
-        print(f" - Difficulté : {difficulte} - {len(liste_plateaux)} plateau{'x' if len(liste_plateaux) > 1 else ''}")
+        print(f" - Difficulté : {difficulte} - {len(liste_plateaux)} plateau{pluriel(liste_plateaux, 'x')}")
         if difficulte != 'None':
             somme_plateaux += len(liste_plateaux)
     print(f" - Total : {somme_plateaux} plateau{pluriel(liste_plateaux, 'x')} valide{pluriel(liste_plateaux, 's')}")

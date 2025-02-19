@@ -192,7 +192,7 @@ class Plateau:
 
     @property
     def est_valide(self):
-        """"Verifie si le plateau en parametre est valide"""
+        """"Verifie si le plateau en parametre est valide et interessant"""
         if self._plateau_ligne and self._est_valide is None:
             # Pour chaque colonne, les cases vides sont sur les dernieres cases
             case_vide = ' '
@@ -226,6 +226,13 @@ class Plateau:
                             return self._est_valide
             self._est_valide = True
             self._dico_validite_index_vide[index_vide] = self._est_valide
+
+            # Est-ce que le plateau est interessant ?
+            # Une colonne achevée est sans interet.
+            for ligne in self.plateau_rectangle:
+                if ligne[0] != case_vide and len(set(ligne)) == 1:
+                    self._est_valide = False
+                    return self._est_valide
         return self._est_valide
 
     def la_colonne_est_vide(self, colonne):
@@ -422,6 +429,20 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         self.__compter_plateau_a_ignorer(self._plateau_courant)
         return True
 
+    def mettre_a_jour_les_plateaux_valides(self):
+        "Vérifie la liste des plateau valide car les regles ont changé. Utile pour les recherches déjà terminées."
+        liste_nouveaux_plateaux_invalides = []
+        for plateau in self.plateaux_valides:
+            plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+            plateau_courant.plateau_ligne_texte = plateau
+            if not plateau_courant.est_valide:
+                print(f"'{plateau_courant.plateau_ligne_texte_universel}' : 'invalide à supprimer'")
+                liste_nouveaux_plateaux_invalides.append(plateau)
+        if liste_nouveaux_plateaux_invalides:
+            for plateau in liste_nouveaux_plateaux_invalides:
+                self.plateaux_valides.remove(plateau)
+            self._export_json.forcer_export(self)
+
     @property
     def plateaux_valides(self):
         "Ensemble des plateaux valides"
@@ -609,14 +630,18 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                 break
         return est_connu
 
-    def definir_difficulte_plateau(self, plateau: Plateau, difficulte):
-        "Méthode qui enregistre l'enregistrement des difficultés des plateaux"
+    def definir_difficulte_plateau(self, plateau: Plateau, difficulte, nb_coups):
+        "Méthode qui enregistre les difficultés des plateaux et la profondeur de leur solution"
+        difficulte_str = 'Difficulte '+str(difficulte)
+        nb_coups_str = str(nb_coups)+' coups'
         if self._debut_recherche_des_solutions is None:
             self._debut_recherche_des_solutions = datetime.datetime.now().timestamp()
-        if str(difficulte) not in self._ensemble_des_difficultes_de_plateaux:
-            self._ensemble_des_difficultes_de_plateaux[str(difficulte)] = []
+        if difficulte_str not in self._ensemble_des_difficultes_de_plateaux:
+            self._ensemble_des_difficultes_de_plateaux[difficulte_str] = {}
+        if nb_coups_str not in self._ensemble_des_difficultes_de_plateaux[difficulte_str]:
+            self._ensemble_des_difficultes_de_plateaux[difficulte_str][nb_coups_str] = []
         if plateau.plateau_ligne_texte not in self._ensemble_des_difficultes_de_plateaux[str(difficulte)]:
-            self._ensemble_des_difficultes_de_plateaux[str(difficulte)].append(plateau.plateau_ligne_texte)
+            self._ensemble_des_difficultes_de_plateaux[difficulte_str][nb_coups_str].append(plateau.plateau_ligne_texte)
             self._a_change = True
             self._fin_recherche_des_solutions = datetime.datetime.now().timestamp()
 
@@ -858,6 +883,16 @@ class ResoudrePlateau:
         if 'solution moyenne' in self._statistiques:
             return self._statistiques['solution moyenne']
         return None
+
+    @property
+    def difficulte(self):
+        """Retourne la difficulté de la solution
+La difficulté est le nombre de coups pour résoudre le plateau rapporté à la taille du plateau."""
+        surface_plateau_max = 12 * 12
+        surface_plateau = self._plateau_initial.nb_colonnes * self._plateau_initial.nb_lignes
+        inverse_ratio_surface = surface_plateau_max / surface_plateau
+        self.difficulte = int( self.solution_la_plus_courte * inverse_ratio_surface )
+        return self.difficulte
 
 class ExportJSON:
     def __init__(self, delai, longueur, nom_plateau, nom_export, repertoire = REPERTOIRE_SORTIE_RACINE):

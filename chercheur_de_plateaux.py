@@ -1,4 +1,4 @@
-"Module pour créer, résoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
+"Module pour créer des plateaux de 'ColorWoodSort'"
 from itertools import permutations
 
 import color_wood_sort as cws

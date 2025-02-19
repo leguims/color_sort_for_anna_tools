@@ -1,4 +1,4 @@
-"Module pour créer, résoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
+"Module pour créer, résoudre et qualifier les solutions des plateaux de 'ColorWoodSort'"
 from itertools import permutations #, product, combinations#, combinations_with_replacement
 
 import color_wood_sort as cws
@@ -42,7 +42,7 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
         plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
         resolution = cws.ResoudrePlateau(plateau)
         resolution.backtracking()
-        lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.solution_la_plus_courte)
+        lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, resolution.solution_la_plus_courte)
         # print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, solution moyenne = {resolution.solution_moyenne}, la plus courte = {resolution.solution_la_plus_courte}, la plus longue = {resolution.solution_la_plus_longue}")
         # print(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, la plus courte = {resolution.solution_la_plus_courte}")
 
