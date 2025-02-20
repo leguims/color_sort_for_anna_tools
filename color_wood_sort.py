@@ -229,10 +229,9 @@ class Plateau:
 
             # Est-ce que le plateau est interessant ?
             # Une colonne achevée est sans interet.
-            for ligne in self.plateau_rectangle:
-                if ligne[0] != case_vide and len(set(ligne)) == 1:
-                    self._est_valide = False
-                    return self._est_valide
+            if self.une_colonne_est_pleine_et_monocouleur():
+                self._est_valide = False
+                return self._est_valide
         return self._est_valide
 
     def la_colonne_est_vide(self, colonne):
@@ -250,6 +249,12 @@ class Plateau:
         colonne_texte = self.plateau_rectangle_texte[colonne]
         premiere_case = colonne_texte[0]
         return est_pleine and colonne_texte.count(premiere_case) == self.nb_lignes
+
+    def une_colonne_est_pleine_et_monocouleur(self):
+        for colonne in range(self.nb_colonnes):
+            if self.la_colonne_est_pleine_et_monocouleur(colonne):
+                return True
+        return False
 
     def la_couleur_au_sommet_de_la_colonne(self, colonne):
         if colonne >= self.nb_colonnes:
@@ -319,6 +324,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         self._ensemble_des_plateaux_valides = set()
         self._ensemble_des_plateaux_a_ignorer = set()
         self._ensemble_des_plateaux_iteres = set()
+        self._ensemble_des_permutations_de_nombres = None
         self._dico_compteur_des_plateaux_a_ignorer = {}
         self._nb_plateaux_max = nb_plateaux_max
         self._debut_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
@@ -434,11 +440,24 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         "Vérifie la liste des plateau valide car les regles ont changé. Utile pour les recherches déjà terminées."
         liste_nouveaux_plateaux_invalides = []
         for plateau in self.plateaux_valides:
-            plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-            plateau_courant.plateau_ligne_texte = plateau
-            if not plateau_courant.est_valide:
-                print(f"'{plateau_courant.plateau_ligne_texte_universel}' : 'invalide à supprimer'")
-                liste_nouveaux_plateaux_invalides.append(plateau)
+            if plateau not in liste_nouveaux_plateaux_invalides:
+                plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+                plateau_courant.plateau_ligne_texte = plateau
+                if not plateau_courant.est_valide:
+                    print(f"'{plateau_courant.plateau_ligne_texte_universel}' : invalide à supprimer")
+                    liste_nouveaux_plateaux_invalides.append(plateau)
+
+                # Vérifier de nouvelles formes de doublons (permutations) dans les plateaux valides
+                # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
+                liste_permutations = self.__construire_les_permutations_de_colonnes(plateau_courant) \
+                                    + self.__construire_les_permutations_de_jetons(plateau_courant)
+                # TODO : CORRIGER CA : for plateau_a_ignorer in set(tuple(liste_permutations)):
+                for plateau_a_ignorer in liste_permutations:
+                    # Tester si la permutation de colonne/jeton était déjà dans les plateaux valides
+                    if plateau_a_ignorer.plateau_ligne_texte in self._ensemble_des_plateaux_valides:
+                        print(f"'{plateau_a_ignorer.plateau_ligne_texte_universel}' : en doublon avec {plateau_courant.plateau_ligne_texte_universel}")
+                        liste_nouveaux_plateaux_invalides.append(plateau_a_ignorer.plateau_ligne_texte)
+
         if liste_nouveaux_plateaux_invalides:
             for plateau in liste_nouveaux_plateaux_invalides:
                 self.plateaux_valides.remove(plateau)
@@ -482,21 +501,18 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         # permutation effacée. Il faut vérifier les permutations avant d'ajouter définitivement
         # le plateau.
         nouveau_plateau = True
-        # 'set()' est utilisé pour éliminer les permutations identiques
-        for permutation_courante in set(permutations(plateau.plateau_rectangle_texte)):
-            plateau_a_ignorer = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-            plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
-
-            # Tester si la permutation était déjà dans les plateaux valides
+        # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
+        liste_permutations = self.__construire_les_permutations_de_colonnes(plateau) \
+                            + self.__construire_les_permutations_de_jetons(plateau)
+        for plateau_a_ignorer in set(liste_permutations):
+            # Tester si la permutation de colonne/jeton était déjà dans les plateaux valides
             if plateau_a_ignorer.plateau_ligne_texte in self._ensemble_des_plateaux_valides:
                 nouveau_plateau = False
-
             # Ignorer toutes les permutations
-            if plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
-                self.__ignorer_le_plateau(plateau_a_ignorer)
+            self.__ignorer_le_plateau(plateau_a_ignorer)
 
         if not nouveau_plateau:
-            # Ignorer un "Faux" nouveau plateau
+            # Ignorer le "Faux" nouveau plateau
             self.__ignorer_le_plateau(plateau)
         else:
             self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
@@ -508,6 +524,50 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             #   True    |   False    ||  True
             #   False   |   True     ||  False
             self._a_change = self._a_change and not self._export_json.exporter(self)
+
+    def __construire_les_permutations_de_colonnes(self, plateau: Plateau):
+        """Méthode qui construit les permutations de colonnes d'un plateau.
+Le plateau lui-même n'est pas dans les permutations."""
+        liste_permutations_de_colonnes = []
+        # 'set()' est utilisé pour éliminer les permutations identiques
+        for permutation_courante in set(permutations(plateau.plateau_rectangle_texte)):
+            plateau_a_ignorer = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+            plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
+
+            # Ignorer toutes les permutations
+            if plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
+                liste_permutations_de_colonnes.append(plateau_a_ignorer)
+        return liste_permutations_de_colonnes
+
+    def __construire_les_permutations_de_jetons(self, plateau: Plateau):
+        """Méthode qui construit les permutations de jetons d'un plateau.
+Par exemple, ces deux plateaux sont équivalents pour un humain : 'ABC.CBA' ==(A devient B)== 'BAC.CAB'
+Le plateau lui-même n'est pas dans les permutations."""
+        # Liste des permutations 'nombre'
+        if self._ensemble_des_permutations_de_nombres is None:
+            self._ensemble_des_permutations_de_nombres = set(permutations(range(self._plateau_courant.nb_familles)))
+
+        case_vide = ' '
+        liste_permutations_de_jetons = []
+        for permutation_nombre_courante in self._ensemble_des_permutations_de_nombres:
+            # Pour chaque permutation, transposer le plateau
+            permutation_jeton_courante = []
+            for jeton in plateau.plateau_ligne:
+                if jeton != case_vide:
+                    # Pour chaque jeton (sauf case vide), appliquer sa transposition
+                    indice_jeton = ord(jeton) - ord(self._plateau_courant._liste_familles[0])
+                    nouvel_indice_jeton = permutation_nombre_courante[indice_jeton]
+                    nouveau_jeton = self._plateau_courant._liste_familles[nouvel_indice_jeton]
+                else:
+                    nouveau_jeton = case_vide
+                # Création de la transposition jeton après jeton
+                permutation_jeton_courante.append(nouveau_jeton)
+            # Le plateau transposé est le plateau à ingorer
+            plateau_a_ignorer = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+            plateau_a_ignorer.plateau_ligne = permutation_jeton_courante
+            if plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
+                liste_permutations_de_jetons.append(plateau_a_ignorer)
+        return liste_permutations_de_jetons
 
     def __compter_plateau_a_ignorer(self, plateau_a_ignorer: Plateau):
         "Compte un plateau a ignorer"
