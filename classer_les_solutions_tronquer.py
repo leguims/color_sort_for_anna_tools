@@ -33,7 +33,7 @@ def afficher_synthese(taille = TAILLE, decallage = 0):
 
     somme_plateaux = 0
     for difficulte, liste_plateaux in solutions_classees.get('liste difficulte des plateaux').items():
-        print(f" - Difficulté : {difficulte} - {len(liste_plateaux)} plateau{'x' if len(liste_plateaux) > 1 else ''}")
+        print(f" - Difficulté : {difficulte} - {len(liste_plateaux)} plateau{pluriel(liste_plateaux, 'x')}")
         if difficulte != 'None':
             somme_plateaux += len(liste_plateaux)
     print(f" - Total : {somme_plateaux} plateau{pluriel(liste_plateaux, 'x')} valide{pluriel(liste_plateaux, 's')}")

@@ -12,7 +12,7 @@ COLONNES_VIDES_MAX = 1
 PROFILER_LE_CODE = False
 
 
-def classer_les_solutions(colonnes, lignes, difficulte_min = 3):
+def classer_les_solutions(colonnes, lignes, nb_coups_min = 3):
     message = f"\n\r*** Classer les Solutions {colonnes}x{lignes}:"
     # plateau.afficher()
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
@@ -28,15 +28,18 @@ def classer_les_solutions(colonnes, lignes, difficulte_min = 3):
             solutions_classees["liste difficulte des plateaux"] = {}
         dict_difficulte = solutions_classees["liste difficulte des plateaux"]
         # Filtrer les plateaux sans solutions ou trop triviaux
-        for difficulte, liste_plateaux in liste_plateaux_avec_solutions.items():
-            message += f"\n\r - Difficulté : {difficulte} - {len(liste_plateaux)} plateau{pluriel(liste_plateaux, 'x')}"
-            if difficulte != 'None' and int(difficulte) >= difficulte_min :
-                if difficulte not in dict_difficulte:
-                    dict_difficulte[difficulte] = []
-                for plateau_ligne_texte in liste_plateaux:
-                    plateau.clear()
-                    plateau.plateau_ligne_texte = plateau_ligne_texte
-                    dict_difficulte[difficulte].append(plateau.plateau_ligne_texte_universel)
+        for difficulte, dico_nb_coups in liste_plateaux_avec_solutions.items():
+            for nb_coups, liste_plateaux in dico_nb_coups.items():
+                message += f"\n\r - Difficulté : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{pluriel(liste_plateaux, 'x')}"
+                if difficulte != 'null' and nb_coups != 'null' and int(nb_coups) >= nb_coups_min :
+                    if difficulte not in dict_difficulte:
+                        dict_difficulte[difficulte] = {}
+                    if nb_coups not in dict_difficulte[difficulte]:
+                        dict_difficulte[difficulte][nb_coups] = []
+                    for plateau_ligne_texte in liste_plateaux:
+                        plateau.clear()
+                        plateau.plateau_ligne_texte = plateau_ligne_texte
+                        dict_difficulte[difficulte][nb_coups].append(plateau.plateau_ligne_texte_universel)
         solutions_classees_json.forcer_export(solutions_classees)
     else:
         message += " - Ce lot de plateaux n'est pas encore terminé, pas de classement de solutions."

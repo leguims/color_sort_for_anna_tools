@@ -23,7 +23,8 @@ def chercher_des_solutions(colonnes, lignes):
 
         if lot_de_plateaux.nb_plateaux_valides != lot_de_plateaux.nb_plateaux_solutionnes:
             if lot_de_plateaux.nb_plateaux_valides < lot_de_plateaux.nb_plateaux_solutionnes:
-                message += "\n\r - Il y a plus de plateaux de solutions que de plateaux valides ! Il y a un probleme !"
+                message += f"\n\r - Il y a plus de plateaux de solutions que de plateaux valides ! Il y a un probleme ! {lot_de_plateaux.nb_plateaux_solutionnes} > {lot_de_plateaux.nb_plateaux_valides}"
+                # TODO : Il y a probablement des solutions de plateau obsoletes à effacer.
             message += f"\n\r - Il reste des solutions à trouver : {lot_de_plateaux.nb_plateaux_valides} != {lot_de_plateaux.nb_plateaux_solutionnes}"
             for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
                 plateau.clear()
@@ -34,13 +35,17 @@ def chercher_des_solutions(colonnes, lignes):
                     lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, resolution.solution_la_plus_courte)
 
             lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
-            for difficulte, liste_plateaux in lot_de_plateaux.difficulte_plateaux.items():
-                message += f"\n\r - Difficulté : {difficulte} - {len(liste_plateaux)} plateau{'x' if len(liste_plateaux) > 1 else ''}"
+            for difficulte, dico_nb_coups in lot_de_plateaux.difficulte_plateaux.items():
+                for nb_coups, liste_plateaux in dico_nb_coups.items():
+                    message += f"\n\r - Difficulté : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{pluriel(liste_plateaux, lettre='x')}"
         else:
             message += " - Toutes les solutions sont trouvées."
     else:
         message += " - Ce lot de plateaux n'est pas encore terminé, pas de recherche de solution."
     return message
+
+def pluriel(LIGNES, lettre='s'):
+    return lettre if len(LIGNES) > 1 else ""
 
 def chercher_en_boucle():
     messages = ""

@@ -328,6 +328,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         self._debut_recherche_des_solutions = None
         self._fin_recherche_des_solutions = None
         self._a_change = False
+        self._difficulte = None
     
     def __len__(self):
         return self.nb_plateaux_valides
@@ -603,11 +604,23 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         if "fin solutions" in data_json:
             self._fin_recherche_des_solutions = data_json["fin solutions"]
         if 'liste difficulte des plateaux' in data_json and data_json['liste difficulte des plateaux']:
-            for difficulte, liste_plateaux in data_json['liste difficulte des plateaux'].items():
-                if difficulte not in self._ensemble_des_difficultes_de_plateaux:
-                    self._ensemble_des_difficultes_de_plateaux[difficulte] = []
-                for plateau in liste_plateaux:
-                    self._ensemble_des_difficultes_de_plateaux[difficulte].append(plateau)
+            # Convertir 'difficulte' et 'nb_coups' en entiers
+            for difficulte_str, dico_nb_coups in data_json['liste difficulte des plateaux'].items():
+                if difficulte_str == 'null':
+                    difficulte = None
+                else:
+                    difficulte = int(difficulte_str)
+                for nb_coups_str, liste_plateaux in dico_nb_coups.items():
+                    if nb_coups_str == 'null':
+                        nb_coups = None
+                    else:
+                        nb_coups = int(nb_coups_str)
+                    if difficulte not in self._ensemble_des_difficultes_de_plateaux:
+                        self._ensemble_des_difficultes_de_plateaux[difficulte] = {}
+                    if nb_coups not in self._ensemble_des_difficultes_de_plateaux.get(difficulte):
+                        self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups] = []
+                    for plateau in liste_plateaux:
+                        self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau)
 
     def est_deja_termine(self):
         self.__init_export_json()
@@ -632,32 +645,45 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
 
     def definir_difficulte_plateau(self, plateau: Plateau, difficulte, nb_coups):
         "Méthode qui enregistre les difficultés des plateaux et la profondeur de leur solution"
-        difficulte_str = 'Difficulte '+str(difficulte)
-        nb_coups_str = str(nb_coups)+' coups'
         if self._debut_recherche_des_solutions is None:
             self._debut_recherche_des_solutions = datetime.datetime.now().timestamp()
-        if difficulte_str not in self._ensemble_des_difficultes_de_plateaux:
-            self._ensemble_des_difficultes_de_plateaux[difficulte_str] = {}
-        if nb_coups_str not in self._ensemble_des_difficultes_de_plateaux[difficulte_str]:
-            self._ensemble_des_difficultes_de_plateaux[difficulte_str][nb_coups_str] = []
-        if plateau.plateau_ligne_texte not in self._ensemble_des_difficultes_de_plateaux[str(difficulte)]:
-            self._ensemble_des_difficultes_de_plateaux[difficulte_str][nb_coups_str].append(plateau.plateau_ligne_texte)
+        if difficulte not in self._ensemble_des_difficultes_de_plateaux:
+            self._ensemble_des_difficultes_de_plateaux[difficulte] = {}
+        if nb_coups not in self._ensemble_des_difficultes_de_plateaux[difficulte]:
+            self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups] = []
+        if plateau.plateau_ligne_texte not in self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups]:
+            self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau.plateau_ligne_texte)
             self._a_change = True
             self._fin_recherche_des_solutions = datetime.datetime.now().timestamp()
 
     def arret_des_enregistrements_de_difficultes_plateaux(self):
         "Méthode qui finalise l'arret des enregistrements des difficultés de plateaux"
-        cles_dico = list(self._ensemble_des_difficultes_de_plateaux.keys())
-        if None in cles_dico:
-            cles_dico.remove(None) # None est inclassable avec 'list().sort()'
-        cles_dico_classees = copy.deepcopy(cles_dico)
-        cles_dico_classees.sort()
-        if cles_dico != cles_dico_classees:
+        # Classement des difficultés
+        cles_difficulte = list(self._ensemble_des_difficultes_de_plateaux.keys())
+        if None in cles_difficulte:
+            cles_difficulte.remove(None) # None est inclassable avec 'list().sort()'
+        cles_difficulte_classees = copy.deepcopy(cles_difficulte)
+        cles_difficulte_classees.sort()
+        if cles_difficulte != cles_difficulte_classees:
             # Ordonner l'ensemble par difficulté croissante
-            dico_classe = {k: self._ensemble_des_difficultes_de_plateaux.get(k) for k in cles_dico_classees}
+            dico_difficulte_classe = {k: self._ensemble_des_difficultes_de_plateaux.get(k) for k in cles_difficulte_classees}
             if None in self._ensemble_des_difficultes_de_plateaux:
-                dico_classe[None] = self._ensemble_des_difficultes_de_plateaux.get(None)
-            self._ensemble_des_difficultes_de_plateaux = copy.deepcopy(dico_classe)
+                dico_difficulte_classe[None] = self._ensemble_des_difficultes_de_plateaux.get(None)
+            self._ensemble_des_difficultes_de_plateaux = copy.deepcopy(dico_difficulte_classe)
+        
+        # Classement du nombre de coups
+        for difficulte, dico_nb_coups in self._ensemble_des_difficultes_de_plateaux.items():
+            cles_nb_coups = list(dico_nb_coups.keys())
+            if None in cles_nb_coups:
+                cles_nb_coups.remove(None) # None est inclassable avec 'list().sort()'
+            cles_nb_coups_classees = copy.deepcopy(cles_nb_coups)
+            cles_nb_coups_classees.sort()
+            if cles_nb_coups != cles_nb_coups_classees:
+                # Ordonner l'ensemble par nombre de coups croissant
+                dico_nb_coups_classe = {k: dico_nb_coups.get(k) for k in cles_nb_coups_classees}
+                if None in self._ensemble_des_difficultes_de_plateaux.get(difficulte):
+                    dico_nb_coups_classe[None] = self._ensemble_des_difficultes_de_plateaux.get(difficulte).get(None)
+                self._ensemble_des_difficultes_de_plateaux[difficulte] = copy.deepcopy(dico_nb_coups_classe)
         self.exporter_fichier_json()
 
     @property
@@ -668,7 +694,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
     @property
     def nb_plateaux_solutionnes(self):
         "Nombre de plateaux valides"
-        return sum([len(plateaux) for difficulte, plateaux in self._ensemble_des_difficultes_de_plateaux.items()])
+        return sum([len(liste_plateaux) for difficulte, dico_nb_coups in self._ensemble_des_difficultes_de_plateaux.items() for nb_coups, liste_plateaux in dico_nb_coups.items()])
 
 class ResoudrePlateau:
     "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
@@ -691,7 +717,6 @@ class ResoudrePlateau:
         self._export_json_analyses = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = 'Analyses')
         self._export_json_solutions = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = 'Solutions')
         self.__importer_fichier_json()
-        # TODO : Ajouter un debut/fin => Abandonné. La résolution d'un plateau est trop courte.
 
     def __len__(self):
         "La longueur de la solution définit la difficulté"
@@ -888,11 +913,13 @@ class ResoudrePlateau:
     def difficulte(self):
         """Retourne la difficulté de la solution
 La difficulté est le nombre de coups pour résoudre le plateau rapporté à la taille du plateau."""
+        if self.solution_la_plus_courte is None:
+            return None
         surface_plateau_max = 12 * 12
         surface_plateau = self._plateau_initial.nb_colonnes * self._plateau_initial.nb_lignes
         inverse_ratio_surface = surface_plateau_max / surface_plateau
-        self.difficulte = int( self.solution_la_plus_courte * inverse_ratio_surface )
-        return self.difficulte
+        self._difficulte = int( self.solution_la_plus_courte * inverse_ratio_surface )
+        return self._difficulte
 
 class ExportJSON:
     def __init__(self, delai, longueur, nom_plateau, nom_export, repertoire = REPERTOIRE_SORTIE_RACINE):
@@ -923,11 +950,11 @@ Retourne True si l'export a été réalisé"""
             self._chemin_enregistrement.parent.mkdir(parents=True, exist_ok=True)
         if type(contenu) == dict:
             with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
-                json.dump(contenu, fichier, ensure_ascii=False)
+                json.dump(contenu, fichier, ensure_ascii=False, indent=4)
         else:
             # Enregistrement d'une classe
             with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
-                json.dump(contenu.to_dict(), fichier, ensure_ascii=False)
+                json.dump(contenu.to_dict(), fichier, ensure_ascii=False, indent=4)
         self._longueur_dernier_enregistrement = len(contenu)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         return True
