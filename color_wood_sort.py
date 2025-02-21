@@ -747,6 +747,11 @@ Le plateau lui-même n'est pas dans les permutations."""
             self._a_change = True
             self._fin_recherche_des_solutions = datetime.datetime.now().timestamp()
 
+    def effacer_difficulte_plateau(self):
+        "Méthode qui enregistre les difficultés des plateaux et la profondeur de leur solution"
+        self._ensemble_des_difficultes_de_plateaux.clear()
+        self._a_change = True
+
     def arret_des_enregistrements_de_difficultes_plateaux(self):
         "Méthode qui finalise l'arret des enregistrements des difficultés de plateaux"
         # Classement des difficultés
