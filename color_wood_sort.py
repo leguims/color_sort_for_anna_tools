@@ -97,13 +97,6 @@ class Plateau:
             self.__creer_plateau_ligne_texte()
         return self._plateau_ligne_texte
 
-    @property
-    def plateau_ligne_texte_universel(self):
-        "Représentation en 1 ligne du plateau (texte)"
-        if not self._plateau_ligne_texte_universel:
-            self.__creer_plateau_ligne_texte_universel()
-        return self._plateau_ligne_texte_universel
-
     @plateau_ligne_texte.setter
     def plateau_ligne_texte(self, plateau_ligne_texte):
         # Pas de verification sur la validite,
@@ -111,6 +104,21 @@ class Plateau:
         # a ignorer.
         self.plateau_ligne = [c for c in plateau_ligne_texte] # via setter
         self._plateau_ligne_texte = plateau_ligne_texte
+
+    @property
+    def plateau_ligne_texte_universel(self):
+        "Représentation en 1 ligne du plateau (texte)"
+        if not self._plateau_ligne_texte_universel:
+            self.__creer_plateau_ligne_texte_universel()
+        return self._plateau_ligne_texte_universel
+
+    @plateau_ligne_texte_universel.setter
+    def plateau_ligne_texte_universel(self, plateau_ligne_texte_universel):
+        # Pas de verification sur la validite,
+        # pour pouvoir traiter les plateaux invalides
+        # a ignorer.
+        self._plateau_ligne_texte = plateau_ligne_texte_universel.replace('.', '')
+        self.plateau_ligne = [c for c in self._plateau_ligne_texte] # via setter
 
     @property
     def plateau_rectangle(self):
@@ -360,7 +368,13 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
 
         # Ajouter le nombre de plateaux et la liste des plateaux valides
         dict_lot_de_plateaux['nombre plateaux'] = len(self.plateaux_valides)
-        dict_lot_de_plateaux['liste plateaux'] = list(self.plateaux_valides)
+        liste_plateaux_universelle = []
+        plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+        for plateau_txt in self.plateaux_valides:
+            plateau.clear()
+            plateau.plateau_ligne_texte = plateau_txt
+            liste_plateaux_universelle.append(plateau.plateau_ligne_texte_universel)
+        dict_lot_de_plateaux['liste plateaux'] = liste_plateaux_universelle
 
         # Ajouter les timestamps de début et de fin des solutions
         dict_lot_de_plateaux['debut solutions'] = self._debut_recherche_des_solutions
@@ -371,8 +385,19 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             and self._debut_recherche_des_solutions is not None:
             duree_solution = self._fin_recherche_des_solutions - self._debut_recherche_des_solutions
             dict_lot_de_plateaux['duree solutions'] = self.formater_duree(duree_solution)
+        
         # La difficulté est un entier, mais est enregistrée comme une chaine de caracteres dans le JSON. Surement car c'est une clé.
-        dict_lot_de_plateaux['liste difficulte des plateaux']= self._ensemble_des_difficultes_de_plateaux
+        liste_difficultes_universelles = {}
+        plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+        for difficulte, dico_nb_coups in self._ensemble_des_difficultes_de_plateaux.items():
+            liste_difficultes_universelles[difficulte] = {}
+            for nb_coups, liste_plateaux in dico_nb_coups.items():
+                liste_difficultes_universelles[difficulte][nb_coups] = []
+                for plateau_txt in liste_plateaux:
+                    plateau.clear()
+                    plateau.plateau_ligne_texte = plateau_txt
+                    liste_difficultes_universelles[difficulte][nb_coups].append(plateau.plateau_ligne_texte_universel)
+        dict_lot_de_plateaux['liste difficulte des plateaux']= liste_difficultes_universelles
 
         return dict_lot_de_plateaux
 
@@ -625,6 +650,10 @@ Le plateau lui-même n'est pas dans les permutations."""
             self._nb_plateaux_max = nb_plateaux_max
         self.__reduire_memoire()
 
+    def __init_export_json(self):
+        nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
+        self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
+
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les plateaux valides"""
         # Enregistrement des donnees dans un fichier JSON
@@ -652,11 +681,14 @@ Le plateau lui-même n'est pas dans les permutations."""
             and data_json['nombre plateaux'] > 0:
             # Récupération des plateaux valides que la recherche soit terminée ou non
             # pas d'optilmisation identifiée pour accelerer la poursuite de la recherche
+            plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             for plateau_valide in data_json['liste plateaux']:
                 # 'self.est_ignore()' n'est pas utilisé, car il va modifier le fichier
                 #  d'export quand des plateaux valides sont ajoutés. Dans notre cas, il
                 #  faut ajouter les plateaux depuis l'export en considérant qu'il sont fiables.
-                self._ensemble_des_plateaux_valides.add(plateau_valide)
+                plateau.clear()
+                plateau.plateau_ligne_texte_universel = plateau_valide
+                self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
 
         # Solutions
         if "debut solutions" in data_json:
@@ -665,6 +697,7 @@ Le plateau lui-même n'est pas dans les permutations."""
             self._fin_recherche_des_solutions = data_json["fin solutions"]
         if 'liste difficulte des plateaux' in data_json and data_json['liste difficulte des plateaux']:
             # Convertir 'difficulte' et 'nb_coups' en entiers
+            plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             for difficulte_str, dico_nb_coups in data_json['liste difficulte des plateaux'].items():
                 if difficulte_str == 'null':
                     difficulte = None
@@ -679,8 +712,10 @@ Le plateau lui-même n'est pas dans les permutations."""
                         self._ensemble_des_difficultes_de_plateaux[difficulte] = {}
                     if nb_coups not in self._ensemble_des_difficultes_de_plateaux.get(difficulte):
                         self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups] = []
-                    for plateau in liste_plateaux:
-                        self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau)
+                    for plateau_txt in liste_plateaux:
+                        plateau.clear()
+                        plateau.plateau_ligne_texte_universel = plateau_txt
+                        self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau.plateau_ligne_texte)
 
     def est_deja_termine(self):
         self.__init_export_json()
@@ -690,10 +725,6 @@ Le plateau lui-même n'est pas dans les permutations."""
         self._ignorer_ensemble_des_plateaux_valides_connus = copy.deepcopy(self._ensemble_des_plateaux_valides)
         return recherche_terminee
     
-    def __init_export_json(self):
-        nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
-        self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
-
     def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
         "Méthode qui vérifie si le plateau est déjà résolu"
         est_connu = False
@@ -787,7 +818,7 @@ class ResoudrePlateau:
 
     def to_dict(self):
         dict_resoudre_plateau = {}
-        dict_resoudre_plateau['plateau'] = self._plateau_initial.plateau_ligne_texte
+        dict_resoudre_plateau['plateau'] = self._plateau_initial.plateau_ligne_texte_universel
         dict_resoudre_plateau['nombre de solutions'] = self.nb_solutions
         dict_resoudre_plateau['solution la plus courte'] = self.solution_la_plus_courte
         dict_resoudre_plateau['solution la plus longue'] = self.solution_la_plus_longue

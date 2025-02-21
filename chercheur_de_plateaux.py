@@ -6,7 +6,6 @@ import color_wood_sort as cws
 COLONNES = [3] # range(2, 5) # range(2, 5) #11
 LIGNES = [3] # [2,3] #4
 COLONNES_VIDES_MAX = 1
-MEMOIRE_MAX = 5_000_000
 PROFILER_LE_CODE = False
 
 def chercher_des_plateaux(colonnes, lignes):
@@ -14,7 +13,7 @@ def chercher_des_plateaux(colonnes, lignes):
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
     # plateau.afficher()
-    lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
+    lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
     if not lot_de_plateaux.est_deja_termine():
         # lot_de_plateaux.fixer_taille_memoire_max(5)
         for permutation_courante in permutations(plateau.pour_permutations):

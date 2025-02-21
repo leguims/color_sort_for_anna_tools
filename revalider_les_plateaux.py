@@ -1,6 +1,4 @@
 "Module pour créer des plateaux de 'ColorWoodSort'"
-from itertools import permutations
-
 import color_wood_sort as cws
 
 COLONNES = range(2, 12) #[2] # range(2, 5) # range(2, 5) #11

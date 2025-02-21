@@ -37,9 +37,9 @@ def classer_les_solutions(colonnes, lignes, nb_coups_min = 3):
                         dict_difficulte[str(difficulte)] = {}
                     if nb_coups not in dict_difficulte[str(difficulte)]:
                         dict_difficulte[str(difficulte)][str(nb_coups)] = []
-                    for plateau_ligne_texte in liste_plateaux:
+                    for plateau_ligne_texte_universel in liste_plateaux:
                         plateau.clear()
-                        plateau.plateau_ligne_texte = plateau_ligne_texte
+                        plateau.plateau_ligne_texte_universel = plateau_ligne_texte_universel
                         dict_difficulte[str(difficulte)][str(nb_coups)].append(plateau.plateau_ligne_texte_universel)
         ordonner_difficulte_nombre_coups(solutions_classees["liste difficulte des plateaux"])
         solutions_classees_json.forcer_export(solutions_classees)
