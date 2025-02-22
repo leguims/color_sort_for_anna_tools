@@ -464,28 +464,39 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
     def mettre_a_jour_les_plateaux_valides(self):
         "Vérifie la liste des plateau valide car les regles ont changé. Utile pour les recherches déjà terminées."
         liste_nouveaux_plateaux_invalides = []
-        for plateau in self.plateaux_valides:
-            if plateau not in liste_nouveaux_plateaux_invalides:
+        for iter_plateau_ligne_texte in self.plateaux_valides:
+            if iter_plateau_ligne_texte not in liste_nouveaux_plateaux_invalides:
                 plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-                plateau_courant.plateau_ligne_texte = plateau
+                plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
                 if not plateau_courant.est_valide:
                     print(f"'{plateau_courant.plateau_ligne_texte_universel}' : invalide à supprimer")
-                    liste_nouveaux_plateaux_invalides.append(plateau)
+                    liste_nouveaux_plateaux_invalides.append(iter_plateau_ligne_texte)
 
                 # Vérifier de nouvelles formes de doublons (permutations) dans les plateaux valides
                 # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
                 liste_permutations = self.__construire_les_permutations_de_colonnes(plateau_courant) \
                                     + self.__construire_les_permutations_de_jetons(plateau_courant)
-                # TODO : CORRIGER CA : for plateau_a_ignorer in set(tuple(liste_permutations)):
-                for plateau_a_ignorer in liste_permutations:
-                    # Tester si la permutation de colonne/jeton était déjà dans les plateaux valides
-                    if plateau_a_ignorer.plateau_ligne_texte in self._ensemble_des_plateaux_valides:
-                        print(f"'{plateau_a_ignorer.plateau_ligne_texte_universel}' : en doublon avec {plateau_courant.plateau_ligne_texte_universel}")
-                        liste_nouveaux_plateaux_invalides.append(plateau_a_ignorer.plateau_ligne_texte)
+                # Pour chaque permutation de colonne, réaliser la permutation de jeton correspondante
+                for plateau_permutation_de_colonne in self.__construire_les_permutations_de_colonnes(plateau_courant):
+                    liste_permutations += self.__construire_les_permutations_de_jetons(plateau_permutation_de_colonne)
+                # Eliminer les doublons et le plateau courant
+                liste_permutations_texte = set([p.plateau_ligne_texte for p in liste_permutations])
+                if iter_plateau_ligne_texte in liste_permutations_texte:
+                    liste_permutations_texte.remove(iter_plateau_ligne_texte)
+
+                # Affichage des doublons colonne/jeton
+                for p in liste_permutations_texte:
+                    if p in self._ensemble_des_plateaux_valides:
+                        p_universel = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+                        p_universel.plateau_ligne_texte = p
+                        print(f"'{p_universel.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
+
+                liste_nouveaux_plateaux_invalides += list(liste_permutations_texte)
 
         if liste_nouveaux_plateaux_invalides:
-            for plateau in liste_nouveaux_plateaux_invalides:
-                self.plateaux_valides.remove(plateau)
+            for iter_plateau_ligne_texte in liste_nouveaux_plateaux_invalides:
+                if iter_plateau_ligne_texte in self.plateaux_valides:
+                    self.plateaux_valides.remove(iter_plateau_ligne_texte)
             self._export_json.forcer_export(self)
 
     @property
