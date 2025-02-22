@@ -485,11 +485,11 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                     liste_permutations_texte.remove(iter_plateau_ligne_texte)
 
                 # Affichage des doublons colonne/jeton
-                for p in liste_permutations_texte:
-                    if p in self._ensemble_des_plateaux_valides:
-                        p_universel = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-                        p_universel.plateau_ligne_texte = p
-                        print(f"'{p_universel.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
+                # for p in liste_permutations_texte:
+                #     if p in self._ensemble_des_plateaux_valides:
+                #         p_universel = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+                #         p_universel.plateau_ligne_texte = p
+                #         print(f"'{p_universel.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
 
                 liste_nouveaux_plateaux_invalides += list(liste_permutations_texte)
 
