@@ -471,7 +471,16 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                 if not plateau_courant.est_valide:
                     print(f"'{plateau_courant.plateau_ligne_texte_universel}' : invalide à supprimer")
                     liste_nouveaux_plateaux_invalides.append(iter_plateau_ligne_texte)
+        # Reduire les valides avant de chercher les permutations
+        if liste_nouveaux_plateaux_invalides:
+            for iter_plateau_ligne_texte in liste_nouveaux_plateaux_invalides:
+                if iter_plateau_ligne_texte in self.plateaux_valides:
+                    self.plateaux_valides.remove(iter_plateau_ligne_texte)
+            self._export_json.forcer_export(self)
 
+        liste_nouveaux_plateaux_invalides.clear()
+        for iter_plateau_ligne_texte in self.plateaux_valides:
+            if iter_plateau_ligne_texte not in liste_nouveaux_plateaux_invalides:
                 # Vérifier de nouvelles formes de doublons (permutations) dans les plateaux valides
                 # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
                 liste_permutations = self.__construire_les_permutations_de_colonnes(plateau_courant) \
