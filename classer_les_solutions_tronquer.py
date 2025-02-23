@@ -20,9 +20,17 @@ def tronquer_les_solutions(taille = TAILLE, decallage = 0):
 
     if "liste difficulte des plateaux" in solutions_classees:
         dict_difficulte = solutions_classees["liste difficulte des plateaux"]
-        # Filtrer les plateaux sans solutions ou trop triviaux
-        for difficulte, liste_plateaux in dict_difficulte.items():
-            dict_difficulte[difficulte] = liste_plateaux[decallage:decallage+taille]
+        dict_difficulte_tronque = {}
+        # Gommer la notion de 'nb_coups' pour le jeu
+        for difficulte, dico_nb_coups in dict_difficulte.items():
+            for nb_coups, liste_plateaux in dico_nb_coups.items():
+                if difficulte not in dict_difficulte_tronque:
+                    dict_difficulte_tronque[difficulte] = []
+                dict_difficulte_tronque[difficulte] += liste_plateaux[decallage:decallage+taille]
+        # Tronquer les solutions
+        for difficulte, liste_plateaux in dict_difficulte_tronque.items():
+            liste_plateaux = liste_plateaux[0:taille]
+        solutions_classees["liste difficulte des plateaux"] = dict_difficulte_tronque
         solutions_classees_tronquees_json.forcer_export(solutions_classees)
     return message
 
