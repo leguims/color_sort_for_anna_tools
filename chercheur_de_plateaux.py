@@ -1,7 +1,8 @@
-"Module pour créer des plateaux de 'ColorWoodSort'"
+"Module pour creer des plateaux de 'ColorWoodSort'"
 from itertools import permutations
 import logging
 import pathlib
+import datetime
 
 import color_wood_sort as cws
 
@@ -11,34 +12,38 @@ COLONNES_VIDES_MAX = 1
 PROFILER_LE_CODE = False
 NOM_TACHE = 'chercher_des_plateaux'
 FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+PERIODE_AFFICHAGE = 5*60 # en secondes
 
 def chercher_des_plateaux(colonnes, lignes):
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
-    logger.info(f"{' '*colonnes} DEBUT")
+    logger.info(f"DEBUT")
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
     # logger.info(plateau.plateau_ligne_texte_universel)
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
+    dernier_affichage  = datetime.datetime.now().timestamp()
     if not lot_de_plateaux.est_deja_termine():
         # lot_de_plateaux.fixer_taille_memoire_max(5)
         for permutation_courante in permutations(plateau.pour_permutations):
             # Verifier que ce plateau est nouveau
             permutation_courante = ''.join(permutation_courante)
             if not lot_de_plateaux.est_ignore(permutation_courante):
-                if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
-                    logger.info(f"{' '*colonnes} nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+                # Afficher si dernier affichage > 5mins
+                if datetime.datetime.now().timestamp() - dernier_affichage > PERIODE_AFFICHAGE:
+                    logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+                    dernier_affichage  = datetime.datetime.now().timestamp()
 
         lot_de_plateaux.arret_des_enregistrements()
         # lot_de_plateaux.exporter_fichier_json()
 
-        logger.info(f"{' '*colonnes} duree={lot_de_plateaux.formater_duree(lot_de_plateaux.duree)}")
+        logger.info(f"duree={lot_de_plateaux.formater_duree(lot_de_plateaux.duree)}")
 
-        logger.info(f"{' '*colonnes} nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-        logger.info(f"{' '*colonnes} nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
+        logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+        logger.info(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
     else:
-        logger.info(f"{' '*colonnes} Ce lot de plateaux est deja termine")
+        logger.info(f"Ce lot de plateaux est deja termine")
 
 
 def chercher_en_sequence():

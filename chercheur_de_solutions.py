@@ -14,6 +14,7 @@ MEMOIRE_MAX = 500_000
 PROFILER_LE_CODE = False
 NOM_TACHE = 'chercher_des_solutions'
 FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+PERIODE_AFFICHAGE = 5*60 # en secondes
 
 
 def chercher_des_solutions(colonnes, lignes, taciturne=False):
@@ -21,7 +22,7 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     if not taciturne:
-        logger.info(f"{' '*colonnes} DEBUT")
+        logger.info(f"DEBUT")
 
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
@@ -36,6 +37,9 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
                 logger.info(f"Il y a plus de plateaux de solutions que de plateaux valides ! Il y a un probleme ! {lot_de_plateaux.nb_plateaux_solutionnes} > {lot_de_plateaux.nb_plateaux_valides}")
                 # TODO : Il y a probablement des solutions de plateau obsoletes a effacer.
             logger.info(f"Il reste des solutions a trouver : {lot_de_plateaux.nb_plateaux_valides} != {lot_de_plateaux.nb_plateaux_solutionnes}")
+            
+            dernier_affichage  = datetime.datetime.now().timestamp()
+            nb_solutions_a_trouver = lot_de_plateaux.nb_plateaux_valides
             for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
                 plateau.clear()
                 plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
@@ -43,6 +47,12 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
                     resolution = cws.ResoudrePlateau(plateau)
                     resolution.backtracking()
                     lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, resolution.solution_la_plus_courte)
+                
+                # Afficher si dernier affichage > 5mins
+                nb_solutions_a_trouver -= 1
+                if datetime.datetime.now().timestamp() - dernier_affichage > PERIODE_AFFICHAGE:
+                    logger.info(f"Il reste {nb_solutions_a_trouver} solutions a resoudre.")
+                    dernier_affichage  = datetime.datetime.now().timestamp()
 
             lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
             for difficulte, dico_nb_coups in lot_de_plateaux.difficulte_plateaux.items():

@@ -17,7 +17,7 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
-    logger.info(f"{' '*colonnes} DEBUT")
+    logger.info(f"DEBUT")
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
     logger.info(plateau.plateau_ligne_texte_universel)

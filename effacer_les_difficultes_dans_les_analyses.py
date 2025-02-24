@@ -15,7 +15,7 @@ def effacer_les_difficulte_dans_les_analyse(colonnes, lignes):
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
-    logger.info(f"{' '*colonnes} DEBUT")
+    logger.info(f"DEBUT")
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
     lot_de_plateaux.est_deja_termine()
 

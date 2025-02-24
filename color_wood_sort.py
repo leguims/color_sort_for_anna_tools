@@ -1,4 +1,4 @@
-"Module pour créer, résoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
+"Module pour creer, resoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
 from itertools import permutations
 import pathlib
 import datetime
@@ -13,10 +13,10 @@ import pstats
 
 REPERTOIRE_SORTIE_RACINE = 'Analyses'
 
-# TODO : reprendre l'enregistrement à partir du fichier. => Pas d'amélioration, essayer de comprendre.
+# TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
 
 class Plateau:
-    "Classe qui implémente un plateau. Son contenu et ses différentes représentations."
+    "Classe qui implemente un plateau. Son contenu et ses differentes representations."
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides=1):
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
@@ -37,7 +37,7 @@ class Plateau:
         self.__creer_les_familles()
 
     def clear(self):
-        "Efface le plateau pour en écrire un nouveau"
+        "Efface le plateau pour en ecrire un nouveau"
         self._est_valide = None
         self._plateau_ligne = None
         self._plateau_ligne_texte = None
@@ -80,7 +80,7 @@ class Plateau:
 
     @property
     def plateau_ligne(self):
-        "Représentation en 1 ligne du plateau (liste)"
+        "Representation en 1 ligne du plateau (liste)"
         return self._plateau_ligne
 
     @plateau_ligne.setter
@@ -93,7 +93,7 @@ class Plateau:
 
     @property
     def plateau_ligne_texte(self):
-        "Représentation en 1 ligne du plateau (texte)"
+        "Representation en 1 ligne du plateau (texte)"
         if not self._plateau_ligne_texte:
             self.__creer_plateau_ligne_texte()
         return self._plateau_ligne_texte
@@ -108,7 +108,7 @@ class Plateau:
 
     @property
     def plateau_ligne_texte_universel(self):
-        "Représentation en 1 ligne du plateau (texte)"
+        "Representation en 1 ligne du plateau (texte)"
         if not self._plateau_ligne_texte_universel:
             self.__creer_plateau_ligne_texte_universel()
         return self._plateau_ligne_texte_universel
@@ -123,14 +123,14 @@ class Plateau:
 
     @property
     def plateau_rectangle(self):
-        "Représentation en rectangle (colonnes et lignes) du plateau (liste)"
+        "Representation en rectangle (colonnes et lignes) du plateau (liste)"
         if not self._plateau_rectangle:
             self.__creer_plateau_rectangle()
         return self._plateau_rectangle
 
     @property
     def plateau_rectangle_texte(self):
-        "Représentation en rectangle (colonnes et lignes) du plateau (texte)"
+        "Representation en rectangle (colonnes et lignes) du plateau (texte)"
         if not self._plateau_rectangle_texte:
             self.__creer_plateau_rectangle_texte()
         return self._plateau_rectangle_texte
@@ -144,7 +144,7 @@ class Plateau:
 
     @property
     def pour_permutations(self):
-        "Format du plateau utilisé pour les permutations"
+        "Format du plateau utilise pour les permutations"
         return self.plateau_ligne
 
     def __creer_plateau_ligne_texte(self):
@@ -181,7 +181,7 @@ class Plateau:
         return self._nb_familles
 
     def __creer_les_familles(self):
-        "Créer une liste des familles"
+        "Creer une liste des familles"
         if not self._liste_familles:
             self._liste_familles = [chr(ord('A')+F) for F in range(self._nb_familles) ]
         return self._liste_familles
@@ -215,7 +215,7 @@ class Plateau:
             if index_vide in self._dico_validite_index_vide:
                 return self._dico_validite_index_vide.get(index_vide)
             
-            # Index inconnu, identifier sa validité
+            # Index inconnu, identifier sa validite
             for colonne in range(self._nb_colonnes):
                 case_vide_presente = False
                 for ligne in range(self._nb_lignes):
@@ -233,7 +233,7 @@ class Plateau:
             self._dico_validite_index_vide[index_vide] = self._est_valide
 
             # Est-ce que le plateau est interessant ?
-            # Une colonne achevée est sans interet.
+            # Une colonne achevee est sans interet.
             if self.une_colonne_est_pleine_et_monocouleur():
                 self._est_valide = False
                 return self._est_valide
@@ -241,12 +241,12 @@ class Plateau:
 
     def la_colonne_est_vide(self, colonne):
         if colonne >= self.nb_colonnes:
-            raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
+            raise IndexError(f"Le numero de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         return self.plateau_rectangle_texte[colonne].isspace()
 
     def la_colonne_est_pleine(self, colonne):
         if colonne >= self.nb_colonnes:
-            raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
+            raise IndexError(f"Le numero de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         return self.plateau_rectangle_texte[colonne].count(' ') == 0
 
     def la_colonne_est_pleine_et_monocouleur(self, colonne):
@@ -263,7 +263,7 @@ class Plateau:
 
     def la_couleur_au_sommet_de_la_colonne(self, colonne):
         if colonne >= self.nb_colonnes:
-            raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
+            raise IndexError(f"Le numero de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         colonne_texte = self.plateau_rectangle_texte[colonne]
         derniere_case_non_vide = colonne_texte.strip()[-1]
         return derniere_case_non_vide
@@ -281,7 +281,7 @@ class Plateau:
 
     def nombre_de_case_vide_de_la_colonne(self, colonne):
         if colonne >= self.nb_colonnes:
-            raise IndexError(f"Le numéro de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
+            raise IndexError(f"Le numero de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         colonne_texte = self.plateau_rectangle_texte[colonne]
         return len(colonne_texte) - len(colonne_texte.rstrip())
 
@@ -292,18 +292,18 @@ class Plateau:
 
     def deplacer_blocs(self, colonne_depart, colonne_arrivee, nombre_blocs = 1):
         if nombre_blocs != self.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(colonne_depart):
-            raise ValueError("Le nombre de bloc à déplacer est différent à celui du plateau")
+            raise ValueError("Le nombre de bloc a deplacer est different a celui du plateau")
         self.annuler_le_deplacer_blocs(colonne_arrivee, colonne_depart, nombre_blocs)
 
     def annuler_le_deplacer_blocs(self, colonne_depart_a_annuler, colonne_arrivee_a_annuler, nombre_blocs = 1):
         if nombre_blocs > self.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(colonne_arrivee_a_annuler):
-            raise ValueError("Le nombre de bloc à déplacer est supérieur à celui du plateau")
+            raise ValueError("Le nombre de bloc a deplacer est superieur a celui du plateau")
         if nombre_blocs > self.nombre_de_case_vide_de_la_colonne(colonne_depart_a_annuler):
-            raise ValueError("Le nombre de bloc à déplacer est plus grand que ce que la colonne peut recevoir")
+            raise ValueError("Le nombre de bloc a deplacer est plus grand que ce que la colonne peut recevoir")
         couleur = self.la_couleur_au_sommet_de_la_colonne(colonne_arrivee_a_annuler)
         case_vide = ' '
         plateau = self.plateau_rectangle_texte
-        # Inverser la colonne pour remplacer les couleur du haut, puis rétablir l'ordre
+        # Inverser la colonne pour remplacer les couleur du haut, puis retablir l'ordre
         # colonne de depart : 'ABAA' => 'AABA' => '  BA' => 'AB  '
         plateau[colonne_arrivee_a_annuler] = plateau[colonne_arrivee_a_annuler][::-1].replace(couleur, case_vide, nombre_blocs)[::-1]
         # colonne d'arrivee : 'C   ' => 'CAA '
@@ -315,8 +315,8 @@ class Plateau:
         return False
 
 class LotDePlateaux:
-    """Classe qui gère les lots de plateaux pour parcourir l'immensité des plateaux existants.
-Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la recherche."""
+    """Classe qui gere les lots de plateaux pour parcourir l'immensite des plateaux existants.
+Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherche."""
     def __init__(self, dim_plateau, nb_plateaux_max = 1_000_000):
         # Plateau de base
         self._nb_colonnes = dim_plateau[0]
@@ -354,14 +354,14 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             dict_lot_de_plateaux['lignes'] = self._nb_lignes
             dict_lot_de_plateaux['colonnes vides'] = self._nb_colonnes_vides
 
-        # Ajouter les timestamps de début et de fin
+        # Ajouter les timestamps de debut et de fin
         dict_lot_de_plateaux['debut'] = self.debut
         dict_lot_de_plateaux['fin'] = self.fin
 
-        # Formater la durée de manière lisible
+        # Formater la duree de maniere lisible
         dict_lot_de_plateaux['duree'] = self.formater_duree(self.duree)
         
-        # Indiquer si la recherche est terminée
+        # Indiquer si la recherche est terminee
         dict_lot_de_plateaux['recherche terminee'] = self._fin_recherche_des_plateaux_valides is not None
 
         # Ajouter le nombre de plateaux et la liste des plateaux valides
@@ -374,7 +374,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             liste_plateaux_universelle.append(plateau.plateau_ligne_texte_universel)
         dict_lot_de_plateaux['liste plateaux'] = liste_plateaux_universelle
 
-        # Ajouter les timestamps de début et de fin des solutions
+        # Ajouter les timestamps de debut et de fin des solutions
         dict_lot_de_plateaux['debut solutions'] = self._debut_recherche_des_solutions
         dict_lot_de_plateaux['fin solutions'] = self._fin_recherche_des_solutions
 
@@ -384,7 +384,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             duree_solution = self._fin_recherche_des_solutions - self._debut_recherche_des_solutions
             dict_lot_de_plateaux['duree solutions'] = self.formater_duree(duree_solution)
         
-        # La difficulté est un entier, mais est enregistrée comme une chaine de caracteres dans le JSON. Surement car c'est une clé.
+        # La difficulte est un entier, mais est enregistree comme une chaine de caracteres dans le JSON. Surement car c'est une cle.
         liste_difficultes_universelles = {}
         plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
         for difficulte, dico_nb_coups in self._ensemble_des_difficultes_de_plateaux.items():
@@ -400,7 +400,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         return dict_lot_de_plateaux
 
     def formater_duree(self, duree):
-        """Formater la durée en une chaîne de caractères lisible."""
+        """Formater la duree en une chaîne de caracteres lisible."""
         if duree < 0.001:
             return f"{int(duree * 1_000_000)} microsecondes"
         elif duree < 1:
@@ -419,7 +419,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                 return f"{int(minutes)} minutes {int(secondes)} secondes"
 
     def arret_des_enregistrements(self):
-        "Méthode qui finalise la recherche de plateaux"
+        "Methode qui finalise la recherche de plateaux"
         self._ensemble_des_plateaux_a_ignorer.clear()
         self._dico_compteur_des_plateaux_a_ignorer.clear()
         self._fin_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
@@ -428,10 +428,13 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
     def est_ignore(self, permutation_plateau):
         "Retourne 'True' si le plateau est deja connu"
         # Ignorer toutes les permutations jusqu'à ce que toute les solutions connues soient trouvées
-        if len(self._ignorer_ensemble_des_plateaux_valides_connus) > 0 :
+        reste_a_ignorer = len(self._ignorer_ensemble_des_plateaux_valides_connus)
+        if reste_a_ignorer > 0 :
             self._ignorer_ensemble_des_plateaux_valides_connus.discard(permutation_plateau)
-            if len(self._ignorer_ensemble_des_plateaux_valides_connus) == 0:
-                self._logger.info(f"[{self._nb_colonnes}x{self._nb_lignes}] Fin de parcours des plateaux déjà connus.")
+            if not len(self._ignorer_ensemble_des_plateaux_valides_connus):
+                self._logger.info(f"Fin de parcours des plateaux deja connus.")
+            elif reste_a_ignorer > len(self._ignorer_ensemble_des_plateaux_valides_connus):
+                self._logger.info(f"Il reste encore {len(self._ignorer_ensemble_des_plateaux_valides_connus)} plateaux deja connus a parcourir.")
             return True
         
         # Ignorer les permutations en doublon
@@ -459,16 +462,22 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         self.__compter_plateau_a_ignorer(self._plateau_courant)
         return True
 
-    def mettre_a_jour_les_plateaux_valides(self):
-        "Vérifie la liste des plateau valide car les regles ont changé. Utile pour les recherches déjà terminées."
+    def mettre_a_jour_les_plateaux_valides(self, periode_affichage):
+        "Verifie la liste des plateau valide car les regles ont change. Utile pour les recherches deja terminees."
         liste_nouveaux_plateaux_invalides = []
+        dernier_affichage  = datetime.datetime.now().timestamp()
+        nb_plateaux_a_valider = self.nb_plateaux_valides
         for iter_plateau_ligne_texte in self.plateaux_valides:
             if iter_plateau_ligne_texte not in liste_nouveaux_plateaux_invalides:
                 plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
                 plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
                 if not plateau_courant.est_valide:
-                    self._logger.info(f"'{plateau_courant.plateau_ligne_texte_universel}' : invalide à supprimer")
+                    self._logger.info(f"'{plateau_courant.plateau_ligne_texte_universel}' : invalide a supprimer")
                     liste_nouveaux_plateaux_invalides.append(iter_plateau_ligne_texte)
+            nb_plateaux_a_valider -= 1
+            if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
+                self._logger.info(f"'Phase 1 : Il reste {nb_plateaux_a_valider} plateaux a valider")
+                dernier_affichage  = datetime.datetime.now().timestamp()
         # Reduire les valides avant de chercher les permutations
         if liste_nouveaux_plateaux_invalides:
             for iter_plateau_ligne_texte in liste_nouveaux_plateaux_invalides:
@@ -477,13 +486,15 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             self._export_json.forcer_export(self)
 
         liste_nouveaux_plateaux_invalides.clear()
+        dernier_affichage  = datetime.datetime.now().timestamp()
+        nb_plateaux_a_valider = self.nb_plateaux_valides
         for iter_plateau_ligne_texte in self.plateaux_valides:
             if iter_plateau_ligne_texte not in liste_nouveaux_plateaux_invalides:
-                # Vérifier de nouvelles formes de doublons (permutations) dans les plateaux valides
+                # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
                 # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
                 liste_permutations = self.__construire_les_permutations_de_colonnes(plateau_courant) \
                                     + self.__construire_les_permutations_de_jetons(plateau_courant)
-                # Pour chaque permutation de colonne, réaliser la permutation de jeton correspondante
+                # Pour chaque permutation de colonne, realiser la permutation de jeton correspondante
                 for plateau_permutation_de_colonne in self.__construire_les_permutations_de_colonnes(plateau_courant):
                     liste_permutations += self.__construire_les_permutations_de_jetons(plateau_permutation_de_colonne)
                 # Eliminer les doublons et le plateau courant
@@ -499,6 +510,10 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                 #         self._logger.info(f"'{p_universel.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
 
                 liste_nouveaux_plateaux_invalides += list(liste_permutations_texte)
+            nb_plateaux_a_valider -= 1
+            if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
+                self._logger.info(f"'Phase 2 : Il reste {nb_plateaux_a_valider} plateaux a valider")
+                dernier_affichage  = datetime.datetime.now().timestamp()
 
         if liste_nouveaux_plateaux_invalides:
             for iter_plateau_ligne_texte in liste_nouveaux_plateaux_invalides:
@@ -518,12 +533,12 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
 
     @property
     def nb_plateaux_ignores(self):
-        "Nombre de plateaux ignorés"
+        "Nombre de plateaux ignores"
         return len(self._ensemble_des_plateaux_a_ignorer)
 
     @property
     def debut(self):
-        "Heure de début de la recherche"
+        "Heure de debut de la recherche"
         return self._debut_recherche_des_plateaux_valides
 
     @property
@@ -535,20 +550,20 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
 
     @property
     def duree(self):
-        "Durée de la recherche"
+        "Duree de la recherche"
         return self.fin - self.debut
 
     def __ajouter_le_plateau(self, plateau: Plateau):
         "Memorise un plateau deja traite"
-        # Avec les réductions de memoires, un nouveau plateau pourrait-etre une ancienne
-        # permutation effacée. Il faut vérifier les permutations avant d'ajouter définitivement
+        # Avec les reductions de memoires, un nouveau plateau pourrait-etre une ancienne
+        # permutation effacee. Il faut verifier les permutations avant d'ajouter definitivement
         # le plateau.
         nouveau_plateau = True
         # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
         liste_permutations = self.__construire_les_permutations_de_colonnes(plateau) \
                             + self.__construire_les_permutations_de_jetons(plateau)
         for plateau_a_ignorer in set(liste_permutations):
-            # Tester si la permutation de colonne/jeton était déjà dans les plateaux valides
+            # Tester si la permutation de colonne/jeton etait deja dans les plateaux valides
             if plateau_a_ignorer.plateau_ligne_texte in self._ensemble_des_plateaux_valides:
                 nouveau_plateau = False
             # Ignorer toutes les permutations
@@ -569,10 +584,10 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             self._a_change = self._a_change and not self._export_json.exporter(self)
 
     def __construire_les_permutations_de_colonnes(self, plateau: Plateau):
-        """Méthode qui construit les permutations de colonnes d'un plateau.
-Le plateau lui-même n'est pas dans les permutations."""
+        """Methode qui construit les permutations de colonnes d'un plateau.
+Le plateau lui-meme n'est pas dans les permutations."""
         liste_permutations_de_colonnes = []
-        # 'set()' est utilisé pour éliminer les permutations identiques
+        # 'set()' est utilise pour eliminer les permutations identiques
         for permutation_courante in set(permutations(plateau.plateau_rectangle_texte)):
             plateau_a_ignorer = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
@@ -583,9 +598,9 @@ Le plateau lui-même n'est pas dans les permutations."""
         return liste_permutations_de_colonnes
 
     def __construire_les_permutations_de_jetons(self, plateau: Plateau):
-        """Méthode qui construit les permutations de jetons d'un plateau.
-Par exemple, ces deux plateaux sont équivalents pour un humain : 'ABC.CBA' ==(A devient B)== 'BAC.CAB'
-Le plateau lui-même n'est pas dans les permutations."""
+        """Methode qui construit les permutations de jetons d'un plateau.
+Par exemple, ces deux plateaux sont equivalents pour un humain : 'ABC.CBA' ==(A devient B)== 'BAC.CAB'
+Le plateau lui-meme n'est pas dans les permutations."""
         # Liste des permutations 'nombre'
         if self._ensemble_des_permutations_de_nombres is None:
             self._ensemble_des_permutations_de_nombres = set(permutations(range(self._plateau_courant.nb_familles)))
@@ -603,9 +618,9 @@ Le plateau lui-même n'est pas dans les permutations."""
                     nouveau_jeton = self._plateau_courant._liste_familles[nouvel_indice_jeton]
                 else:
                     nouveau_jeton = case_vide
-                # Création de la transposition jeton après jeton
+                # Creation de la transposition jeton apres jeton
                 permutation_jeton_courante.append(nouveau_jeton)
-            # Le plateau transposé est le plateau à ingorer
+            # Le plateau transpose est le plateau a ingorer
             plateau_a_ignorer = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             plateau_a_ignorer.plateau_ligne = permutation_jeton_courante
             if plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
@@ -620,7 +635,7 @@ Le plateau lui-même n'est pas dans les permutations."""
             self._dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] += 1
 
     def __ignorer_le_plateau_et_ses_permutations(self, plateau_a_ignorer: Plateau):
-        # 'set()' est utilisé pour éliminer les permutations identiques
+        # 'set()' est utilise pour eliminer les permutations identiques
         for permutation_courante in set(permutations(plateau_a_ignorer.plateau_rectangle_texte)):
             plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             plateau.plateau_rectangle_texte = permutation_courante
@@ -639,7 +654,7 @@ Le plateau lui-même n'est pas dans les permutations."""
         "Optimisation memoire quand la memoire maximum est atteinte"
         # Trier par valeur croissantes
         if len(self._ensemble_des_plateaux_a_ignorer) > self._nb_plateaux_max:
-            self._logger.info('Réduction mémoire.')
+            self._logger.info('Reduction memoire.')
             dico_trie_par_valeur_croissantes = dict(sorted(
                 self._dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
             # for key, value in dico_trie_par_valeur_croissantes.items():
@@ -694,19 +709,20 @@ Le plateau lui-même n'est pas dans les permutations."""
         elif "fin" in data_json:
             self._fin_recherche_des_plateaux_valides = data_json["fin"]
 
-        # Rejouer les plateaux déjà trouvés
+        # Rejouer les plateaux deja trouves
         if 'nombre plateaux' in data_json \
             and data_json['nombre plateaux'] > 0:
-            # Récupération des plateaux valides que la recherche soit terminée ou non
-            # pas d'optilmisation identifiée pour accelerer la poursuite de la recherche
+            # Recuperation des plateaux valides que la recherche soit terminee ou non
+            # pas d'optilmisation identifiee pour accelerer la poursuite de la recherche
             plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             for plateau_valide in data_json['liste plateaux']:
-                # 'self.est_ignore()' n'est pas utilisé, car il va modifier le fichier
-                #  d'export quand des plateaux valides sont ajoutés. Dans notre cas, il
-                #  faut ajouter les plateaux depuis l'export en considérant qu'il sont fiables.
+                # 'self.est_ignore()' n'est pas utilise, car il va modifier le fichier
+                #  d'export quand des plateaux valides sont ajoutes. Dans notre cas, il
+                #  faut ajouter les plateaux depuis l'export en considerant qu'il sont fiables.
                 plateau.clear()
                 plateau.plateau_ligne_texte_universel = plateau_valide
                 self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
+        self._nombre_de_plateaux_valides_courant = len(self._ensemble_des_plateaux_valides)
 
         # Solutions
         if "debut solutions" in data_json:
@@ -744,7 +760,7 @@ Le plateau lui-même n'est pas dans les permutations."""
         return recherche_terminee
     
     def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
-        "Méthode qui vérifie si le plateau est déjà résolu"
+        "Methode qui verifie si le plateau est deja resolu"
         est_connu = False
         for difficulte in self._ensemble_des_difficultes_de_plateaux.keys():
             if plateau.plateau_ligne_texte in self._ensemble_des_difficultes_de_plateaux[difficulte]:
@@ -753,7 +769,7 @@ Le plateau lui-même n'est pas dans les permutations."""
         return est_connu
 
     def definir_difficulte_plateau(self, plateau: Plateau, difficulte, nb_coups):
-        "Méthode qui enregistre les difficultés des plateaux et la profondeur de leur solution"
+        "Methode qui enregistre les difficultes des plateaux et la profondeur de leur solution"
         if self._debut_recherche_des_solutions is None:
             self._debut_recherche_des_solutions = datetime.datetime.now().timestamp()
         if difficulte not in self._ensemble_des_difficultes_de_plateaux:
@@ -766,20 +782,20 @@ Le plateau lui-même n'est pas dans les permutations."""
             self._fin_recherche_des_solutions = datetime.datetime.now().timestamp()
 
     def effacer_difficulte_plateau(self):
-        "Méthode qui enregistre les difficultés des plateaux et la profondeur de leur solution"
+        "Methode qui enregistre les difficultes des plateaux et la profondeur de leur solution"
         self._ensemble_des_difficultes_de_plateaux.clear()
         self._a_change = True
 
     def arret_des_enregistrements_de_difficultes_plateaux(self):
-        "Méthode qui finalise l'arret des enregistrements des difficultés de plateaux"
-        # Classement des difficultés
+        "Methode qui finalise l'arret des enregistrements des difficultes de plateaux"
+        # Classement des difficultes
         cles_difficulte = list(self._ensemble_des_difficultes_de_plateaux.keys())
         if None in cles_difficulte:
             cles_difficulte.remove(None) # None est inclassable avec 'list().sort()'
         cles_difficulte_classees = copy.deepcopy(cles_difficulte)
         cles_difficulte_classees.sort()
         if cles_difficulte != cles_difficulte_classees:
-            # Ordonner l'ensemble par difficulté croissante
+            # Ordonner l'ensemble par difficulte croissante
             dico_difficulte_classe = {k: self._ensemble_des_difficultes_de_plateaux.get(k) for k in cles_difficulte_classees}
             if None in self._ensemble_des_difficultes_de_plateaux:
                 dico_difficulte_classe[None] = self._ensemble_des_difficultes_de_plateaux.get(None)
@@ -802,7 +818,7 @@ Le plateau lui-même n'est pas dans les permutations."""
 
     @property
     def difficulte_plateaux(self):
-        "Ensemble des difficultés de plateaux résolus"
+        "Ensemble des difficultes de plateaux resolus"
         return self._ensemble_des_difficultes_de_plateaux
 
     @property
@@ -811,7 +827,7 @@ Le plateau lui-même n'est pas dans les permutations."""
         return sum([len(liste_plateaux) for difficulte, dico_nb_coups in self._ensemble_des_difficultes_de_plateaux.items() for nb_coups, liste_plateaux in dico_nb_coups.items()])
 
 class ResoudrePlateau:
-    "Classe de résultion d'un plateau par parcours de toutes les possibilités de choix"
+    "Classe de resultion d'un plateau par parcours de toutes les possibilites de choix"
     def __init__(self, plateau_initial: Plateau):
         self._plateau_initial = copy.deepcopy(plateau_initial)
         self._liste_des_solutions = []
@@ -820,7 +836,7 @@ class ResoudrePlateau:
         #   - la plus courte
         #   - la moyenne
         #   - le nombre de solution
-        # Les longueurs sont toutes égales (courtes et longues).
+        # Les longueurs sont toutes egales (courtes et longues).
         # La longueur de la solution est la grandeur qui quantifie la difficulte du plateau.
         self._statistiques = {}
         self._liste_plateaux_gagnants = None
@@ -833,8 +849,8 @@ class ResoudrePlateau:
         self.__importer_fichier_json()
 
     def __len__(self):
-        "La longueur de la solution définit la difficulté"
-        # Le nombre de soltuioon n'a pas d'incidence sur la difficulté
+        "La longueur de la solution definit la difficulte"
+        # Le nombre de soltuioon n'a pas d'incidence sur la difficulte
         if self.solution_la_plus_courte:
             return self.solution_la_plus_courte
         return 0
@@ -852,7 +868,7 @@ class ResoudrePlateau:
     def __ensemble_des_choix_possibles(self):
         "Liste tous les choix possible pour un plateau (valide et invalides)"
         if not self._liste_des_choix_possibles:
-            # Liste de tous les possibles à construire selon la dimension du plateau
+            # Liste de tous les possibles a construire selon la dimension du plateau
             self._liste_des_choix_possibles = []
             for depart in range(self._plateau_initial.nb_colonnes):
                 for arrivee in range(self._plateau_initial.nb_colonnes):
@@ -871,7 +887,7 @@ class ResoudrePlateau:
             plateau_gagnant.creer_plateau_initial()
 
             self._liste_plateaux_gagnants = []
-            # 'set()' est utilisé pour éliminer les permutations identiques
+            # 'set()' est utilise pour eliminer les permutations identiques
             for permutation_courante in set(permutations(plateau_gagnant.plateau_rectangle_texte)):
                 plateau_gagnant_courant = Plateau(nb_c, nb_l, nb_cv)
                 plateau_gagnant_courant.plateau_rectangle_texte = permutation_courante
@@ -887,40 +903,40 @@ class ResoudrePlateau:
 
     def __retirer_choix(self, plateau: Plateau, choix):
         "Annule le dernier choix et restaure le plateau precedent"
-        # Désenregistrer le choix
+        # Desenregistrer le choix
         self._liste_des_choix_courants.pop()
         # Modifier le plateau
         plateau.annuler_le_deplacer_blocs(*choix)
 
     def __est_valide(self, plateau: Plateau, choix):
-        "Vérifie la validité du choix"
+        "Verifie la validite du choix"
         c_depart, c_arrivee = choix
-        # INVALIDE Si les colonnes de départ et d'arrivée sont identiques
+        # INVALIDE Si les colonnes de depart et d'arrivee sont identiques
         if c_depart == c_arrivee:
             return False
-        # INVALIDE Si la colonne de départ est vide
+        # INVALIDE Si la colonne de depart est vide
         if plateau.la_colonne_est_vide(c_depart):
             return False
-        # INVALIDE Si la colonne de départ est pleine et monocouleur
+        # INVALIDE Si la colonne de depart est pleine et monocouleur
         if plateau.la_colonne_est_pleine_et_monocouleur(c_depart):
             return False
-        # INVALIDE Si la colonne d'arrivée est pleine
+        # INVALIDE Si la colonne d'arrivee est pleine
         if plateau.la_colonne_est_pleine(c_arrivee):
             return False
-        # INVALIDE Si la colonne d'arrivée n'est pas vide et n'a pas la même couleur au sommet
+        # INVALIDE Si la colonne d'arrivee n'est pas vide et n'a pas la meme couleur au sommet
         if not plateau.la_colonne_est_vide(c_arrivee) and \
             plateau.la_couleur_au_sommet_de_la_colonne(c_depart) != plateau.la_couleur_au_sommet_de_la_colonne(c_arrivee):
             return False
-        # INVALIDE Si la colonne d'arrivée n'a pas assez de place
+        # INVALIDE Si la colonne d'arrivee n'a pas assez de place
         if plateau.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(c_depart) > plateau.nombre_de_case_vide_de_la_colonne(c_arrivee):
             return False
         return True
 
     def __solution_complete(self, plateau: Plateau):
-        "Evalue si le plateau est terminé (gagné ou bloqué)"
+        "Evalue si le plateau est termine (gagne ou bloque)"
         if plateau.plateau_ligne_texte in self.__ensemble_des_plateaux_gagnants():
             return True
-        # TODO : Evaluer si le plateau est "bloqué" => à observer, mais vérification inutile jusque là.
+        # TODO : Evaluer si le plateau est "bloque" => a observer, mais verification inutile jusque la.
         return False
 
     def __enregistrer_solution(self, plateau: Plateau):
@@ -944,10 +960,10 @@ class ResoudrePlateau:
         self._export_json_solutions.exporter(self)
 
     def backtracking(self, plateau: Plateau = None):
-        "Parcours de tous les choix afin de débusquer toutes les solutions"
+        "Parcours de tous les choix afin de debusquer toutes les solutions"
         if plateau is None:
             if len(self._liste_des_solutions) != 0:
-                # Le plateau est déjà résolu et enregistré
+                # Le plateau est deja resolu et enregistre
                 return
             plateau = self._plateau_initial
             self._liste_des_choix_courants = []
@@ -956,21 +972,21 @@ class ResoudrePlateau:
         self._profondeur_recursion += 1
         # self._logger.info(self._profondeur_recursion)
         if self._profondeur_recursion > 50:
-            raise RuntimeError("Appels récursifs infinis !")
+            raise RuntimeError("Appels recursifs infinis !")
         
-        if self.__solution_complete(plateau):   # Condition d'arrêt
+        if self.__solution_complete(plateau):   # Condition d'arret
             self.__enregistrer_solution(plateau)
             self._profondeur_recursion -= 1
             return
 
         for choix in self.__ensemble_des_choix_possibles():
-            if self.__est_valide(plateau, choix):  # Vérifier si le choix est valide
-                # Enrichir le choix du nombre de cases à déplacer (pour pouvoir rétablir)
+            if self.__est_valide(plateau, choix):  # Verifier si le choix est valide
+                # Enrichir le choix du nombre de cases a deplacer (pour pouvoir retablir)
                 nb_cases_deplacees = plateau.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(choix[0])
                 choix += tuple([nb_cases_deplacees])
                 self.__ajouter_choix(plateau, choix)  # Prendre ce choix
-                self.backtracking(plateau)  # Appeler récursivement la fonction
-                self.__retirer_choix(plateau, choix)  # Annuler le choix (retour en arrière)
+                self.backtracking(plateau)  # Appeler recursivement la fonction
+                self.__retirer_choix(plateau, choix)  # Annuler le choix (retour en arriere)
         
         if self._profondeur_recursion == 0:
             # fin de toutes les recherches
@@ -1013,8 +1029,8 @@ class ResoudrePlateau:
         if 'solution la plus longue' in self._statistiques:
             return self._statistiques['solution la plus longue']
         return None
-    #TODO : Sur quelques plateaux, la solution la plus courte était différente en longueru de la plus longue.
-    #       C'était sur un plateau 4x3 je crois. Voir s'il faut en tenir compte avec de grands ecarts.
+    #TODO : Sur quelques plateaux, la solution la plus courte etait differente en longueru de la plus longue.
+    #       C'etait sur un plateau 4x3 je crois. Voir s'il faut en tenir compte avec de grands ecarts.
 
     @property
     def solution_moyenne(self):
@@ -1025,8 +1041,8 @@ class ResoudrePlateau:
 
     @property
     def difficulte(self):
-        """Retourne la difficulté de la solution
-La difficulté est le nombre de coups pour résoudre le plateau rapporté à la taille du plateau."""
+        """Retourne la difficulte de la solution
+La difficulte est le nombre de coups pour resoudre le plateau rapporte a la taille du plateau."""
         if self.solution_la_plus_courte is None:
             return None
         surface_plateau_max = 12 * 12
@@ -1045,8 +1061,8 @@ class ExportJSON:
         self._longueur_dernier_enregistrement = 0
 
     def exporter(self, contenu):
-        """Enregistre un fichier JSON selon des critères de nombres et de temps.
-Retourne True si l'export a été réalisé"""
+        """Enregistre un fichier JSON selon des criteres de nombres et de temps.
+Retourne True si l'export a ete realise"""
         if (len(contenu) - self._longueur_dernier_enregistrement >= self._longueur_enregistrement):
             return self.forcer_export(contenu)
 
@@ -1057,8 +1073,8 @@ Retourne True si l'export a été réalisé"""
         return False
 
     def forcer_export(self, contenu):
-        """Enregistre un fichier JSON en ignorant les critères.
-Retourne True si l'export a été réalisé"""
+        """Enregistre un fichier JSON en ignorant les criteres.
+Retourne True si l'export a ete realise"""
         # Enregistrement des donnees dans un fichier JSON
         if not self._chemin_enregistrement.parent.exists():
             self._chemin_enregistrement.parent.mkdir(parents=True, exist_ok=True)
@@ -1078,7 +1094,7 @@ Retourne True si l'export a été réalisé"""
         return self.forcer_export(dict())
 
     def importer(self):
-        """Lit dans un fichier JSON les informations totales ou de la dernière itération réalisée."""
+        """Lit dans un fichier JSON les informations totales ou de la derniere iteration realisee."""
         try:
             with open(self._chemin_enregistrement, "r", encoding='utf-8') as fichier:
                 dico_json = json.load(fichier)
@@ -1122,7 +1138,7 @@ class CreerLesTaches:
         self._creer_le_journal()
 
     def _creer_le_journal(self, nouveau_fichier=False):
-        # Créer l'arborescence du log
+        # Creer l'arborescence du log
         if not self._log.parent.exists():
             pathlib.Path('logs').mkdir(parents=True, exist_ok=True)
         if nouveau_fichier:
@@ -1153,7 +1169,7 @@ class CreerLesTaches:
                 tache_courante_traitee = True
                 continue
             elif tache_courante_traitee and not tache['terminee'] and not tache['en_cours']:
-                # Tâche suivant celle qui vient de s'achever => indiquer son lancement
+                # Tache suivant celle qui vient de s'achever => indiquer son lancement
                 tache_courante_traitee = False
                 logger = logging.getLogger(f"{tache['colonnes']}.{tache['lignes']}.CreerLesTaches")
                 logger.info(f"Lancement")

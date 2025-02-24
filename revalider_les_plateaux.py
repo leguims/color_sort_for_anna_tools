@@ -10,16 +10,17 @@ MEMOIRE_MAX = 5_000_000
 PROFILER_LE_CODE = False
 NOM_TACHE = 'revalider_les_plateaux'
 FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+PERIODE_AFFICHAGE = 5*60 # en secondes
 
 def revalider_les_plateaux(colonnes, lignes):
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
-    logger.info(f"{' '*colonnes} DEBUT")
+    logger.info(f"DEBUT")
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
     lot_de_plateaux.est_deja_termine()
     # Parcourir les plateaux et supprimer les plateaux "invalides"
-    lot_de_plateaux.mettre_a_jour_les_plateaux_valides()
+    lot_de_plateaux.mettre_a_jour_les_plateaux_valides(PERIODE_AFFICHAGE)
 
 def chercher_en_sequence():
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
