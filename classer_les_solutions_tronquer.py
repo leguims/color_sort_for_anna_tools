@@ -50,7 +50,7 @@ def afficher_synthese(taille = TAILLE, decallage = 0):
         logger.info(f" - Difficulte : {difficulte} - {len(liste_plateaux)} plateau{pluriel(liste_plateaux, 'x')}")
         if difficulte != 'None':
             somme_plateaux += len(liste_plateaux)
-    logger.info(f" - Total : {somme_plateaux} plateau{pluriel(liste_plateaux, 'x')} valide{pluriel(liste_plateaux, 's')}")
+    logger.info(f" - Total : {somme_plateaux} plateau{pluriel(range(somme_plateaux), 'x')} valide{pluriel(range(somme_plateaux), 's')}")
 
 def pluriel(LIGNES, lettre='s'):
     return lettre if len(LIGNES) > 1 else ""

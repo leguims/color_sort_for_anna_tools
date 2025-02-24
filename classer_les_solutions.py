@@ -23,7 +23,7 @@ def classer_les_solutions(colonnes, lignes, nb_coups_min = NOMBRE_DE_COUPS_MINIM
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     if not taciturne:
         logger.info(f"{' '*colonnes} DEBUT")
-    # plateau.afficher()
+    # logger.info(plateau.plateau_ligne_texte_universel)
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
     if lot_de_plateaux.est_deja_termine(): # or True: # True = Classe toutes les solutions a l'heure actuel.
         if not taciturne:

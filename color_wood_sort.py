@@ -147,10 +147,6 @@ class Plateau:
         "Format du plateau utilisé pour les permutations"
         return self.plateau_ligne
 
-    def afficher(self):
-        "Afficher le plateau"
-        print(self)
-
     def __creer_plateau_ligne_texte(self):
         """['A', 'A', 'B', 'B', ' ', ' '] => ['AABB  ']"""
         if self._plateau_ligne:
@@ -344,6 +340,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         self._fin_recherche_des_solutions = None
         self._a_change = False
         self._difficulte = None
+        self._logger = logging.getLogger(f"{self._nb_colonnes}.{self._nb_lignes}.{LotDePlateaux.__name__}")
     
     def __len__(self):
         return self.nb_plateaux_valides
@@ -434,7 +431,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
         if len(self._ignorer_ensemble_des_plateaux_valides_connus) > 0 :
             self._ignorer_ensemble_des_plateaux_valides_connus.discard(permutation_plateau)
             if len(self._ignorer_ensemble_des_plateaux_valides_connus) == 0:
-                print(f"[{self._nb_colonnes}x{self._nb_lignes}] Fin de parcours des plateaux déjà connus.")
+                self._logger.info(f"[{self._nb_colonnes}x{self._nb_lignes}] Fin de parcours des plateaux déjà connus.")
             return True
         
         # Ignorer les permutations en doublon
@@ -449,7 +446,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
             and permutation_plateau not in self._ensemble_des_plateaux_a_ignorer:
             self._plateau_courant.clear()
             self._plateau_courant.plateau_ligne_texte = permutation_plateau
-            # plateau.afficher()
+            # self._logger.info(plateau)
             # Verifier que la plateau est valide
             if self._plateau_courant.est_valide:
                 # Enregistrer la permutation courante qui est un nouveau plateau valide
@@ -470,7 +467,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                 plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
                 plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
                 if not plateau_courant.est_valide:
-                    print(f"'{plateau_courant.plateau_ligne_texte_universel}' : invalide à supprimer")
+                    self._logger.info(f"'{plateau_courant.plateau_ligne_texte_universel}' : invalide à supprimer")
                     liste_nouveaux_plateaux_invalides.append(iter_plateau_ligne_texte)
         # Reduire les valides avant de chercher les permutations
         if liste_nouveaux_plateaux_invalides:
@@ -499,7 +496,7 @@ Le chanmps nb_plateaux_max désigne la mémoire allouée pour optimiser la reche
                 #     if p in self._ensemble_des_plateaux_valides:
                 #         p_universel = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
                 #         p_universel.plateau_ligne_texte = p
-                #         print(f"'{p_universel.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
+                #         self._logger.info(f"'{p_universel.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
 
                 liste_nouveaux_plateaux_invalides += list(liste_permutations_texte)
 
@@ -642,28 +639,28 @@ Le plateau lui-même n'est pas dans les permutations."""
         "Optimisation memoire quand la memoire maximum est atteinte"
         # Trier par valeur croissantes
         if len(self._ensemble_des_plateaux_a_ignorer) > self._nb_plateaux_max:
-            print('*' * 80 + ' Réduction mémoire.')
+            self._logger.info('Réduction mémoire.')
             dico_trie_par_valeur_croissantes = dict(sorted(
                 self._dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
             # for key, value in dico_trie_par_valeur_croissantes.items():
-            #     print(f"[reduire_memoire] ({key}, {value})")
+            #     self._logger.info(f"[reduire_memoire] ({key}, {value})")
 
             # Vider les memoires et compteurs
             self._dico_compteur_des_plateaux_a_ignorer.clear()
             self._ensemble_des_plateaux_a_ignorer.clear()
-            # print(len(self._dico_compteur_des_plateaux_a_ignorer))
-            # print(len(self._ensemble_des_plateaux_a_ignorer))
+            # self._logger.info(len(self._dico_compteur_des_plateaux_a_ignorer))
+            # self._logger.info(len(self._ensemble_des_plateaux_a_ignorer))
 
             for _ in range(int(self._nb_plateaux_max/10)):
                 if len(dico_trie_par_valeur_croissantes) == 0:
                     break
                 # Reconduire les 10% les plus sollicites
                 key, _ = dico_trie_par_valeur_croissantes.popitem()
-                # print(f"[reduire_memoire] Conservation de ({key}, {_})")
+                # self._logger.info(f"[reduire_memoire] Conservation de ({key}, {_})")
                 self._ensemble_des_plateaux_a_ignorer.add(key)
                 self._dico_compteur_des_plateaux_a_ignorer[key] = 1
             dico_trie_par_valeur_croissantes.clear()
-            # print(len(dico_trie_par_valeur_croissantes))
+            # self._logger.info(len(dico_trie_par_valeur_croissantes))
 
     def fixer_taille_memoire_max(self, nb_plateaux_max):
         "Fixe le nombre maximum de plateau a memoriser"
@@ -957,7 +954,7 @@ class ResoudrePlateau:
             self._profondeur_recursion = -1
         
         self._profondeur_recursion += 1
-        # print(self._profondeur_recursion)
+        # self._logger.info(self._profondeur_recursion)
         if self._profondeur_recursion > 50:
             raise RuntimeError("Appels récursifs infinis !")
         

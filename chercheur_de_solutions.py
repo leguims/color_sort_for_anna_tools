@@ -25,7 +25,7 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
 
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
-    # plateau.afficher()
+    # logger.info(plateau.plateau_ligne_texte_universel)
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
     if lot_de_plateaux.est_deja_termine(): # or True: # True = Chercher toutes les solutions a l'heure actuel.
         if not taciturne:

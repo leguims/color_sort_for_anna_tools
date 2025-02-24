@@ -19,7 +19,7 @@ def chercher_des_plateaux(colonnes, lignes):
     logger.info(f"{' '*colonnes} DEBUT")
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
-    # plateau.afficher()
+    # logger.info(plateau.plateau_ligne_texte_universel)
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
     if not lot_de_plateaux.est_deja_termine():
         # lot_de_plateaux.fixer_taille_memoire_max(5)
