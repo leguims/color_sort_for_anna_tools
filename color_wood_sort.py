@@ -1,10 +1,12 @@
 "Module pour créer, résoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
 from itertools import permutations
+import pathlib
 import datetime
 import json
 import copy
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
+import logging
 
 import cProfile
 import pstats
@@ -1115,9 +1117,24 @@ class ProfilerLeCode:
 
 class CreerLesTaches:
     def __init__(self, nom, nb_colonnes, nb_lignes):
-        self._nom = f'{nom}_{nb_colonnes}x{nb_lignes}'
+        self._nom = f'{nb_colonnes}.{nb_lignes}.{nom}'
         self._taches = [{'colonnes': c, 'lignes': l, 'complexite': c*l, 'terminee': False, 'en_cours': False} for c in range(2, nb_colonnes) for l in range(2, nb_lignes)]
         self._taches.sort(key=lambda x: x['complexite'])
+        self._log = pathlib.Path('logs') / f'{nom}.log'
+        self._old_log = pathlib.Path('logs') / f'{nom}_old.log'
+        self._creer_le_journal()
+
+    def _creer_le_journal(self, nouveau_fichier=False):
+        # Créer l'arborescence du log
+        if not self._log.parent.exists():
+            pathlib.Path('logs').mkdir(parents=True, exist_ok=True)
+        if nouveau_fichier:
+            # Renommer le precedent log
+            if self._log.exists():
+                if self._old_log.exists():
+                    self._old_log.unlink()
+                self._log.rename(self._old_log)
+        logging.basicConfig(filename=self._log, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     def exporter(self):
         with open(f'{self._nom}.json', 'w', encoding='utf-8') as fichier:
@@ -1129,7 +1146,8 @@ class CreerLesTaches:
                 self._taches = json.load(fichier)
 
     def __mettre_a_jour_tache(self, colonnes, lignes):
-        print(f"Fin [{colonnes}x{lignes}]")
+        logger = logging.getLogger(f"{colonnes}.{lignes}.CreerLesTaches")
+        logger.info(f"Fin")
         tache_courante_traitee = False
         for tache in self._taches:
             if tache['colonnes'] == colonnes and tache['lignes'] == lignes:
@@ -1140,7 +1158,8 @@ class CreerLesTaches:
             elif tache_courante_traitee and not tache['terminee'] and not tache['en_cours']:
                 # Tâche suivant celle qui vient de s'achever => indiquer son lancement
                 tache_courante_traitee = False
-                print(f"Lancement [{tache['colonnes']}x{tache['lignes']}]")
+                logger = logging.getLogger(f"{tache['colonnes']}.{tache['lignes']}.CreerLesTaches")
+                logger.info(f"Lancement")
                 tache['en_cours'] = True
                 break
         self.exporter()
@@ -1156,7 +1175,8 @@ class CreerLesTaches:
                 if not tache['terminee'] and not tache['en_cours']:
                     pool.apply_async(fonction, (tache['colonnes'], tache['lignes']), callback=lambda _, c=tache['colonnes'], l=tache['lignes']: self.__mettre_a_jour_tache(c, l))
                     if cpt_processus and cpt_processus > 0:
-                        print(f"Lancement [{tache['colonnes']}x{tache['lignes']}]")
+                        logger = logging.getLogger(f"{tache['colonnes']}.{tache['lignes']}.CreerLesTaches")
+                        logger.info(f"Lancement")
                         cpt_processus -= 1
                         tache['en_cours'] = True
                         self.exporter()

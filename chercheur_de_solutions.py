@@ -1,6 +1,8 @@
 "Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoodSort'"
 import datetime
 import time
+import logging
+import pathlib
 
 import color_wood_sort as cws
 
@@ -10,22 +12,30 @@ PERIODE_SCRUTATION_SECONDES = 30*60
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000
 PROFILER_LE_CODE = False
+NOM_TACHE = 'chercher_des_solutions'
+FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
 
 
-def chercher_des_solutions(colonnes, lignes):
-    message = f"\n\r*** Generatrice {colonnes}x{lignes}:"
+def chercher_des_solutions(colonnes, lignes, taciturne=False):
+    # Configurer le logger
+    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
+    if not taciturne:
+        logger.info(f"{' '*colonnes} DEBUT")
+
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
     # plateau.afficher()
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
-    if lot_de_plateaux.est_deja_termine(): # or True: # True = Chercher toutes les solutions à l'heure actuel.
-        message += " - Ce lot de plateaux est terminé"
+    if lot_de_plateaux.est_deja_termine(): # or True: # True = Chercher toutes les solutions a l'heure actuel.
+        if not taciturne:
+            logger.info("Ce lot de plateaux est termine")
 
         if lot_de_plateaux.nb_plateaux_valides != lot_de_plateaux.nb_plateaux_solutionnes:
             if lot_de_plateaux.nb_plateaux_valides < lot_de_plateaux.nb_plateaux_solutionnes:
-                message += f"\n\r - Il y a plus de plateaux de solutions que de plateaux valides ! Il y a un probleme ! {lot_de_plateaux.nb_plateaux_solutionnes} > {lot_de_plateaux.nb_plateaux_valides}"
-                # TODO : Il y a probablement des solutions de plateau obsoletes à effacer.
-            message += f"\n\r - Il reste des solutions à trouver : {lot_de_plateaux.nb_plateaux_valides} != {lot_de_plateaux.nb_plateaux_solutionnes}"
+                logger.info(f"Il y a plus de plateaux de solutions que de plateaux valides ! Il y a un probleme ! {lot_de_plateaux.nb_plateaux_solutionnes} > {lot_de_plateaux.nb_plateaux_valides}")
+                # TODO : Il y a probablement des solutions de plateau obsoletes a effacer.
+            logger.info(f"Il reste des solutions a trouver : {lot_de_plateaux.nb_plateaux_valides} != {lot_de_plateaux.nb_plateaux_solutionnes}")
             for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
                 plateau.clear()
                 plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
@@ -37,44 +47,43 @@ def chercher_des_solutions(colonnes, lignes):
             lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
             for difficulte, dico_nb_coups in lot_de_plateaux.difficulte_plateaux.items():
                 for nb_coups, liste_plateaux in dico_nb_coups.items():
-                    message += f"\n\r - Difficulté : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{pluriel(liste_plateaux, lettre='x')}"
+                    logger.info(f"Difficulte : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{pluriel(liste_plateaux, lettre='x')}")
         else:
-            message += " - Toutes les solutions sont trouvées."
+            if not taciturne:
+                logger.info("Toutes les solutions sont trouvees.")
     else:
-        message += " - Ce lot de plateaux n'est pas encore terminé, pas de recherche de solution."
-    return message
+        if not taciturne:
+            logger.info("Ce lot de plateaux n'est pas encore termine, pas de recherche de solution.")
 
 def pluriel(LIGNES, lettre='s'):
     return lettre if len(LIGNES) > 1 else ""
 
 def chercher_en_boucle():
-    messages = ""
+    logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
+
+    logger.info('-'*10 + " 1ere RECHERCHE " + '-'*10)
+    chercher_en_sequence() # 1ere iteration est bavarde
     while(True):
-        derniers_messages = messages
-        messages = delta = ""
+        logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
         for lignes in LIGNES:
             for colonnes in COLONNES:
-                message = chercher_des_solutions(colonnes, lignes)
-                messages += message
-                if message not in derniers_messages:
-                    delta += message
-        if delta:
-            print(delta)
+                chercher_des_solutions(colonnes, lignes, taciturne=True)
         current_time = datetime.datetime.now().strftime("%H:%M:%S")
-        print(f"{current_time} - Attente entre 2 itérations de {PERIODE_SCRUTATION_SECONDES}s...")
+        logger.info(f"{current_time} - Attente entre 2 iterations de {PERIODE_SCRUTATION_SECONDES}s...")
         time.sleep(PERIODE_SCRUTATION_SECONDES)
 
-def chercher():
+def chercher_en_sequence():
     profil = cws.ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
     profil.start()
-    messages = ""
+
+    logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
+    logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
     for lignes in LIGNES:
         for colonnes in COLONNES:
-            message = chercher_des_solutions(colonnes, lignes)
-            messages += message
+            chercher_des_solutions(colonnes, lignes)
     profil.stop()
-    print(messages)
 
 if __name__ == "__main__":
+    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     chercher_en_boucle()
-    # chercher()
+    # chercher_en_sequence()
