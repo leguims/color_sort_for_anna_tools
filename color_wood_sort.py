@@ -54,13 +54,12 @@ class Plateau:
         if not isinstance(autre, Plateau):
             # Ne sont pas comparables
             return NotImplemented
-        # Comparer la taille
-        if self._nb_colonnes == autre._nb_colonnes \
-            or self._nb_lignes == autre._nb_lignes \
-            or self._nb_colonnes_vides == autre._nb_colonnes_vides :
-            return False
-        # Comparer le contenu
-        return self._plateau_ligne == autre._plateau_ligne
+        # Comparer taille et contenu
+        return (self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides, self._plateau_ligne) == \
+            (autre._nb_colonnes, autre._nb_lignes, autre._nb_colonnes_vides, autre._plateau_ligne)
+
+    def __hash__(self):
+        return hash((self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides, self._plateau_ligne))
 
     @property
     def nb_colonnes(self):
