@@ -488,7 +488,9 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         liste_nouveaux_plateaux_invalides.clear()
         dernier_affichage  = datetime.datetime.now().timestamp()
         nb_plateaux_a_valider = self.nb_plateaux_valides
-        for iter_plateau_ligne_texte in self.plateaux_valides:
+        # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
+        copie_plateaux_valides = copy.deepcopy(self.plateaux_valides)
+        for iter_plateau_ligne_texte in copie_plateaux_valides:
             if iter_plateau_ligne_texte not in liste_nouveaux_plateaux_invalides:
                 # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
                 # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
@@ -515,11 +517,14 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 self._logger.info(f"'Phase 2 : Il reste {nb_plateaux_a_valider} plateaux a valider")
                 dernier_affichage  = datetime.datetime.now().timestamp()
 
-        if liste_nouveaux_plateaux_invalides:
-            for iter_plateau_ligne_texte in liste_nouveaux_plateaux_invalides:
-                if iter_plateau_ligne_texte in self.plateaux_valides:
-                    self.plateaux_valides.remove(iter_plateau_ligne_texte)
-            self._export_json.forcer_export(self)
+            # Enregistrer continuement, car la tache est longue
+            if list(liste_permutations_texte):
+                for iter_plateau_a_effacer in list(liste_permutations_texte):
+                    if iter_plateau_a_effacer in self.plateaux_valides:
+                        self.plateaux_valides.remove(iter_plateau_a_effacer)
+                        self._logger.info(f"'Phase 2 :  {iter_plateau_a_effacer}' : en doublon avec '{iter_plateau_ligne_texte}'")
+                self._export_json.exporter(self)
+        self._export_json.forcer_export(self)
 
     @property
     def plateaux_valides(self):
@@ -1067,7 +1072,7 @@ Retourne True si l'export a ete realise"""
             return self.forcer_export(contenu)
 
         if (datetime.datetime.now().timestamp() - self._timestamp_dernier_enregistrement >= self._delai_enregistrement) \
-            and (len(contenu) > self._longueur_dernier_enregistrement):
+            and (len(contenu) != self._longueur_dernier_enregistrement):
             return self.forcer_export(contenu)
         
         return False
