@@ -16,7 +16,7 @@ FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
 TAILLE = 10
 
 def tronquer_les_solutions(taille = TAILLE, decallage = 0):
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Configurer le logger
     logger = logging.getLogger(f"tronquer.{NOM_TACHE}")
     logger.info(f"\n\r*** Tronquer le classement des Solutions :")
 
@@ -40,6 +40,7 @@ def tronquer_les_solutions(taille = TAILLE, decallage = 0):
         solutions_classees_tronquees_json.forcer_export(solutions_classees)
 
 def afficher_synthese(taille = TAILLE, decallage = 0):
+    # Configurer le logger
     logger = logging.getLogger("tronquer.afficher_synthese")
     logger.info(f"*** Synthese des Solutions:")
     solutions_classees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{taille}_D{decallage}', repertoire='Solutions')
@@ -56,6 +57,7 @@ def pluriel(LIGNES, lettre='s'):
     return lettre if len(LIGNES) > 1 else ""
 
 def chercher_en_boucle():
+    # Configurer le logger
     logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
     while(True):
         tronquer_les_solutions()
@@ -67,6 +69,7 @@ def chercher_en_sequence():
     profil = cws.ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
     profil.start()
 
+    # Configurer le logger
     logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
     for i in range(10):

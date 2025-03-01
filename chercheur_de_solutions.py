@@ -19,7 +19,6 @@ PERIODE_AFFICHAGE = 5*60 # en secondes
 
 def chercher_des_solutions(colonnes, lignes, taciturne=False):
     # Configurer le logger
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     if not taciturne:
         logger.info(f"DEBUT")
@@ -94,6 +93,7 @@ def chercher_en_sequence():
     profil.stop()
 
 if __name__ == "__main__":
+    # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     chercher_en_boucle()
     # chercher_en_sequence()

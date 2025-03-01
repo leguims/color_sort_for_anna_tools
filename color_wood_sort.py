@@ -332,15 +332,15 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._ensemble_des_permutations_de_nombres = None
         self._dico_compteur_des_plateaux_a_ignorer = {}
         self._nb_plateaux_max = nb_plateaux_max
-        self._debut_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
-        self._fin_recherche_des_plateaux_valides = None
         self._export_json = None
         self._ensemble_des_difficultes_de_plateaux = {}
-        self._debut_recherche_des_solutions = None
-        self._fin_recherche_des_solutions = None
         self._a_change = False
         self._difficulte = None
         self._logger = logging.getLogger(f"{self._nb_colonnes}.{self._nb_lignes}.{LotDePlateaux.__name__}")
+        self._recherche_terminee = False
+        self._revalidation_phase_1_terminee = False
+        self._revalidation_phase_2_terminee = False
+        self._revalidation_dernier_plateau = None
     
     def __len__(self):
         return self.nb_plateaux_valides
@@ -354,15 +354,11 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             dict_lot_de_plateaux['lignes'] = self._nb_lignes
             dict_lot_de_plateaux['colonnes vides'] = self._nb_colonnes_vides
 
-        # Ajouter les timestamps de debut et de fin
-        dict_lot_de_plateaux['debut'] = self.debut
-        dict_lot_de_plateaux['fin'] = self.fin
-
-        # Formater la duree de maniere lisible
-        dict_lot_de_plateaux['duree'] = self.formater_duree(self.duree)
-        
         # Indiquer si la recherche est terminee
-        dict_lot_de_plateaux['recherche terminee'] = self._fin_recherche_des_plateaux_valides is not None
+        dict_lot_de_plateaux['recherche terminee'] = self._recherche_terminee
+        dict_lot_de_plateaux['revalidation phase 1 terminee'] = self._revalidation_phase_1_terminee
+        dict_lot_de_plateaux['revalidation phase 2 terminee'] = self._revalidation_phase_2_terminee
+        dict_lot_de_plateaux['dernier plateau revalide'] = self._revalidation_dernier_plateau
 
         # Ajouter le nombre de plateaux et la liste des plateaux valides
         dict_lot_de_plateaux['nombre plateaux'] = len(self.plateaux_valides)
@@ -372,18 +368,9 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             plateau.clear()
             plateau.plateau_ligne_texte = plateau_txt
             liste_plateaux_universelle.append(plateau.plateau_ligne_texte_universel)
+        liste_plateaux_universelle.sort()
         dict_lot_de_plateaux['liste plateaux'] = liste_plateaux_universelle
 
-        # Ajouter les timestamps de debut et de fin des solutions
-        dict_lot_de_plateaux['debut solutions'] = self._debut_recherche_des_solutions
-        dict_lot_de_plateaux['fin solutions'] = self._fin_recherche_des_solutions
-
-        # Ajouter la duree de recherche des solutions
-        if self._debut_recherche_des_solutions is not None \
-            and self._debut_recherche_des_solutions is not None:
-            duree_solution = self._fin_recherche_des_solutions - self._debut_recherche_des_solutions
-            dict_lot_de_plateaux['duree solutions'] = self.formater_duree(duree_solution)
-        
         # La difficulte est un entier, mais est enregistree comme une chaine de caracteres dans le JSON. Surement car c'est une cle.
         liste_difficultes_universelles = {}
         plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
@@ -395,6 +382,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                     plateau.clear()
                     plateau.plateau_ligne_texte = plateau_txt
                     liste_difficultes_universelles[difficulte][nb_coups].append(plateau.plateau_ligne_texte_universel)
+                liste_difficultes_universelles[difficulte][nb_coups].sort()
         dict_lot_de_plateaux['liste difficulte des plateaux']= liste_difficultes_universelles
 
         return dict_lot_de_plateaux
@@ -422,7 +410,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         "Methode qui finalise la recherche de plateaux"
         self._ensemble_des_plateaux_a_ignorer.clear()
         self._dico_compteur_des_plateaux_a_ignorer.clear()
-        self._fin_recherche_des_plateaux_valides = datetime.datetime.now().timestamp()
+        self._recherche_terminee = True
         self.exporter_fichier_json()
 
     def est_ignore(self, permutation_plateau):
@@ -463,35 +451,96 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         return True
 
     def mettre_a_jour_les_plateaux_valides(self, periode_affichage):
-        "Verifie la liste des plateau valide car les regles ont change. Utile pour les recherches deja terminees."
-        liste_nouveaux_plateaux_invalides = []
-        dernier_affichage  = datetime.datetime.now().timestamp()
-        nb_plateaux_a_valider = self.nb_plateaux_valides
-        for iter_plateau_ligne_texte in self.plateaux_valides:
-            if iter_plateau_ligne_texte not in liste_nouveaux_plateaux_invalides:
-                plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-                plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
-                if not plateau_courant.est_valide:
-                    self._logger.info(f"'{plateau_courant.plateau_ligne_texte_universel}' : invalide a supprimer")
-                    liste_nouveaux_plateaux_invalides.append(iter_plateau_ligne_texte)
-            nb_plateaux_a_valider -= 1
-            if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
-                self._logger.info(f"'Phase 1 : Il reste {nb_plateaux_a_valider} plateaux a valider")
-                dernier_affichage  = datetime.datetime.now().timestamp()
-        # Reduire les valides avant de chercher les permutations
-        if liste_nouveaux_plateaux_invalides:
-            for iter_plateau_ligne_texte in liste_nouveaux_plateaux_invalides:
-                if iter_plateau_ligne_texte in self.plateaux_valides:
-                    self.plateaux_valides.remove(iter_plateau_ligne_texte)
-            self._export_json.forcer_export(self)
+        "Verifie la liste des plateaux valides car les regles ont change ou des regles de lots de plateaux sont a appliquer."
+        if not self._recherche_terminee:
+            self._logger.error("mettre_a_jour_les_plateaux_valides() : la recherche de plateaux n'est pas terminee")
+            return
 
-        liste_nouveaux_plateaux_invalides.clear()
+        if self._revalidation_phase_1_terminee and self._revalidation_phase_2_terminee:
+            self._logger.info("mettre_a_jour_les_plateaux_valides() : deja terminee")
+            return
+
+        self.__mettre_a_jour_les_plateaux_valides_phase_1(periode_affichage)
+        self.__mettre_a_jour_les_plateaux_valides_phase_2(periode_affichage)
+
+    def __mettre_a_jour_les_plateaux_valides_phase_1(self, periode_affichage):
+        # Phase 1 : Validité au sens de la classe 'Plateau.est_valide'
+        if self._revalidation_phase_1_terminee:
+            self._logger.info("Phase 1 : deja terminee")
+            return
+
+        reprendre_au_dernier_plateau = self._revalidation_dernier_plateau is not None
+        if reprendre_au_dernier_plateau:
+            self._logger.info("Phase 1 : Reprendre au dernier plateau")
+
         dernier_affichage  = datetime.datetime.now().timestamp()
         nb_plateaux_a_valider = self.nb_plateaux_valides
         # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
         copie_plateaux_valides = copy.deepcopy(self.plateaux_valides)
+
+        plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
         for iter_plateau_ligne_texte in copie_plateaux_valides:
-            if iter_plateau_ligne_texte not in liste_nouveaux_plateaux_invalides:
+            plateau_courant.clear()
+            plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
+
+            if reprendre_au_dernier_plateau:
+                if plateau_courant.plateau_ligne_texte_universel == self._revalidation_dernier_plateau:
+                    reprendre_au_dernier_plateau = False
+                    self._logger.info("Phase 1 : Fin de reprise")
+                nb_plateaux_a_valider -= 1
+                continue
+
+            if iter_plateau_ligne_texte in self.plateaux_valides:
+                if not plateau_courant.est_valide:
+                    self._logger.debug(f"Phase 1 : '{plateau_courant.plateau_ligne_texte_universel}' : invalide a supprimer")
+                    self.plateaux_valides.remove(iter_plateau_ligne_texte)
+            nb_plateaux_a_valider -= 1
+
+            if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
+                self._logger.info(f"Phase 1 : Il reste {nb_plateaux_a_valider} plateaux a valider")
+                dernier_affichage  = datetime.datetime.now().timestamp()
+                # Enregistrement du plateau courant pour une eventuelle reprise.
+                # + Reduire la liste des plateaux valides
+                self._revalidation_dernier_plateau = plateau_courant.plateau_ligne_texte_universel
+                self._export_json.forcer_export(self)
+
+        self._revalidation_dernier_plateau = None
+        self._revalidation_phase_1_terminee = True
+        self._export_json.forcer_export(self)
+        self._logger.info(f"Phase 1 : terminee")
+
+    def __mettre_a_jour_les_plateaux_valides_phase_2(self, periode_affichage):
+        # Phase 2 : Chercher les doublons (permutations de piles et de jetons)
+        if not self._revalidation_phase_1_terminee:
+            self._logger.error("Phase 2 : la phase 1 n'est pas terminee")
+            return
+
+        if self._revalidation_phase_2_terminee:
+            self._logger.info("Phase 2 : deja terminee")
+            return
+
+        reprendre_au_dernier_plateau = self._revalidation_dernier_plateau is not None
+        if reprendre_au_dernier_plateau:
+            self._logger.info("Phase 2 : Reprendre au dernier plateau")
+
+        dernier_affichage  = datetime.datetime.now().timestamp()
+        nb_plateaux_a_valider = self.nb_plateaux_valides
+        # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
+        copie_plateaux_valides = copy.deepcopy(self.plateaux_valides)
+
+        plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+        for iter_plateau_ligne_texte in copie_plateaux_valides:
+            plateau_courant.clear()
+            plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
+
+            if reprendre_au_dernier_plateau:
+                if plateau_courant.plateau_ligne_texte_universel == self._revalidation_dernier_plateau:
+                    reprendre_au_dernier_plateau = False
+                    self._logger.info("Phase 2 : Fin de reprise")
+                nb_plateaux_a_valider -= 1
+                continue
+
+            if iter_plateau_ligne_texte in self.plateaux_valides:
                 # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
                 # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
                 liste_permutations = self.__construire_les_permutations_de_colonnes(plateau_courant) \
@@ -502,29 +551,32 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 # Eliminer les doublons et le plateau courant
                 liste_permutations_texte = set([p.plateau_ligne_texte for p in liste_permutations])
                 if iter_plateau_ligne_texte in liste_permutations_texte:
+                    # Ne surtout pas effacer le plateau courant, on cherche les doublons.
                     liste_permutations_texte.remove(iter_plateau_ligne_texte)
 
-                # Affichage des doublons colonne/jeton
-                # for p in liste_permutations_texte:
-                #     if p in self._ensemble_des_plateaux_valides:
-                #         p_universel = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-                #         p_universel.plateau_ligne_texte = p
-                #         self._logger.info(f"'{p_universel.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
+                # Enregistrer continuement, car la tache est longue
+                if liste_permutations_texte:
+                    plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+                    for iter_plateau_a_effacer in liste_permutations_texte:
+                        if iter_plateau_a_effacer in self.plateaux_valides:
+                            self.plateaux_valides.remove(iter_plateau_a_effacer)
+                            plateau.clear()
+                            plateau.plateau_ligne_texte = iter_plateau_a_effacer
+                            self._logger.debug(f"Phase 2 :  '{plateau.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
+                nb_plateaux_a_valider -= 1
 
-                liste_nouveaux_plateaux_invalides += list(liste_permutations_texte)
-            nb_plateaux_a_valider -= 1
-            if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
-                self._logger.info(f"'Phase 2 : Il reste {nb_plateaux_a_valider} plateaux a valider")
-                dernier_affichage  = datetime.datetime.now().timestamp()
+                if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
+                    self._logger.info(f"Phase 2 : Il reste {nb_plateaux_a_valider} plateaux a valider")
+                    dernier_affichage  = datetime.datetime.now().timestamp()
+                    # Enregistrement du plateau courant pour une eventuelle reprise.
+                    # + Reduire la liste des plateaux valides
+                    self._revalidation_dernier_plateau = plateau_courant.plateau_ligne_texte_universel
+                    self._export_json.forcer_export(self)
 
-            # Enregistrer continuement, car la tache est longue
-            if list(liste_permutations_texte):
-                for iter_plateau_a_effacer in list(liste_permutations_texte):
-                    if iter_plateau_a_effacer in self.plateaux_valides:
-                        self.plateaux_valides.remove(iter_plateau_a_effacer)
-                        self._logger.info(f"'Phase 2 :  {iter_plateau_a_effacer}' : en doublon avec '{iter_plateau_ligne_texte}'")
-                self._export_json.exporter(self)
+        self._revalidation_dernier_plateau = None
+        self._revalidation_phase_2_terminee = True
         self._export_json.forcer_export(self)
+        self._logger.info(f"Phase 2 : terminee")
 
     @property
     def plateaux_valides(self):
@@ -540,23 +592,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     def nb_plateaux_ignores(self):
         "Nombre de plateaux ignores"
         return len(self._ensemble_des_plateaux_a_ignorer)
-
-    @property
-    def debut(self):
-        "Heure de debut de la recherche"
-        return self._debut_recherche_des_plateaux_valides
-
-    @property
-    def fin(self):
-        "Heure de fin (ou courante) de la recherche"
-        if self._fin_recherche_des_plateaux_valides:
-            return self._fin_recherche_des_plateaux_valides
-        return datetime.datetime.now().timestamp()
-
-    @property
-    def duree(self):
-        "Duree de la recherche"
-        return self.fin - self.debut
 
     def __ajouter_le_plateau(self, plateau: Plateau):
         "Memorise un plateau deja traite"
@@ -707,12 +742,15 @@ Le plateau lui-meme n'est pas dans les permutations."""
             self._nb_lignes = data_json["lignes"]
         if "colonnes vides" in data_json:
             self._nb_colonnes_vides = data_json["colonnes vides"]
-        if "debut" in data_json:
-            self._debut_recherche_des_plateaux_valides = data_json["debut"]
-        if "recherche terminee" in data_json and not data_json["recherche terminee"]:
-            self._fin_recherche_des_plateaux_valides = None
-        elif "fin" in data_json:
-            self._fin_recherche_des_plateaux_valides = data_json["fin"]
+
+        if "recherche terminee" in data_json:
+            self._recherche_terminee = data_json["recherche terminee"]
+        if "revalidation phase 1 terminee" in data_json:
+            self._revalidation_phase_1_terminee = data_json["revalidation phase 1 terminee"]
+        if "revalidation phase 2 terminee" in data_json:
+            self._revalidation_phase_2_terminee = data_json["revalidation phase 2 terminee"]
+        if "dernier plateau revalide" in data_json:
+            self._revalidation_dernier_plateau = data_json["dernier plateau revalide"]
 
         # Rejouer les plateaux deja trouves
         if 'nombre plateaux' in data_json \
@@ -730,10 +768,6 @@ Le plateau lui-meme n'est pas dans les permutations."""
         self._nombre_de_plateaux_valides_courant = len(self._ensemble_des_plateaux_valides)
 
         # Solutions
-        if "debut solutions" in data_json:
-            self._debut_recherche_des_solutions = data_json["debut solutions"]
-        if "fin solutions" in data_json:
-            self._fin_recherche_des_solutions = data_json["fin solutions"]
         if 'liste difficulte des plateaux' in data_json and data_json['liste difficulte des plateaux']:
             # Convertir 'difficulte' et 'nb_coups' en entiers
             plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
@@ -760,9 +794,8 @@ Le plateau lui-meme n'est pas dans les permutations."""
         self.__init_export_json()
         self.__importer_fichier_json()
 
-        recherche_terminee = self._fin_recherche_des_plateaux_valides is not None
         self._ignorer_ensemble_des_plateaux_valides_connus = copy.deepcopy(self._ensemble_des_plateaux_valides)
-        return recherche_terminee
+        return self._recherche_terminee
     
     def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
         "Methode qui verifie si le plateau est deja resolu"
@@ -775,8 +808,6 @@ Le plateau lui-meme n'est pas dans les permutations."""
 
     def definir_difficulte_plateau(self, plateau: Plateau, difficulte, nb_coups):
         "Methode qui enregistre les difficultes des plateaux et la profondeur de leur solution"
-        if self._debut_recherche_des_solutions is None:
-            self._debut_recherche_des_solutions = datetime.datetime.now().timestamp()
         if difficulte not in self._ensemble_des_difficultes_de_plateaux:
             self._ensemble_des_difficultes_de_plateaux[difficulte] = {}
         if nb_coups not in self._ensemble_des_difficultes_de_plateaux[difficulte]:
@@ -784,7 +815,6 @@ Le plateau lui-meme n'est pas dans les permutations."""
         if plateau.plateau_ligne_texte not in self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups]:
             self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau.plateau_ligne_texte)
             self._a_change = True
-            self._fin_recherche_des_solutions = datetime.datetime.now().timestamp()
 
     def effacer_difficulte_plateau(self):
         "Methode qui enregistre les difficultes des plateaux et la profondeur de leur solution"

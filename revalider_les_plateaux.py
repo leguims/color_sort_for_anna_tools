@@ -13,8 +13,8 @@ FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
 PERIODE_AFFICHAGE = 5*60 # en secondes
 
 def revalider_les_plateaux(colonnes, lignes):
-    # Configurer le logger
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Configurer le logger en doublon pour la paralelisation
+    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     logger.info(f"DEBUT")
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
@@ -23,7 +23,7 @@ def revalider_les_plateaux(colonnes, lignes):
     lot_de_plateaux.mettre_a_jour_les_plateaux_valides(PERIODE_AFFICHAGE)
 
 def chercher_en_sequence():
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Configurer le logger
     logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
     for lignes in LIGNES:
@@ -37,7 +37,7 @@ def chercher_en_parallele():
 
     taches = cws.CreerLesTaches(nom=NOM_TACHE, nb_colonnes=max(COLONNES)+1, nb_lignes=max(LIGNES)+1)
     
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Configurer le logger
     logger = logging.getLogger(f"chercher_en_parallele.NOUVELLE-RECHERCHE")
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
 
@@ -49,5 +49,6 @@ def chercher_en_parallele():
     profil.stop()
 
 if __name__ == "__main__":
+    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     chercher_en_parallele()
     # chercher_en_sequence()

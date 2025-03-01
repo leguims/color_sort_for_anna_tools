@@ -19,7 +19,7 @@ NOMBRE_DE_COUPS_MINIMUM = 3
 
 
 def classer_les_solutions(colonnes, lignes, nb_coups_min = NOMBRE_DE_COUPS_MINIMUM, taciturne=False):
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Configurer le logger
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     if not taciturne:
         logger.info(f"DEBUT")
@@ -100,6 +100,7 @@ def pluriel(LIGNES, lettre='s'):
     return lettre if len(LIGNES) > 1 else ""
 
 def chercher_en_boucle():
+    # Configurer le logger
     logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
 
     taciturne = False # 1ere iteration n'est pas taciturne
@@ -121,6 +122,7 @@ def chercher_en_sequence():
     solutions_classees_json = cws.ExportJSON(0, 0, '', nom_export='Solutions_classees', repertoire='Solutions')
     solutions_classees_json.effacer()
     
+    # Configurer le logger
     logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
     for lignes in LIGNES:
@@ -131,6 +133,7 @@ def chercher_en_sequence():
     afficher_synthese()
 
 if __name__ == "__main__":
+    # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     # chercher_en_boucle()
     chercher_en_sequence()

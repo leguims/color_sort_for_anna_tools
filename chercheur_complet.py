@@ -32,12 +32,6 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
 
         lot_de_plateaux.arret_des_enregistrements()
         # lot_de_plateaux.exporter_fichier_json()
-        if (lot_de_plateaux.duree) < 10:
-            logger.info(f"*** Generatrice {colonnes}x{lignes}: FIN en {
-                int((lot_de_plateaux.duree)*1000)} millisecondes")
-        else:
-            logger.info(f"*** Generatrice {colonnes}x{lignes}: FIN en {
-                int(lot_de_plateaux.duree)} secondes")
         logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
         logger.info(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
     else:
