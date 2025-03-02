@@ -21,12 +21,29 @@ def chercher_des_plateaux(colonnes, lignes):
     logger.info(f"DEBUT")
     plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
-    # logger.info(plateau.plateau_ligne_texte_universel)
+    plateau_initial_pour_permutations = plateau.pour_permutations # Pour identifier le bouclage exhaustifs des plateaux
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
     dernier_affichage  = datetime.datetime.now().timestamp()
+    reprise = False
     if not lot_de_plateaux.est_deja_termine():
-        # lot_de_plateaux.fixer_taille_memoire_max(5)
-        for permutation_courante in permutations(plateau.pour_permutations):
+        # Pour suivre la recherche à partir du dernier plateau valide.
+        if lot_de_plateaux.plateaux_valides:
+            # Pour demarrer la poursuite des recherches a partir du dernier plateau valide
+            plateau.clear()
+            plateau.plateau_ligne_texte = lot_de_plateaux.dernier_plateau_valide
+            dernier_plateau_pour_permutations = plateau.pour_permutations
+            reprise = True
+        else:
+            dernier_plateau_pour_permutations = plateau_initial_pour_permutations
+        for permutation_courante in permutations(dernier_plateau_pour_permutations):
+            if reprise and permutation_courante == plateau_initial_pour_permutations:
+                # Vérification de fin seulement pour une reprise
+                # Fin de la recherche exhaustive 
+                plateau.clear()
+                plateau.plateau_ligne_texte = permutation_courante
+                logger.info(f"Le plateau initial vient d'etre genere. '{plateau.plateau_ligne_texte_universel}'")
+                logger.info(f"Fin de la recherche exhaustive.")
+                break
             # Verifier que ce plateau est nouveau
             permutation_courante = ''.join(permutation_courante)
             if not lot_de_plateaux.est_ignore(permutation_courante):
@@ -34,10 +51,6 @@ def chercher_des_plateaux(colonnes, lignes):
                 if datetime.datetime.now().timestamp() - dernier_affichage > PERIODE_AFFICHAGE:
                     logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
                     dernier_affichage  = datetime.datetime.now().timestamp()
-            elif (lot_de_plateaux.nb_plateaux_connus_a_parcourir > 0) \
-                and (datetime.datetime.now().timestamp() - dernier_affichage > PERIODE_AFFICHAGE):
-                logger.info(f"Nombre de plateaux valides restant a parcourir = {lot_de_plateaux.nb_plateaux_connus_a_parcourir}")
-                dernier_affichage  = datetime.datetime.now().timestamp()
 
         lot_de_plateaux.arret_des_enregistrements()
         # lot_de_plateaux.exporter_fichier_json()

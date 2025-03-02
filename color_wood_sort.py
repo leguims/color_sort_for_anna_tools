@@ -325,7 +325,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
 
         # Gestion du lot de plateau
-        self._ignorer_ensemble_des_plateaux_valides_connus = set() # Plateau valides déjà connus au lancement (import JSON)
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
         self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
         self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons
@@ -409,20 +408,8 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._recherche_terminee = True
         self.exporter_fichier_json()
 
-    @property
-    def nb_plateaux_connus_a_parcourir(self):
-        "Nombre de plateaux valides à parcourir au redemarrage"
-        return len(self._ignorer_ensemble_des_plateaux_valides_connus)
-
     def est_ignore(self, permutation_plateau):
         "Retourne 'True' si le plateau est deja connu"
-        # Ignorer toutes les permutations jusqu'à ce que toute les solutions connues soient trouvées
-        if self.nb_plateaux_connus_a_parcourir > 0 :
-            self._ignorer_ensemble_des_plateaux_valides_connus.discard(permutation_plateau)
-            if self.nb_plateaux_connus_a_parcourir == 0:
-                self._logger.info(f"Fin de parcours des plateaux deja connus.")
-            return True
-        
         if permutation_plateau not in self._ensemble_des_plateaux_valides \
             and permutation_plateau not in self._ensemble_des_plateaux_a_ignorer:
             self._plateau_courant.clear()
@@ -566,6 +553,13 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._revalidation_phase_2_terminee = True
         self._export_json.forcer_export(self)
         self._logger.info(f"Phase 2 : terminee")
+
+    @property
+    def dernier_plateau_valide(self):
+        "Ensemble des plateaux valides"
+        liste_plateau_valide = list(self._ensemble_des_plateaux_valides)
+        liste_plateau_valide.sort()
+        return liste_plateau_valide[-1]
 
     @property
     def plateaux_valides(self):
@@ -739,10 +733,6 @@ Le plateau lui-meme n'est pas dans les permutations."""
     def est_deja_termine(self):
         self.__init_export_json()
         self.__importer_fichier_json()
-
-        self._ignorer_ensemble_des_plateaux_valides_connus = copy.deepcopy(self._ensemble_des_plateaux_valides)
-        if not self._recherche_terminee:
-            self._logger.info(f"Il reste {len(self._ignorer_ensemble_des_plateaux_valides_connus)} plateaux deja connus a parcourir.")
         return self._recherche_terminee
     
     def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
