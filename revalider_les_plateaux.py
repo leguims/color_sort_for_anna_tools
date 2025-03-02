@@ -14,7 +14,7 @@ PERIODE_AFFICHAGE = 5*60 # en secondes
 
 def revalider_les_plateaux(colonnes, lignes):
     # Configurer le logger en doublon pour la paralelisation
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     logger.info(f"DEBUT")
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
@@ -49,6 +49,6 @@ def chercher_en_parallele():
     profil.stop()
 
 if __name__ == "__main__":
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     chercher_en_parallele()
     # chercher_en_sequence()

@@ -734,12 +734,17 @@ Le plateau lui-meme n'est pas dans les permutations."""
 
         if "recherche terminee" in data_json:
             self._recherche_terminee = data_json["recherche terminee"]
-        if "revalidation phase 1 terminee" in data_json:
-            self._revalidation_phase_1_terminee = data_json["revalidation phase 1 terminee"]
-        if "revalidation phase 2 terminee" in data_json:
-            self._revalidation_phase_2_terminee = data_json["revalidation phase 2 terminee"]
-        if "dernier plateau revalide" in data_json:
-            self._revalidation_dernier_plateau = data_json["dernier plateau revalide"]
+        if self._recherche_terminee:
+            if "revalidation phase 1 terminee" in data_json:
+                self._revalidation_phase_1_terminee = data_json["revalidation phase 1 terminee"]
+            if "revalidation phase 2 terminee" in data_json:
+                self._revalidation_phase_2_terminee = data_json["revalidation phase 2 terminee"]
+            if "dernier plateau revalide" in data_json:
+                self._revalidation_dernier_plateau = data_json["dernier plateau revalide"]
+        else:
+            self._revalidation_phase_1_terminee = False
+            self._revalidation_phase_2_terminee = False
+            self._revalidation_dernier_plateau = None
 
         # Rejouer les plateaux deja trouves
         if 'nombre plateaux' in data_json \
