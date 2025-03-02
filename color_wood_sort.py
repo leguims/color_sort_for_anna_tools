@@ -417,12 +417,13 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     def nb_plateaux_connus_a_parcourir(self):
         "Nombre de plateaux valides à parcourir au redemarrage"
         return len(self._ignorer_ensemble_des_plateaux_valides_connus)
+
     def est_ignore(self, permutation_plateau):
         "Retourne 'True' si le plateau est deja connu"
         # Ignorer toutes les permutations jusqu'à ce que toute les solutions connues soient trouvées
         if self.nb_plateaux_connus_a_parcourir > 0 :
             self._ignorer_ensemble_des_plateaux_valides_connus.discard(permutation_plateau)
-            if not self.nb_plateaux_connus_a_parcourir:
+            if self.nb_plateaux_connus_a_parcourir == 0:
                 self._logger.info(f"Fin de parcours des plateaux deja connus.")
             return True
         
@@ -783,7 +784,8 @@ Le plateau lui-meme n'est pas dans les permutations."""
         self.__importer_fichier_json()
 
         self._ignorer_ensemble_des_plateaux_valides_connus = copy.deepcopy(self._ensemble_des_plateaux_valides)
-        self._logger.info(f"Il reste {len(self._ignorer_ensemble_des_plateaux_valides_connus)} plateaux deja connus a parcourir.")
+        if not self._recherche_terminee:
+            self._logger.info(f"Il reste {len(self._ignorer_ensemble_des_plateaux_valides_connus)} plateaux deja connus a parcourir.")
         return self._recherche_terminee
     
     def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
