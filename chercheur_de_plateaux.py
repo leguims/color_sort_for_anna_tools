@@ -34,6 +34,10 @@ def chercher_des_plateaux(colonnes, lignes):
                 if datetime.datetime.now().timestamp() - dernier_affichage > PERIODE_AFFICHAGE:
                     logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
                     dernier_affichage  = datetime.datetime.now().timestamp()
+            elif (lot_de_plateaux.nb_plateaux_connus_a_parcourir > 0) \
+                and (datetime.datetime.now().timestamp() - dernier_affichage > PERIODE_AFFICHAGE):
+                logger.info(f"Nombre de plateaux valides restant a parcourir = {lot_de_plateaux.nb_plateaux_connus_a_parcourir}")
+                dernier_affichage  = datetime.datetime.now().timestamp()
 
         lot_de_plateaux.arret_des_enregistrements()
         # lot_de_plateaux.exporter_fichier_json()
@@ -46,7 +50,6 @@ def chercher_des_plateaux(colonnes, lignes):
 
 def chercher_en_sequence():
     # Configurer le logger
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
     for lignes in LIGNES:
@@ -61,7 +64,6 @@ def chercher_en_parallele():
     taches = cws.CreerLesTaches(nom=NOM_TACHE, nb_colonnes=max(COLONNES)+1, nb_lignes=max(LIGNES)+1)
 
     # Configurer le logger
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"chercher_en_parallele.NOUVELLE-RECHERCHE")
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
 
@@ -73,5 +75,6 @@ def chercher_en_parallele():
     profil.stop()
 
 if __name__ == "__main__":
+    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     chercher_en_parallele()
     # chercher_en_sequence()

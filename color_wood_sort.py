@@ -413,16 +413,17 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._recherche_terminee = True
         self.exporter_fichier_json()
 
+    @property
+    def nb_plateaux_connus_a_parcourir(self):
+        "Nombre de plateaux valides à parcourir au redemarrage"
+        return len(self._ignorer_ensemble_des_plateaux_valides_connus)
     def est_ignore(self, permutation_plateau):
         "Retourne 'True' si le plateau est deja connu"
         # Ignorer toutes les permutations jusqu'à ce que toute les solutions connues soient trouvées
-        reste_a_ignorer = len(self._ignorer_ensemble_des_plateaux_valides_connus)
-        if reste_a_ignorer > 0 :
+        if self.nb_plateaux_connus_a_parcourir > 0 :
             self._ignorer_ensemble_des_plateaux_valides_connus.discard(permutation_plateau)
-            if not len(self._ignorer_ensemble_des_plateaux_valides_connus):
+            if not self.nb_plateaux_connus_a_parcourir:
                 self._logger.info(f"Fin de parcours des plateaux deja connus.")
-            elif reste_a_ignorer > len(self._ignorer_ensemble_des_plateaux_valides_connus):
-                self._logger.info(f"Il reste encore {len(self._ignorer_ensemble_des_plateaux_valides_connus)} plateaux deja connus a parcourir.")
             return True
         
         # Ignorer les permutations en doublon
@@ -445,7 +446,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 return False
             else:
                 # Nouveau Plateau invalide, on l'ignore
-                self.__ignorer_le_plateau_et_ses_permutations(self._plateau_courant)
+                self.__ignorer_le_plateau(self._plateau_courant)
                 return True
         self.__compter_plateau_a_ignorer(self._plateau_courant)
         return True
@@ -595,33 +596,20 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
 
     def __ajouter_le_plateau(self, plateau: Plateau):
         "Memorise un plateau deja traite"
-        # Avec les reductions de memoires, un nouveau plateau pourrait-etre une ancienne
-        # permutation effacee. Il faut verifier les permutations avant d'ajouter definitivement
-        # le plateau.
-        nouveau_plateau = True
-        # Construire les permutations de colonnes et jetons, rationnaliser et parcourir
-        liste_permutations = self.__construire_les_permutations_de_colonnes(plateau) \
-                            + self.__construire_les_permutations_de_jetons(plateau)
-        for plateau_a_ignorer in set(liste_permutations):
-            # Tester si la permutation de colonne/jeton etait deja dans les plateaux valides
-            if plateau_a_ignorer.plateau_ligne_texte in self._ensemble_des_plateaux_valides:
-                nouveau_plateau = False
-            # Ignorer toutes les permutations
-            self.__ignorer_le_plateau(plateau_a_ignorer)
+        # La recherche de doublons et de permutations est réalisée lors de la phase de 'revalidation'
+        # afin d'accelerer la recherche de plateaux valides.
+        # Voir la méthode 'mettre_a_jour_les_plateaux_valides()'
 
-        if not nouveau_plateau:
-            # Ignorer le "Faux" nouveau plateau
-            self.__ignorer_le_plateau(plateau)
-        else:
-            self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
-            self._a_change = True
-            # _a_change | exporter() || _a_change
-            # ===================================
-            #   False   |   False    ||  False
-            #   False   |   True     ||  False
-            #   True    |   False    ||  True
-            #   False   |   True     ||  False
-            self._a_change = self._a_change and not self._export_json.exporter(self)
+        self._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
+        self._a_change = True
+        # Si l'export n'est pas réalisé, conserver le changement à appliquer
+        # _a_change | exporter() || _a_change
+        # ===================================
+        #   False   |   False    ||  False
+        #   False   |   True     ||  False
+        #   True    |   False    ||  True
+        #   True    |   True     ||  False
+        self._a_change = self._a_change and not self._export_json.exporter(self)
 
     def __construire_les_permutations_de_colonnes(self, plateau: Plateau):
         """Methode qui construit les permutations de colonnes d'un plateau.
@@ -795,6 +783,7 @@ Le plateau lui-meme n'est pas dans les permutations."""
         self.__importer_fichier_json()
 
         self._ignorer_ensemble_des_plateaux_valides_connus = copy.deepcopy(self._ensemble_des_plateaux_valides)
+        self._logger.info(f"Il reste {len(self._ignorer_ensemble_des_plateaux_valides_connus)} plateaux deja connus a parcourir.")
         return self._recherche_terminee
     
     def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
