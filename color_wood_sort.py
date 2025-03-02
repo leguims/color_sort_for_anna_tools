@@ -325,23 +325,20 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
 
         # Gestion du lot de plateau
-        self._ignorer_ensemble_des_plateaux_valides_connus = set()
-        self._ensemble_des_plateaux_valides = set()
-        self._ensemble_des_plateaux_a_ignorer = set()
-        self._ensemble_des_plateaux_iteres = set()
-        self._ensemble_des_permutations_de_nombres = None
-        self._dico_compteur_des_plateaux_a_ignorer = {}
-        self._nb_plateaux_max = nb_plateaux_max
+        self._ignorer_ensemble_des_plateaux_valides_connus = set() # Plateau valides déjà connus au lancement (import JSON)
+        self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
+        self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
+        self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons
+        self._nb_plateaux_max = nb_plateaux_max # Limite memoire pour la recherche (plateaux à ignorer)
         self._export_json = None
-        self._ensemble_des_difficultes_de_plateaux = {}
-        self._a_change = False
-        self._difficulte = None
+        self._ensemble_des_difficultes_de_plateaux = {} # Ensemble des plateaux classés par difficulté et profondeur
+        self._a_change = False # Indique si les données de la classe ont changé.
         self._logger = logging.getLogger(f"{self._nb_colonnes}.{self._nb_lignes}.{LotDePlateaux.__name__}")
-        self._recherche_terminee = False
-        self._revalidation_phase_1_terminee = False
-        self._revalidation_phase_2_terminee = False
-        self._revalidation_dernier_plateau = None
-    
+        self._recherche_terminee = False # Indique si la recherche de plateaux valides est terminee (exhaustive)
+        self._revalidation_phase_1_terminee = False # Indique si la phase 1 de revalidation est terminee
+        self._revalidation_phase_2_terminee = False # Indique si la phase 2 de revalidation est terminee
+        self._revalidation_dernier_plateau = None # Dernier plateau traité en revalidation pour reprise
+
     def __len__(self):
         return self.nb_plateaux_valides
 
@@ -409,7 +406,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     def arret_des_enregistrements(self):
         "Methode qui finalise la recherche de plateaux"
         self._ensemble_des_plateaux_a_ignorer.clear()
-        self._dico_compteur_des_plateaux_a_ignorer.clear()
         self._recherche_terminee = True
         self.exporter_fichier_json()
 
@@ -427,14 +423,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 self._logger.info(f"Fin de parcours des plateaux deja connus.")
             return True
         
-        # Ignorer les permutations en doublon
-        if permutation_plateau in self._ensemble_des_plateaux_iteres:
-            return True
-        else:
-            if len(self._ensemble_des_plateaux_iteres) > self._nb_plateaux_max:
-                self._ensemble_des_plateaux_iteres.clear()
-            self._ensemble_des_plateaux_iteres.add(permutation_plateau)
-        
         if permutation_plateau not in self._ensemble_des_plateaux_valides \
             and permutation_plateau not in self._ensemble_des_plateaux_a_ignorer:
             self._plateau_courant.clear()
@@ -449,7 +437,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 # Nouveau Plateau invalide, on l'ignore
                 self.__ignorer_le_plateau(self._plateau_courant)
                 return True
-        self.__compter_plateau_a_ignorer(self._plateau_courant)
         return True
 
     def mettre_a_jour_les_plateaux_valides(self, periode_affichage):
@@ -656,55 +643,20 @@ Le plateau lui-meme n'est pas dans les permutations."""
                 liste_permutations_de_jetons.append(plateau_a_ignorer)
         return liste_permutations_de_jetons
 
-    def __compter_plateau_a_ignorer(self, plateau_a_ignorer: Plateau):
-        "Compte un plateau a ignorer"
-        if plateau_a_ignorer.plateau_ligne_texte not in self._dico_compteur_des_plateaux_a_ignorer:
-            self._dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] = 1
-        else:
-            self._dico_compteur_des_plateaux_a_ignorer[plateau_a_ignorer.plateau_ligne_texte] += 1
-
-    def __ignorer_le_plateau_et_ses_permutations(self, plateau_a_ignorer: Plateau):
-        # 'set()' est utilise pour eliminer les permutations identiques
-        for permutation_courante in set(permutations(plateau_a_ignorer.plateau_rectangle_texte)):
-            plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-            plateau.plateau_rectangle_texte = permutation_courante
-            self.__ignorer_le_plateau(plateau)
 
     def __ignorer_le_plateau(self, plateau_a_ignorer: Plateau):
         "Ignore un plateau et met a jour les ensembles et compteurs"
         # Ignorer le plateau
         self._ensemble_des_plateaux_a_ignorer.add(plateau_a_ignorer.plateau_ligne_texte)
-        # Compter l'occurence
-        self.__compter_plateau_a_ignorer(plateau_a_ignorer)
         # Optimiser la memoire
         self.__reduire_memoire()
 
     def __reduire_memoire(self):
         "Optimisation memoire quand la memoire maximum est atteinte"
-        # Trier par valeur croissantes
         if len(self._ensemble_des_plateaux_a_ignorer) > self._nb_plateaux_max:
             self._logger.info('Reduction memoire.')
-            dico_trie_par_valeur_croissantes = dict(sorted(
-                self._dico_compteur_des_plateaux_a_ignorer.items(), key=lambda item: item[1]))
-            # for key, value in dico_trie_par_valeur_croissantes.items():
-            #     self._logger.info(f"[reduire_memoire] ({key}, {value})")
-
             # Vider les memoires et compteurs
-            self._dico_compteur_des_plateaux_a_ignorer.clear()
             self._ensemble_des_plateaux_a_ignorer.clear()
-            # self._logger.info(len(self._dico_compteur_des_plateaux_a_ignorer))
-            # self._logger.info(len(self._ensemble_des_plateaux_a_ignorer))
-
-            for _ in range(int(self._nb_plateaux_max/10)):
-                if len(dico_trie_par_valeur_croissantes) == 0:
-                    break
-                # Reconduire les 10% les plus sollicites
-                key, _ = dico_trie_par_valeur_croissantes.popitem()
-                # self._logger.info(f"[reduire_memoire] Conservation de ({key}, {_})")
-                self._ensemble_des_plateaux_a_ignorer.add(key)
-                self._dico_compteur_des_plateaux_a_ignorer[key] = 1
-            dico_trie_par_valeur_croissantes.clear()
-            # self._logger.info(len(dico_trie_par_valeur_croissantes))
 
     def fixer_taille_memoire_max(self, nb_plateaux_max):
         "Fixe le nombre maximum de plateau a memoriser"
@@ -873,6 +825,7 @@ class ResoudrePlateau:
         self._liste_plateaux_gagnants = None
         self._liste_des_choix_possibles = None
         self._liste_des_choix_courants = None
+        self._difficulte = None
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
         nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
         self._export_json_analyses = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = 'Analyses')
@@ -893,6 +846,7 @@ class ResoudrePlateau:
         dict_resoudre_plateau['solution la plus courte'] = self.solution_la_plus_courte
         dict_resoudre_plateau['solution la plus longue'] = self.solution_la_plus_longue
         dict_resoudre_plateau['solution moyenne'] = self.solution_moyenne
+        dict_resoudre_plateau['difficulte'] = self.difficulte
         dict_resoudre_plateau['liste des solutions'] = self._liste_des_solutions
         return dict_resoudre_plateau
 
@@ -1039,6 +993,8 @@ class ResoudrePlateau:
             self._statistiques['solution la plus longue'] = data_json['solution la plus longue']
         if 'solution moyenne' in data_json:
             self._statistiques['solution moyenne'] = data_json['solution moyenne']
+        if 'difficulte' in data_json:
+            self._difficulte = data_json['difficulte']
         if 'liste des solutions' in data_json:
             for solution in data_json['liste des solutions']:
                 self._liste_des_solutions.append(solution)
@@ -1076,10 +1032,11 @@ class ResoudrePlateau:
 La difficulte est le nombre de coups pour resoudre le plateau rapporte a la taille du plateau."""
         if self.solution_la_plus_courte is None:
             return None
-        surface_plateau_max = 12 * 12
-        surface_plateau = self._plateau_initial.nb_colonnes * self._plateau_initial.nb_lignes
-        inverse_ratio_surface = surface_plateau_max / surface_plateau
-        self._difficulte = int( self.solution_la_plus_courte * inverse_ratio_surface )
+        if not self._difficulte:
+            surface_plateau_max = 12 * 12
+            surface_plateau = self._plateau_initial.nb_colonnes * self._plateau_initial.nb_lignes
+            inverse_ratio_surface = surface_plateau_max / surface_plateau
+            self._difficulte = int( self.solution_la_plus_courte * inverse_ratio_surface )
         return self._difficulte
 
 class ExportJSON:
