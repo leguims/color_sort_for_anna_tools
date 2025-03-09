@@ -12,6 +12,8 @@ import cProfile
 import pstats
 
 REPERTOIRE_SORTIE_RACINE = 'Analyses'
+DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 30*60
+TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000
 
 # TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
 
@@ -199,6 +201,14 @@ class Plateau:
     def est_valide(self):
         """"Verifie si le plateau en parametre est valide et interessant"""
         if self._plateau_ligne and self._est_valide is None:
+            # Est-ce que le plateau est interessant ?
+            # Une colonne achevee est sans interet.
+            if self.une_colonne_est_pleine_et_monocouleur():
+                self._est_valide = False
+                return self._est_valide
+
+
+            # Vérifier la validité du plateau
             # Pour chaque colonne, les cases vides sont sur les dernieres cases
             case_vide = ' '
 
@@ -232,11 +242,6 @@ class Plateau:
             self._est_valide = True
             self._dico_validite_index_vide[index_vide] = self._est_valide
 
-            # Est-ce que le plateau est interessant ?
-            # Une colonne achevee est sans interet.
-            if self.une_colonne_est_pleine_et_monocouleur():
-                self._est_valide = False
-                return self._est_valide
         return self._est_valide
 
     def la_colonne_est_vide(self, colonne):
@@ -423,7 +428,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             else:
                 # Nouveau Plateau invalide, on l'ignore
                 self.__ignorer_le_plateau(self._plateau_courant)
-                return True
         return True
 
     def mettre_a_jour_les_plateaux_valides(self, periode_affichage):
@@ -660,7 +664,9 @@ Le plateau lui-meme n'est pas dans les permutations."""
 
     def __init_export_json(self):
         nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
-        self._export_json = ExportJSON(delai=60, longueur=100, nom_plateau=nom, nom_export=nom)
+        self._export_json = ExportJSON(delai=DELAI_ENREGISTRER_LOT_DE_PLATEAUX,
+                                       longueur=TAILLE_ENREGISTRER_LOT_DE_PLATEAUX,
+                                       nom_plateau=nom, nom_export=nom)
 
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les plateaux valides"""
