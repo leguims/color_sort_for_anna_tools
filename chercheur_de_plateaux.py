@@ -23,6 +23,9 @@ def chercher_des_plateaux(colonnes, lignes):
     plateau.creer_plateau_initial()
     plateau_initial_pour_permutations = plateau.pour_permutations # Pour identifier le bouclage exhaustifs des plateaux
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
+    for plateau_ligne_texte_universel in lot_de_plateaux:
+        logger.debug(f"plateau_ligne_texte_universel = {plateau_ligne_texte_universel}")
+    return
     # Le meilleur pleateau pour initier les permutations
     plateau_optimise_pour_permutations = lot_de_plateaux.creer_plateau_initial_optimisation_permutation()
     dernier_affichage  = datetime.datetime.now().timestamp()

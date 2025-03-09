@@ -339,6 +339,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
         self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
         self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons
+        self._iter_index = 0  # Initialisation de l'index de l'itérateur
         self._nb_plateaux_max = nb_plateaux_max # Limite memoire pour la recherche (plateaux à ignorer)
         self._export_json = None
         self._ensemble_des_difficultes_de_plateaux = {} # Ensemble des plateaux classés par difficulté et profondeur
@@ -353,6 +354,50 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self.__init_export_json()
         self.__importer_fichier_json()
 
+    # Iterateur avec : __iter__ et __next__
+    def __iter__(self):
+        if self.est_deja_termine():
+            self._logger.debug(f"__iter__ : est_deja_termine.")
+            # Parcourir les plateaux valides
+            self._iter_index = 0  # Réinitialisation de l'index de l'itérateur
+            self._iter_index_max = len(self.plateaux_valides_liste_classee)
+            self._iter_list = self.plateaux_valides_liste_classee
+        else:
+            self._logger.debug(f"__iter__ : NOT est_deja_termine.")
+            # Poursuivre la recherche de plateaux valides
+            self._plateau_courant.creer_plateau_initial()
+            self._iter_last_permutation = self._plateau_courant.pour_permutations
+            self._iter_permutation_optimisee = self.creer_plateau_initial_optimisation_permutation()
+            # Initialisation : commencer les permutations avec le dernier plateau valide
+            self._iter_iterateur = permutations(self._iter_permutation_optimisee)
+        return self
+
+    def __next__(self):
+        if self.est_deja_termine():
+            self._logger.debug(f"__next__ : est_deja_termine.")
+            # Parcourir les plateaux valides
+            if self._iter_index < self._iter_index_max:
+                self._iter_index += 1
+                self._plateau_courant.clear()
+                self._plateau_courant.plateau_ligne_texte = self._iter_list[self._iter_index - 1]
+                return self._plateau_courant.plateau_ligne_texte_universel
+        else:
+            self._logger.debug(f"__next__ : NOT est_deja_termine.")
+            while True:
+                # Itérer avec les permutations
+                try:
+                    self._iter_permutation = next(self._iter_iterateur)
+                except StopIteration:
+                    break
+                if self.est_ignore(''.join(self._iter_permutation)):
+                    self._logger.debug(f"__next__ : Plateau ignore. '{self._plateau_courant.plateau_ligne_texte_universel}'")
+                else:
+                    # Retourner le plateau valide
+                    self._logger.info(f"__next__ : Plateau valide. '{self._plateau_courant.plateau_ligne_texte_universel}'")
+                    return self._plateau_courant.plateau_ligne_texte_universel
+        self.arret_des_enregistrements()
+        self.exporter_fichier_json()
+        raise StopIteration
 
     def __len__(self):
         return self.nb_plateaux_valides
