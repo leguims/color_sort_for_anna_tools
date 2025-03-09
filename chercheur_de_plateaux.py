@@ -23,22 +23,15 @@ def chercher_des_plateaux(colonnes, lignes):
     plateau.creer_plateau_initial()
     plateau_initial_pour_permutations = plateau.pour_permutations # Pour identifier le bouclage exhaustifs des plateaux
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
+    # Le meilleur pleateau pour initier les permutations
+    plateau_optimise_pour_permutations = lot_de_plateaux.creer_plateau_initial_optimisation_permutation()
     dernier_affichage  = datetime.datetime.now().timestamp()
-    reprise = False
     if not lot_de_plateaux.est_deja_termine():
-        # Pour suivre la recherche à partir du dernier plateau valide.
-        if lot_de_plateaux.plateaux_valides:
-            # Pour demarrer la poursuite des recherches a partir du dernier plateau valide
-            plateau.clear()
-            plateau.plateau_ligne_texte = lot_de_plateaux.dernier_plateau_valide
-            dernier_plateau_pour_permutations = plateau.pour_permutations
-            reprise = True
-        else:
-            dernier_plateau_pour_permutations = plateau_initial_pour_permutations
-        for permutation_courante in permutations(dernier_plateau_pour_permutations):
-            if reprise and permutation_courante == plateau_initial_pour_permutations:
+        for permutation_courante in permutations(plateau_optimise_pour_permutations):
+            if (plateau_initial_pour_permutations != plateau_optimise_pour_permutations) \
+                and (permutation_courante == plateau_initial_pour_permutations):
                 # Vérification de fin seulement pour une reprise
-                # Fin de la recherche exhaustive 
+                # Fin de la recherche exhaustive
                 plateau.clear()
                 plateau.plateau_ligne_texte = permutation_courante
                 logger.info(f"Le plateau initial vient d'etre genere. '{plateau.plateau_ligne_texte_universel}'")

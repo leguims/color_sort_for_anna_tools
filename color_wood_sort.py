@@ -343,6 +343,11 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._revalidation_phase_2_terminee = False # Indique si la phase 2 de revalidation est terminee
         self._revalidation_dernier_plateau = None # Dernier plateau traité en revalidation pour reprise
 
+        # Reprise de la recherche
+        self.__init_export_json()
+        self.__importer_fichier_json()
+
+
     def __len__(self):
         return self.nb_plateaux_valides
 
@@ -387,6 +392,28 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         dict_lot_de_plateaux['liste difficulte des plateaux']= liste_difficultes_universelles
 
         return dict_lot_de_plateaux
+
+    def creer_plateau_initial_optimisation_permutation(self):
+        """"Cree un plateau en ligne initial pour l'optimisation des permutations = ['A', ' ', 'B', 'A', 'B', ' ']
+Reprendre au dernier plateau valide, sinon le plateau est inspiré du 1er plateau valide issu du lot de plateau 'colonnes - 1' avec la nouvelle famille.
+Ce choix accelère la recherche, mais n'est pas parfait.
+Si la recheche du lot de plateau 'colonnes - 1' n'a pas de plateau valide, retourne le plateau initial."""
+        if self.plateaux_valides:
+            # Reprendre au dernier plateau valide connu
+            return [i for i in self.plateaux_valides_liste_classee[-1]]
+
+        # Optimisation pour les plateaux de plus de 2 colonnes
+        if self._nb_colonnes > 2:
+            # Ouvrir la recherche du lot de plateau 'colonnes - 1'
+            lot_de_plateaux_colonne_moins_1 = LotDePlateaux((self._nb_colonnes - 1, self._nb_lignes, self._nb_colonnes_vides))
+            if lot_de_plateaux_colonne_moins_1.plateaux_valides:
+                # S'inspirer du lot de plateau 'colonnes - 1' qui a des plateaux valides connus
+                # Consulter le 1er plateau valide
+                premier_plateau = lot_de_plateaux_colonne_moins_1.plateaux_valides_liste_classee[0]
+                # Retourner le 1er plateau avec la nouvelle famille
+                return [i for i in premier_plateau] + [self._plateau_courant._liste_familles[-1] for membre in range(self._nb_lignes)]
+        self._plateau_courant.creer_plateau_initial()
+        return self._plateau_courant.pour_permutations
 
     def formater_duree(self, duree):
         """Formater la duree en une chaîne de caracteres lisible."""
@@ -571,6 +598,13 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         return self._ensemble_des_plateaux_valides
 
     @property
+    def plateaux_valides_liste_classee(self):
+        "Liste classee des plateaux valides"
+        liste_classee = list(self._ensemble_des_plateaux_valides)
+        liste_classee.sort()
+        return liste_classee
+
+    @property
     def nb_plateaux_valides(self):
         "Nombre de plateaux valides"
         return len(self._ensemble_des_plateaux_valides)
@@ -737,8 +771,6 @@ Le plateau lui-meme n'est pas dans les permutations."""
                         self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau.plateau_ligne_texte)
 
     def est_deja_termine(self):
-        self.__init_export_json()
-        self.__importer_fichier_json()
         return self._recherche_terminee
     
     def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
