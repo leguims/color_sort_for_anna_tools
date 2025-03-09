@@ -24,6 +24,7 @@ class Plateau:
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
         self._est_valide = None
+        self._est_interessant = None
         self._dico_validite_index_vide = {}
         # plateau_ligne : ['A', 'A', 'B', 'B', ' ', ' ']
         self._plateau_ligne = None
@@ -41,6 +42,7 @@ class Plateau:
     def clear(self):
         "Efface le plateau pour en ecrire un nouveau"
         self._est_valide = None
+        self._est_interessant = None
         self._plateau_ligne = None
         self._plateau_ligne_texte = None
         self._plateau_ligne_texte_universel = None
@@ -199,15 +201,8 @@ class Plateau:
 
     @property
     def est_valide(self):
-        """"Verifie si le plateau en parametre est valide et interessant"""
+        """"Verifie si le plateau en parametre est valide"""
         if self._plateau_ligne and self._est_valide is None:
-            # Est-ce que le plateau est interessant ?
-            # Une colonne achevee est sans interet.
-            if self.une_colonne_est_pleine_et_monocouleur():
-                self._est_valide = False
-                return self._est_valide
-
-
             # Vérifier la validité du plateau
             # Pour chaque colonne, les cases vides sont sur les dernieres cases
             case_vide = ' '
@@ -243,6 +238,17 @@ class Plateau:
             self._dico_validite_index_vide[index_vide] = self._est_valide
 
         return self._est_valide
+
+    @property
+    def est_interessant(self):
+        """"Verifie si le plateau en parametre est interessant"""
+        if self._plateau_ligne and self._est_interessant is None:
+            self._est_interessant = True
+            # Est-ce que le plateau est interessant ?
+            # Une colonne achevee est sans interet.
+            if self.une_colonne_est_pleine_et_monocouleur():
+                self._est_interessant = False
+        return self._est_interessant
 
     def la_colonne_est_vide(self, colonne):
         if colonne >= self.nb_colonnes:
@@ -448,12 +454,12 @@ Si la recheche du lot de plateau 'colonnes - 1' n'a pas de plateau valide, retou
             self._plateau_courant.plateau_ligne_texte = permutation_plateau
             # self._logger.info(plateau)
             # Verifier que la plateau est valide
-            if self._plateau_courant.est_valide:
+            if self._plateau_courant.est_valide and self._plateau_courant.est_interessant:
                 # Enregistrer la permutation courante qui est un nouveau plateau valide
                 self.__ajouter_le_plateau(self._plateau_courant)
                 return False
             else:
-                # Nouveau Plateau invalide, on l'ignore
+                # Nouveau Plateau invalide ou initeressant, on l'ignore
                 self.__ignorer_le_plateau(self._plateau_courant)
         return True
 
