@@ -14,6 +14,7 @@ import pstats
 REPERTOIRE_SORTIE_RACINE = 'Analyses'
 DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 30*60
 TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000
+DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 30*60
 
 # TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
 
@@ -383,17 +384,33 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 return self._plateau_courant.plateau_ligne_texte_universel
         else:
             self._logger.debug(f"__next__ : NOT est_deja_termine.")
+            dernier_affichage  = datetime.datetime.now().timestamp()
             while True:
                 # Itérer avec les permutations
                 try:
                     self._iter_permutation = next(self._iter_iterateur)
+                    if datetime.datetime.now().timestamp() - dernier_affichage > DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX:
+                        self._logger.info(f"self._iter_permutation='{''.join(self._iter_permutation)}'")
+                        dernier_affichage  = datetime.datetime.now().timestamp()
+                    # Astuce d'optimisation : ignorer la permutation ...
+                    #  - Si la colonne 1 est remplie de 'A'.
+                    #  - Si la colonne 1 n'a pas de 'A'.
+                    nb_A_sur_colonne_1 = self._iter_permutation[0:self._nb_lignes].count('A')
+                    if (nb_A_sur_colonne_1 == self._nb_lignes) \
+                        or (nb_A_sur_colonne_1 == 0):
+                        continue
+                    # Astuce identique avec la dernière colonne et la case vide ' '
+                    #  - Si la colonne N n'a pas de ' '.
+                    nb_VIDE_sur_colonne_N = self._iter_permutation[-self._nb_lignes:].count(' ')
+                    if nb_VIDE_sur_colonne_N == 0:
+                        continue
                 except StopIteration:
                     break
                 if self.est_ignore(''.join(self._iter_permutation)):
                     self._logger.debug(f"__next__ : Plateau ignore. '{self._plateau_courant.plateau_ligne_texte_universel}'")
                 else:
                     # Retourner le plateau valide
-                    self._logger.info(f"__next__ : Plateau valide. '{self._plateau_courant.plateau_ligne_texte_universel}'")
+                    self._logger.debug(f"__next__ : Plateau valide. '{self._plateau_courant.plateau_ligne_texte_universel}'")
                     return self._plateau_courant.plateau_ligne_texte_universel
         self.arret_des_enregistrements()
         self.exporter_fichier_json()
@@ -551,6 +568,9 @@ Si la recheche du lot de plateau 'colonnes - 1' n'a pas de plateau valide, retou
             if iter_plateau_ligne_texte in self.plateaux_valides:
                 if not plateau_courant.est_valide:
                     self._logger.debug(f"Phase 1 : '{plateau_courant.plateau_ligne_texte_universel}' : invalide a supprimer")
+                    self.plateaux_valides.remove(iter_plateau_ligne_texte)
+                elif not plateau_courant.est_interessant:
+                    self._logger.debug(f"Phase 1 : '{plateau_courant.plateau_ligne_texte_universel}' : ininteressant a supprimer")
                     self.plateaux_valides.remove(iter_plateau_ligne_texte)
             nb_plateaux_a_valider -= 1
 

@@ -18,7 +18,6 @@ def revalider_les_plateaux(colonnes, lignes):
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     logger.info(f"DEBUT")
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
-    lot_de_plateaux.est_deja_termine()
     # Parcourir les plateaux et supprimer les plateaux "invalides"
     lot_de_plateaux.mettre_a_jour_les_plateaux_valides(PERIODE_AFFICHAGE)
 

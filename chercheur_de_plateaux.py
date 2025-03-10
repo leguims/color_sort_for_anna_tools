@@ -19,38 +19,14 @@ def chercher_des_plateaux(colonnes, lignes):
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     logger.info(f"DEBUT")
-    plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
-    plateau.creer_plateau_initial()
-    plateau_initial_pour_permutations = plateau.pour_permutations # Pour identifier le bouclage exhaustifs des plateaux
     lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
-    for plateau_ligne_texte_universel in lot_de_plateaux:
-        logger.debug(f"plateau_ligne_texte_universel = {plateau_ligne_texte_universel}")
-    return
-    # Le meilleur pleateau pour initier les permutations
-    plateau_optimise_pour_permutations = lot_de_plateaux.creer_plateau_initial_optimisation_permutation()
-    dernier_affichage  = datetime.datetime.now().timestamp()
     if not lot_de_plateaux.est_deja_termine():
-        for permutation_courante in permutations(plateau_optimise_pour_permutations):
-            if (plateau_initial_pour_permutations != plateau_optimise_pour_permutations) \
-                and (permutation_courante == plateau_initial_pour_permutations):
-                # Vérification de fin seulement pour une reprise
-                # Fin de la recherche exhaustive
-                plateau.clear()
-                plateau.plateau_ligne_texte = permutation_courante
-                logger.info(f"Le plateau initial vient d'etre genere. '{plateau.plateau_ligne_texte_universel}'")
-                logger.info(f"Fin de la recherche exhaustive.")
-                break
-            # Verifier que ce plateau est nouveau
-            permutation_courante = ''.join(permutation_courante)
-            if not lot_de_plateaux.est_ignore(permutation_courante):
-                # Afficher si dernier affichage > 5mins
-                if datetime.datetime.now().timestamp() - dernier_affichage > PERIODE_AFFICHAGE:
-                    logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-                    dernier_affichage  = datetime.datetime.now().timestamp()
-
-        lot_de_plateaux.arret_des_enregistrements()
-        # lot_de_plateaux.exporter_fichier_json()
-
+        dernier_affichage  = datetime.datetime.now().timestamp()
+        for plateau_ligne_texte_universel in lot_de_plateaux:
+            if datetime.datetime.now().timestamp() - dernier_affichage > PERIODE_AFFICHAGE:
+                logger.info(f"plateau_ligne_texte_universel = '{plateau_ligne_texte_universel}'")
+                dernier_affichage  = datetime.datetime.now().timestamp()
+            pass
         logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
         logger.info(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
     else:
