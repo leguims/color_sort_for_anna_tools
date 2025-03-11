@@ -46,7 +46,7 @@ def chercher_en_parallele():
     profil = cws.ProfilerLeCode(NOM_TACHE, PROFILER_LE_CODE)
     profil.start()
 
-    taches = cws.CreerLesTaches(nom=NOM_TACHE, nb_colonnes=max(COLONNES)+1, nb_lignes=max(LIGNES)+1)
+    taches = cws.CreerLesTaches(nom=NOM_TACHE, liste_colonnes=COLONNES, liste_lignes=LIGNES)
 
     # Configurer le logger
     logger = logging.getLogger(f"chercher_en_parallele.NOUVELLE-RECHERCHE")

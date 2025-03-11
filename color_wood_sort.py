@@ -1216,9 +1216,9 @@ class ProfilerLeCode:
                 self._stats.sort_stats(pstats.SortKey.CUMULATIVE).print_stats()
 
 class CreerLesTaches:
-    def __init__(self, nom, nb_colonnes, nb_lignes):
-        self._nom = f'{nb_colonnes}.{nb_lignes}.{nom}'
-        self._taches = [{'colonnes': c, 'lignes': l, 'complexite': c*l, 'terminee': False, 'en_cours': False} for c in range(2, nb_colonnes) for l in range(2, nb_lignes)]
+    def __init__(self, nom, liste_colonnes, liste_lignes):
+        self._nom = f'{max(liste_colonnes)}.{max(liste_lignes)}.{nom}'
+        self._taches = [{'colonnes': c, 'lignes': l, 'complexite': c*l, 'terminee': False, 'en_cours': False} for c in liste_colonnes for l in liste_lignes]
         self._taches.sort(key=lambda x: x['complexite'])
         self._log = pathlib.Path('logs') / f'{nom}.log'
         self._old_log = pathlib.Path('logs') / f'{nom}_old.log'
