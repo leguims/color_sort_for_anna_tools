@@ -39,6 +39,7 @@ class Plateau:
         self._nb_familles = nb_colonnes - nb_colonnes_vides
         self._liste_familles = []
         self.__creer_les_familles()
+        self._logger = logging.getLogger(f"{self._nb_colonnes}.{self._nb_lignes}.{Plateau.__name__}")
 
     def clear(self):
         "Efface le plateau pour en ecrire un nouveau"
@@ -199,6 +200,42 @@ class Plateau:
                                                  for membre in range(self._nb_lignes)]
                 +[' ' for vide in range(self._nb_colonnes_vides)
                          for membre in range(self._nb_lignes)] )
+
+    def creer_plateau_permutation_initial(self):
+        """"Cree un plateau en ligne initial pour la permutation.
+        Ce plateau est le premier plateau valide produit à partir
+        du plateau retourné par le methode 'creer_plateau_initial'.
+        exemple 4x4 = ['A', 'A', 'A', 'B', 'A', 'B', 'B', 'B', 'C', 'C', 'C', ' ', 'C', ' ', ' ', ' ']
+        ... ='AAAB.ABBB.CCC .C   '"""
+        # 2x7 : ['A'x(L-1)] .A[' 'x(L-1)]]
+        # 3x7 : ['A'x(L-1)]B.A['B'x(L-1)].[' 'x(L)]]
+        # 4x7 : ['A'x(L-1)]B.A['B'x(L-1)].['C'x(L-1)] .C[' 'x(L-1)]]
+        # 5x7 : ['A'x(L-1)]B.A['B'x(L-1)].['C'x(L-1)]D.C['D'x(L-1)].[' 'x(L)]]
+        # 6x7 : ['A'x(L-1)]B.A['B'x(L-1)].['C'x(L-1)]D.C['D'x(L-1)].['E'x(L-1)] .E[' 'x(L-1)]
+        if not self._plateau_ligne:
+            plateau = []
+            famille_et_vide = self._liste_familles + [' ']
+            for colonne in range(1, self._nb_colonnes+1):
+                if colonne >= 2:
+                    famille_precedente = famille_et_vide[colonne-2]
+                famille = famille_et_vide[colonne-1]
+                if colonne < self._nb_colonnes:
+                    famille_suivante = famille_et_vide[colonne]
+
+                if (colonne == self._nb_colonnes):
+                    # Derniere colonne (famille = ' ')
+                    if self._nb_colonnes%2 == 0: # paire
+                        plateau += [famille_precedente] + [famille]*(self._nb_lignes-1)
+                    else: # impaire
+                        plateau += [famille]*self._nb_lignes
+                else :
+                    if colonne%2 == 1: # impaire
+                        plateau += [famille]*(self._nb_lignes-1) + [famille_suivante]
+                    else: # paire
+                        plateau += [famille_precedente] + [famille]*(self._nb_lignes-1)
+            self.plateau_ligne = tuple(plateau)
+            self._logger.info(f"Plateau de permutation initial = '{self.plateau_ligne_texte_universel}'")
+
 
     @property
     def est_valide(self):
@@ -366,8 +403,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         else:
             self._logger.debug(f"__iter__ : NOT est_deja_termine.")
             # Poursuivre la recherche de plateaux valides
-            self._plateau_courant.creer_plateau_initial()
-            self._iter_last_permutation = self._plateau_courant.pour_permutations
             self._iter_permutation_optimisee = self.creer_plateau_initial_optimisation_permutation()
             # Initialisation : commencer les permutations avec le dernier plateau valide
             self._iter_iterateur = permutations(self._iter_permutation_optimisee)
@@ -387,25 +422,24 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             dernier_affichage  = datetime.datetime.now().timestamp()
             while True:
                 # Itérer avec les permutations
-                try:
-                    self._iter_permutation = next(self._iter_iterateur)
-                    if datetime.datetime.now().timestamp() - dernier_affichage > DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX:
-                        self._logger.info(f"self._iter_permutation='{''.join(self._iter_permutation)}'")
-                        dernier_affichage  = datetime.datetime.now().timestamp()
-                    # Astuce d'optimisation : ignorer la permutation ...
-                    #  - Si la colonne 1 est remplie de 'A'.
-                    #  - Si la colonne 1 n'a pas de 'A'.
-                    nb_A_sur_colonne_1 = self._iter_permutation[0:self._nb_lignes].count('A')
-                    if (nb_A_sur_colonne_1 == self._nb_lignes) \
-                        or (nb_A_sur_colonne_1 == 0):
-                        continue
-                    # Astuce identique avec la dernière colonne et la case vide ' '
-                    #  - Si la colonne N n'a pas de ' '.
-                    nb_VIDE_sur_colonne_N = self._iter_permutation[-self._nb_lignes:].count(' ')
-                    if nb_VIDE_sur_colonne_N == 0:
-                        continue
-                except StopIteration:
+                self._iter_permutation = next(self._iter_iterateur)
+                if datetime.datetime.now().timestamp() - dernier_affichage > DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX:
+                    self._logger.info(f"self._iter_permutation='{''.join(self._iter_permutation)}'")
+                    dernier_affichage  = datetime.datetime.now().timestamp()
+                # Astuce d'optimisation : ignorer la permutation ...
+                #  - Si la colonne 1 est remplie de 'A'.
+                # Ultime optimisation :
+                #  - Si la colonne 1 n'a pas de 'A' => FIN des permutations.
+                nb_A_sur_colonne_1 = self._iter_permutation[0:self._nb_lignes].count('A')
+                if nb_A_sur_colonne_1 == 0:
                     break
+                if nb_A_sur_colonne_1 == self._nb_lignes:
+                    continue
+                # Astuce identique avec la dernière colonne et la case vide ' '
+                #  - Si la colonne N n'a pas de ' '.
+                nb_VIDE_sur_colonne_N = self._iter_permutation[-self._nb_lignes:].count(' ')
+                if nb_VIDE_sur_colonne_N == 0:
+                    continue
                 if self.est_ignore(''.join(self._iter_permutation)):
                     self._logger.debug(f"__next__ : Plateau ignore. '{self._plateau_courant.plateau_ligne_texte_universel}'")
                 else:
@@ -462,45 +496,16 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         return dict_lot_de_plateaux
 
     def creer_plateau_initial_optimisation_permutation(self):
-        """"Cree un plateau en ligne initial pour l'optimisation des permutations = ['A', ' ', 'B', 'A', 'B', ' ']
-Reprendre au dernier plateau valide, sinon le plateau est inspiré du 1er plateau valide issu du lot de plateau 'colonnes - 1' avec la nouvelle famille.
-Ce choix accelère la recherche, mais n'est pas parfait.
-Si la recheche du lot de plateau 'colonnes - 1' n'a pas de plateau valide, retourne le plateau initial."""
+        """"Reprendre au plateau valide le plus avancé dans les permutations
+        ou créer le plateau de permutations initial."""
         if self.plateaux_valides:
-            # Reprendre au dernier plateau valide connu
-            return [i for i in self.plateaux_valides_liste_classee[-1]]
+            # Reprendre au premier plateau valide classé (c'est le plus avancé dans les permutations)
+            # 'A   ' est plus loin que 'AAA ' dans les permutations
+            return [i for i in self.plateaux_valides_liste_classee[0]]
 
-        # Optimisation pour les plateaux de plus de 2 colonnes
-        if self._nb_colonnes > 2:
-            # Ouvrir la recherche du lot de plateau 'colonnes - 1'
-            lot_de_plateaux_colonne_moins_1 = LotDePlateaux((self._nb_colonnes - 1, self._nb_lignes, self._nb_colonnes_vides))
-            if lot_de_plateaux_colonne_moins_1.plateaux_valides:
-                # S'inspirer du lot de plateau 'colonnes - 1' qui a des plateaux valides connus
-                # Consulter le 1er plateau valide
-                premier_plateau = lot_de_plateaux_colonne_moins_1.plateaux_valides_liste_classee[0]
-                # Retourner le 1er plateau avec la nouvelle famille
-                return [i for i in premier_plateau] + [self._plateau_courant._liste_familles[-1] for membre in range(self._nb_lignes)]
-        self._plateau_courant.creer_plateau_initial()
+        # Sinon, calculer le plateau initial de permutations
+        self._plateau_courant.creer_plateau_permutation_initial()
         return self._plateau_courant.pour_permutations
-
-    def formater_duree(self, duree):
-        """Formater la duree en une chaîne de caracteres lisible."""
-        if duree < 0.001:
-            return f"{int(duree * 1_000_000)} microsecondes"
-        elif duree < 1:
-            return f"{int(duree * 1_000)} millisecondes"
-        elif duree < 60:
-            return f"{int(duree)} secondes"
-        else:
-            minutes, secondes = divmod(duree, 60)
-            heures, minutes = divmod(minutes, 60)
-            jours, heures = divmod(heures, 24)
-            if jours > 0:
-                return f"{int(jours)} jours {int(heures)} heures"
-            elif heures > 0:
-                return f"{int(heures)} heures {int(minutes)} minutes"
-            else:
-                return f"{int(minutes)} minutes {int(secondes)} secondes"
 
     def arret_des_enregistrements(self):
         "Methode qui finalise la recherche de plateaux"
