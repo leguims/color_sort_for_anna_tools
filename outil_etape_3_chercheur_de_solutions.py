@@ -4,11 +4,14 @@ import time
 import logging
 import pathlib
 
-import color_wood_sort as cws
+from plateau import Plateau
+from lot_de_plateaux import LotDePlateaux
+from resoudre_plateau import ResoudrePlateau
+from profiler_le_code import ProfilerLeCode
 
-COLONNES = range(2, 12) # [2] # range(2, 12)
-LIGNES = range(2, 5) # [2] # range(2, 5)
 PERIODE_SCRUTATION_SECONDES = 30*60
+COLONNES = [3] # range(2, 12) #[7] # range(2, 6) # [2] # range(2, 12)
+LIGNES =  [3] # range(2,7) #range(2, 14) #range(2, 3) # [2] # range(2, 5)
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000
 PROFILER_LE_CODE = False
@@ -23,8 +26,8 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
     if not taciturne:
         logger.info(f"DEBUT")
 
-    plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
-    lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
+    plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
+    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
     if lot_de_plateaux.est_deja_termine(): # or True: # True = Chercher toutes les solutions a l'heure actuel.
         if not taciturne:
             logger.info("Ce lot de plateaux est termine")
@@ -35,13 +38,13 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
                 # TODO : Il y a probablement des solutions de plateau obsoletes a effacer.
             logger.info(f"Il reste des solutions a trouver : {lot_de_plateaux.nb_plateaux_valides} != {lot_de_plateaux.nb_plateaux_solutionnes}")
             
-            dernier_affichage  = datetime.datetime.now().timestamp()
+            dernier_affichage  = datetime.datetime.now().timestamp() - PERIODE_AFFICHAGE
             nb_solutions_a_trouver = lot_de_plateaux.nb_plateaux_valides
             for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
                 plateau.clear()
                 plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
                 if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):
-                    resolution = cws.ResoudrePlateau(plateau)
+                    resolution = ResoudrePlateau(plateau)
                     resolution.backtracking()
                     lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, resolution.solution_la_plus_courte)
                 
@@ -80,7 +83,7 @@ def chercher_en_boucle():
         time.sleep(PERIODE_SCRUTATION_SECONDES)
 
 def chercher_en_sequence():
-    profil = cws.ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
+    profil = ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
     profil.start()
 
     logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")

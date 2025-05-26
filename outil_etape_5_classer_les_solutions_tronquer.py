@@ -5,7 +5,10 @@ import time
 import logging
 import pathlib
 
-import color_wood_sort as cws
+
+from export_json import ExportJSON
+from profiler_le_code import ProfilerLeCode
+
 
 PERIODE_SCRUTATION_SECONDES = 30*60
 # Filtrer les plateaux a 2 lignes ou 2 colonnes qui sont trop triviaux et repetitifs.
@@ -15,14 +18,16 @@ FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
 
 TAILLE = 10
 
+# TODO : Classer par difficulté dans le fichier de solutions
+
 def tronquer_les_solutions(taille = TAILLE, decallage = 0):
     # Configurer le logger
     logger = logging.getLogger(f"tronquer.{NOM_TACHE}")
     logger.info(f"\n\r*** Tronquer le classement des Solutions :")
 
-    solutions_classees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire='Solutions')
+    solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire='Solutions')
     solutions_classees = solutions_classees_json.importer()
-    solutions_classees_tronquees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{taille}_D{decallage}', repertoire='Solutions')
+    solutions_classees_tronquees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{taille}_D{decallage}', repertoire='Solutions')
 
     if "liste difficulte des plateaux" in solutions_classees:
         dict_difficulte = solutions_classees["liste difficulte des plateaux"]
@@ -43,7 +48,7 @@ def afficher_synthese(taille = TAILLE, decallage = 0):
     # Configurer le logger
     logger = logging.getLogger("tronquer.afficher_synthese")
     logger.info(f"*** Synthese des Solutions:")
-    solutions_classees_json = cws.ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{taille}_D{decallage}', repertoire='Solutions')
+    solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{taille}_D{decallage}', repertoire='Solutions')
     solutions_classees = solutions_classees_json.importer()
 
     somme_plateaux = 0
@@ -66,7 +71,7 @@ def chercher_en_boucle():
         time.sleep(PERIODE_SCRUTATION_SECONDES)
 
 def chercher_en_sequence():
-    profil = cws.ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
+    profil = ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
     profil.start()
 
     # Configurer le logger
@@ -74,8 +79,8 @@ def chercher_en_sequence():
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
     for i in range(10):
         # Effacer l'existant
-        #solutions_classees_json = cws.ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{TAILLE}_D{i * TAILLE}', repertoire='Solutions')
-        solutions_classees_json = cws.ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{(i+1)*TAILLE}_D{0}', repertoire='Solutions')
+        #solutions_classees_json = ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{TAILLE}_D{i * TAILLE}', repertoire='Solutions')
+        solutions_classees_json = ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{(i+1)*TAILLE}_D{0}', repertoire='Solutions')
         solutions_classees_json.effacer()
         
         # tronquer_les_solutions(TAILLE, i * TAILLE)

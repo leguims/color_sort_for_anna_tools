@@ -3,9 +3,12 @@ from itertools import permutations #, product, combinations#, combinations_with_
 import logging
 import pathlib
 
-import color_wood_sort as cws
+from plateau import Plateau
+from lot_de_plateaux import LotDePlateaux
+from resoudre_plateau import ResoudrePlateau
+from profiler_le_code import ProfilerLeCode
 
-COLONNES = range(2, 5) # range(2, 5) #11
+COLONNES = [2] # range(2, 5) # range(2, 5) #11
 LIGNES = [2] # [2,3] #4
 COLONNES_VIDES_MAX = 1
 MEMOIRE_MAX = 500_000_000
@@ -18,10 +21,10 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     logger.info(f"DEBUT")
-    plateau = cws.Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
+    plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
     logger.info(plateau.plateau_ligne_texte_universel)
-    lot_de_plateaux = cws.LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
+    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
     if not lot_de_plateaux.est_deja_termine():
         # lot_de_plateaux.fixer_taille_memoire_max(5)
         for permutation_courante in permutations(plateau.pour_permutations):
@@ -41,7 +44,7 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
     for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
         plateau.clear()
         plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
-        resolution = cws.ResoudrePlateau(plateau)
+        resolution = ResoudrePlateau(plateau)
         resolution.backtracking()
         lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, resolution.solution_la_plus_courte)
         # logger.info(f"'{plateau_ligne_texte_a_resoudre}' : nombre de solutions = {resolution.nb_solutions}, solution moyenne = {resolution.solution_moyenne}, la plus courte = {resolution.solution_la_plus_courte}, la plus longue = {resolution.solution_la_plus_longue}")
@@ -56,7 +59,7 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
 
 
 def main():
-    profil = cws.ProfilerLeCode('chercher_les_plateaux_et_les_solutions', PROFILER_LE_CODE)
+    profil = ProfilerLeCode('chercher_les_plateaux_et_les_solutions', PROFILER_LE_CODE)
     profil.start()
 
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
