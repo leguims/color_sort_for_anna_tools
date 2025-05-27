@@ -16,6 +16,8 @@ class Plateau:
         self._plateau_ligne = None
         # plateau_ligne_texte : ['AABB  ']
         self._plateau_ligne_texte = None
+        # plateau_ligne_texte_universel : ['AA.BB.  ']
+        self._plateau_ligne_texte_universel = None
         # plateau_rectangle : [['A', 'A'], ['B', 'B]', [' ', ' ']]
         self._plateau_rectangle = None
         # plateau_rectangle_texte : ['AA', 'BB', '  ']

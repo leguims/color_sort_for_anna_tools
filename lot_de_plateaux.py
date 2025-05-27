@@ -328,6 +328,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 liste_permutations = self.__construire_les_permutations_de_jetons(plateau_courant)
                 # Eliminer les doublons et le plateau courant
                 liste_permutations_texte = set([p.plateau_ligne_texte for p in liste_permutations])
+                liste_permutations.clear()
                 # Ne surtout pas effacer le plateau courant, on cherche les doublons.
                 liste_permutations_texte.discard(iter_plateau_ligne_texte)
                 # self._logger.debug(f"{prefixe_log} taille des permutations de doublons = {len(liste_permutations_texte)}")
@@ -392,6 +393,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 liste_permutations = self.__construire_les_permutations_de_colonnes(plateau_courant)
                 # Eliminer les doublons et le plateau courant
                 liste_permutations_texte = set([p.plateau_ligne_texte for p in liste_permutations])
+                liste_permutations.clear()
                 # Ne surtout pas effacer le plateau courant, on cherche les doublons.
                 liste_permutations_texte.discard(iter_plateau_ligne_texte)
                 self._logger.debug(f"{prefixe_log} taille des permutations de colonnes = {len(liste_permutations_texte)}")
@@ -458,15 +460,17 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
                 # Pour chaque permutation de colonne, realiser la permutation de jeton correspondante
                 nb_permutations_jetons = 0
-                for plateau_permutation_de_colonne in self.__construire_les_permutations_de_colonnes(plateau_courant):
+                liste_permutations_colonnes = self.__construire_les_permutations_de_colonnes(plateau_courant)
+                for plateau_permutation_de_colonne in liste_permutations_colonnes:
                     nb_permutations_jetons += 1
                     liste_permutations = self.__construire_les_permutations_de_jetons(plateau_permutation_de_colonne)
                     # Eliminer les doublons et le plateau courant
                     liste_permutations_texte = set([p.plateau_ligne_texte for p in liste_permutations])
+                    liste_permutations.clear()
                     # Ne surtout pas effacer le plateau courant, on cherche les doublons.
                     liste_permutations_texte.discard(iter_plateau_ligne_texte)
                     if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
-                        self._logger.debug(f"{prefixe_log} Permutations de jetons numero {nb_permutations_jetons} / {len(liste_permutations_texte)}")
+                        self._logger.debug(f"{prefixe_log} Permutations de jetons numero {nb_permutations_jetons} / {len(liste_permutations_colonnes)}")
                         dernier_affichage  = datetime.datetime.now().timestamp()
 
                     self.__effacer_plateaux_valides(liste_permutations_texte, prefixe_log, plateau_courant)
