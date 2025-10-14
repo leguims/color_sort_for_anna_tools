@@ -3,11 +3,8 @@ import json
 from pathlib import Path
 
 
-# TODO : Modifier de l'exterieur ce chemin de base.
-REPERTOIRE_SORTIE_RACINE = 'Analyses'
-
 class ExportJSON:
-    def __init__(self, delai, longueur, nom_plateau, nom_export, repertoire = REPERTOIRE_SORTIE_RACINE):
+    def __init__(self, delai, longueur, nom_plateau, nom_export, repertoire):
         self._delai_enregistrement = delai
         self._longueur_enregistrement = longueur
         self._chemin_enregistrement = Path(repertoire) / nom_plateau / (nom_export+'.json')

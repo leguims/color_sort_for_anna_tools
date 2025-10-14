@@ -15,6 +15,7 @@ MEMOIRE_MAX = 500_000_000
 PROFILER_LE_CODE = False
 NOM_TACHE = 'chercher_les_plateaux_et_les_solutions'
 FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+REPERTOIRE_EXPORT_JSON = 'Analyse_nouvelle_architecture'
 
 def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
     # Configurer le logger
@@ -24,7 +25,9 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
     plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
     plateau.creer_plateau_initial()
     logger.info(plateau.plateau_ligne_texte_universel)
-    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
+    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX),
+                                    repertoire_export_json=REPERTOIRE_EXPORT_JSON,
+                                    nb_plateaux_max = MEMOIRE_MAX)
     if not lot_de_plateaux.est_deja_termine():
         # lot_de_plateaux.fixer_taille_memoire_max(5)
         for permutation_courante in permutations(plateau.pour_permutations):

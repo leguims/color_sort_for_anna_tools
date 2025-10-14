@@ -18,7 +18,8 @@ PROFILER_LE_CODE = False
 NOM_TACHE = 'chercher_des_solutions'
 FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
 PERIODE_AFFICHAGE = 5*60 # en secondes
-
+REPERTOIRE_ANALYSE = 'Analyse_nouvelle_architecture'
+REPERTOIRE_SOLUTION = 'Solutions_nouvelle_architecture'
 
 def chercher_des_solutions(colonnes, lignes, taciturne=False):
     # Configurer le logger
@@ -27,7 +28,9 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
         logger.info(f"DEBUT")
 
     plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
-    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX), nb_plateaux_max = MEMOIRE_MAX)
+    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX),
+                                    repertoire_export_json=REPERTOIRE_ANALYSE,
+                                    nb_plateaux_max = MEMOIRE_MAX)
     if lot_de_plateaux.est_deja_termine(): # or True: # True = Chercher toutes les solutions a l'heure actuel.
         if not taciturne:
             logger.info("Ce lot de plateaux est termine")
@@ -44,7 +47,9 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
                 plateau.clear()
                 plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
                 if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):
-                    resolution = ResoudrePlateau(plateau)
+                    resolution = ResoudrePlateau(plateau,
+                                                 repertoire_analyse=REPERTOIRE_ANALYSE,
+                                                 repertoire_solution=REPERTOIRE_SOLUTION)
                     resolution.backtracking()
                     lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, resolution.solution_la_plus_courte)
                 
@@ -68,33 +73,33 @@ def chercher_des_solutions(colonnes, lignes, taciturne=False):
 def pluriel(LIGNES, lettre='s'):
     return lettre if len(LIGNES) > 1 else ""
 
-def chercher_en_boucle():
+def chercher_en_boucle(colonnes=COLONNES, lignes=LIGNES):
     logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
 
     logger.info('-'*10 + " 1ere RECHERCHE " + '-'*10)
     chercher_en_sequence() # 1ere iteration est bavarde
     while(True):
         logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
-        for lignes in LIGNES:
-            for colonnes in COLONNES:
-                chercher_des_solutions(colonnes, lignes, taciturne=True)
+        for iter_lignes in lignes:
+            for iter_colonnes in colonnes:
+                chercher_des_solutions(iter_colonnes, iter_lignes, taciturne=True)
         current_time = datetime.datetime.now().strftime("%H:%M:%S")
         logger.info(f"{current_time} - Attente entre 2 iterations de {PERIODE_SCRUTATION_SECONDES}s...")
         time.sleep(PERIODE_SCRUTATION_SECONDES)
 
-def chercher_en_sequence():
+def chercher_en_sequence(colonnes=COLONNES, lignes=LIGNES):
     profil = ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
     profil.start()
 
     logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
-    for lignes in LIGNES:
-        for colonnes in COLONNES:
-            chercher_des_solutions(colonnes, lignes)
+    for iter_lignes in lignes:
+        for iter_colonnes in colonnes:
+            chercher_des_solutions(iter_colonnes, iter_lignes)
     profil.stop()
 
 if __name__ == "__main__":
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    chercher_en_boucle()
-    # chercher_en_sequence()
+    # chercher_en_boucle()
+    chercher_en_sequence()

@@ -7,7 +7,7 @@ from export_json import ExportJSON
 
 class ResoudrePlateau:
     "Classe de resultion d'un plateau par parcours de toutes les possibilites de choix"
-    def __init__(self, plateau_initial: Plateau):
+    def __init__(self, plateau_initial: Plateau, repertoire_analyse, repertoire_solution):
         self._plateau_initial = copy.deepcopy(plateau_initial)
         self._liste_des_solutions = []
         # Statistiques des solutions:
@@ -24,8 +24,8 @@ class ResoudrePlateau:
         self._difficulte = None
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
         nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
-        self._export_json_analyses = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = 'Analyses')
-        self._export_json_solutions = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = 'Solutions')
+        self._export_json_analyses = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = repertoire_analyse)
+        self._export_json_solutions = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = repertoire_solution)
         self.__importer_fichier_json()
 
     def __len__(self):

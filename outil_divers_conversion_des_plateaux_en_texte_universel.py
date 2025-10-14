@@ -12,12 +12,14 @@ COLONNES_VIDES_MAX = 1
 PROFILER_LE_CODE = False
 NOM_TACHE = 'conversion_des_plateaux_en_texte_universel'
 FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+REPERTOIRE_EXPORT_JSON = 'Analyse_nouvelle_architecture'
 
 def conversion_des_plateaux_en_texte_universel(colonnes, lignes):
     # Configurer le logger
     logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
     logger.info(f"DEBUT")
-    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
+    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX),
+                                    repertoire_export_json=REPERTOIRE_EXPORT_JSON)
     lot_de_plateaux.est_deja_termine()
 
     # Forcer la réécriture du JSON pour mettre à jour le format universel

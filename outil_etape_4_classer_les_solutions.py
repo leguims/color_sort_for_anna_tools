@@ -18,7 +18,8 @@ PROFILER_LE_CODE = False
 NOM_TACHE = 'classer_les_solutions'
 FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
 NOMBRE_DE_COUPS_MINIMUM = 3
-
+REPERTOIRE_ANALYSE = 'Analyse_nouvelle_architecture'
+REPERTOIRE_SOLUTION = 'Solutions_nouvelle_architecture'
 
 def classer_les_solutions(colonnes, lignes, nb_coups_min = NOMBRE_DE_COUPS_MINIMUM, taciturne=False):
     # Configurer le logger
@@ -26,12 +27,13 @@ def classer_les_solutions(colonnes, lignes, nb_coups_min = NOMBRE_DE_COUPS_MINIM
     if not taciturne:
         logger.info(f"DEBUT")
     # logger.info(plateau.plateau_ligne_texte_universel)
-    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX))
+    lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX),
+                                    repertoire_export_json=REPERTOIRE_ANALYSE)
     if lot_de_plateaux.est_deja_termine(): # or True: # True = Classe toutes les solutions a l'heure actuel.
         if not taciturne:
             logger.info("Ce lot de plateaux est termine")
 
-        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire='Solutions')
+        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire=REPERTOIRE_SOLUTION)
         solutions_classees = solutions_classees_json.importer()
         plateau = Plateau(colonnes, lignes, COLONNES_VIDES_MAX)
 
@@ -87,7 +89,7 @@ def ordonner_difficulte_nombre_coups(ensemble_des_difficultes_de_plateaux):
 def afficher_synthese():
     logger = logging.getLogger(f"chercher.afficher_synthese")
     logger.info(f"*** Synthese des Solutions:")
-    solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire='Solutions')
+    solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire=REPERTOIRE_SOLUTION)
     solutions_classees = solutions_classees_json.importer()
 
     somme_plateaux = 0
@@ -101,35 +103,35 @@ def afficher_synthese():
 def pluriel(LIGNES, lettre='s'):
     return lettre if len(LIGNES) > 1 else ""
 
-def chercher_en_boucle():
+def chercher_en_boucle(colonnes=COLONNES, lignes=LIGNES):
     # Configurer le logger
     logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
 
     taciturne = False # 1ere iteration n'est pas taciturne
     while(True):
         logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
-        for lignes in LIGNES:
-            for colonnes in COLONNES:
-                classer_les_solutions(colonnes, lignes, taciturne=taciturne)
+        for iter_lignes in lignes:
+            for iter_colonnes in colonnes:
+                classer_les_solutions(iter_colonnes, iter_lignes, taciturne=taciturne)
         current_time = datetime.datetime.now().strftime("%H:%M:%S")
         logger.info(f"{current_time} - Attente entre 2 iterations de {PERIODE_SCRUTATION_SECONDES}s...")
         time.sleep(PERIODE_SCRUTATION_SECONDES)
         taciturne = True
 
-def chercher_en_sequence():
+def chercher_en_sequence(colonnes=COLONNES, lignes=LIGNES):
     profil = ProfilerLeCode('chercher_des_solutions', PROFILER_LE_CODE)
     profil.start()
 
     # Effacer l'existant
-    solutions_classees_json = ExportJSON(0, 0, '', nom_export='Solutions_classees', repertoire='Solutions')
+    solutions_classees_json = ExportJSON(0, 0, '', nom_export='Solutions_classees', repertoire=REPERTOIRE_SOLUTION)
     solutions_classees_json.effacer()
     
     # Configurer le logger
     logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
     logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
-    for lignes in LIGNES:
-        for colonnes in COLONNES:
-            classer_les_solutions(colonnes, lignes)
+    for iter_lignes in lignes:
+        for iter_colonnes in colonnes:
+            classer_les_solutions(iter_colonnes, iter_lignes)
     profil.stop()
 
     afficher_synthese()

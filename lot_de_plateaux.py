@@ -16,7 +16,7 @@ DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 5*60
 class LotDePlateaux:
     """Classe qui gere les lots de plateaux pour parcourir l'immensite des plateaux existants.
 Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherche."""
-    def __init__(self, dim_plateau, nb_plateaux_max = 1_000_000):
+    def __init__(self, dim_plateau, repertoire_export_json, nb_plateaux_max = 1_000_000):
         # Plateau de base
         self._nb_colonnes = dim_plateau[0]
         self._nb_lignes = dim_plateau[1]
@@ -42,6 +42,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._revalidation_dernier_plateau = None # Dernier plateau traité en revalidation pour reprise
 
         # Reprise de la recherche
+        self._repertoire_export_json = repertoire_export_json
         self.__init_export_json()
         self.__importer_fichier_json()
 
@@ -93,6 +94,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 est_ignore = self.est_ignore(''.join(self._iter_permutation))
                 # Enregistrement du plateau courant pour une eventuelle reprise.
                 self._recherche_dernier_plateau = self._plateau_courant.plateau_ligne_texte_universel
+                self._export_json.exporter(self)
                 # Log pour suivre l'avancement.
                 if datetime.datetime.now().timestamp() - dernier_affichage > DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX:
                     self._logger.info(f"self._recherche_dernier_plateau='{self._recherche_dernier_plateau}'")
@@ -163,10 +165,11 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             self._plateau_courant.plateau_ligne_texte_universel = self._recherche_dernier_plateau
             return self._plateau_courant.pour_permutations
 
-        if self.plateaux_valides:
-            # Reprendre au premier plateau valide classé (c'est le plus avancé dans les permutations)
-            # 'A   ' est plus loin que 'AAA ' dans les permutations
-            return [i for i in self.plateaux_valides_liste_classee[0]]
+        # TODO : Vérifier que ce code est obsolète
+        #if self.plateaux_valides:
+        #    # Reprendre au premier plateau valide classé (c'est le plus avancé dans les permutations)
+        #    # 'A   ' est plus loin que 'AAA ' dans les permutations
+        #    return [i for i in self.plateaux_valides_liste_classee[0]]
 
         # Sinon, calculer le plateau initial de permutations
         self._plateau_courant.creer_plateau_permutation_initial()
@@ -601,7 +604,8 @@ Le plateau lui-meme n'est pas dans les permutations."""
         nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
         self._export_json = ExportJSON(delai=DELAI_ENREGISTRER_LOT_DE_PLATEAUX,
                                        longueur=TAILLE_ENREGISTRER_LOT_DE_PLATEAUX,
-                                       nom_plateau=nom, nom_export=nom)
+                                       nom_plateau=nom, nom_export=nom,
+                                       repertoire=self._repertoire_export_json)
 
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les plateaux valides"""
