@@ -31,7 +31,9 @@ class FluxProgressif:
                  nb_colonnes_vides,
                  repertoire_analyse_base,
                  repertoire_analyse,
-                 repertoire_solution):
+                 repertoire_solution,
+                 nom_tache,
+                 fichier_journal):
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
@@ -41,6 +43,8 @@ class FluxProgressif:
         self._spec_plateau = (self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
         self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
                                                 repertoire_export_json=self._repertoire_analyse)
+        self._nom_tache = nom_tache
+        self._fichier_journal = fichier_journal
 
     def copie_plateaux_base(self, seuil_similarite_max):
         """Créer une copie des plateaux de base vers le repertoire d'analyse courant"""
@@ -70,11 +74,25 @@ class FluxProgressif:
                 return False
         return True
 
+    def revalider_les_plateaux(self):
+        revalider = RevaliderLesPlateaux(
+            nb_colonnes=[self._nb_colonnes],
+            nb_lignes=[self._nb_lignes],
+            nb_colonnes_vides=self._nb_colonnes_vides,
+            repertoire_analyse=self._repertoire_analyse,
+            nom_tache=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        revalider.revalider_les_plateaux(self._nb_colonnes, self._nb_lignes)
+        # Mettre à jour le lot de plateaux
+        self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
+                                                repertoire_export_json=self._repertoire_analyse)
+
     def __len__(self):
         return len(self._lot_de_plateaux)
 
 if __name__ == "__main__":
-    NOM_TACHE = 'chercher_des_plateaux'
+    NOM_TACHE = 'flux_progressif_complet'
     FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
 
     PROFILER_LE_CODE = False
@@ -96,8 +114,12 @@ if __name__ == "__main__":
         nb_colonnes_vides=1,
         repertoire_analyse_base='Analyse_nouvelle_architecture',
         repertoire_analyse='Analyse_flux_progressif',
-        repertoire_solution='Solutions_flux_progressif'
+        repertoire_solution='Solutions_flux_progressif',
+        nom_tache='flux_progressif_complet',
+        fichier_journal=pathlib.Path('logs') / f'{NOM_TACHE}.log'
     )
     # Seuil faible = moins de plateaux ; seuil élevé = plus de plateaux (similaires entre eux)
-    flux_progressif.copie_plateaux_base(seuil_similarite_max=95)
+    flux_progressif.copie_plateaux_base(seuil_similarite_max=10)
+    print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
+    flux_progressif.revalider_les_plateaux()
     print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
