@@ -33,7 +33,7 @@ class ClasserLesSolutions:
 
     def classer_les_solutions(self, colonnes, lignes, taciturne=False):
         # Configurer le logger
-        logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
+        logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_tache}")
         if not taciturne:
             logger.info(f"DEBUT")
         # logger.info(plateau.plateau_ligne_texte_universel)
@@ -60,10 +60,13 @@ class ClasserLesSolutions:
                             dict_difficulte[str(difficulte)] = {}
                         if str(nb_coups) not in dict_difficulte[str(difficulte)]:
                             dict_difficulte[str(difficulte)][str(nb_coups)] = []
+                        difficulte_courante = dict_difficulte[str(difficulte)][str(nb_coups)]
                         for plateau_ligne_texte_universel in liste_plateaux:
                             plateau.clear()
                             plateau.plateau_ligne_texte_universel = plateau_ligne_texte_universel
-                            dict_difficulte[str(difficulte)][str(nb_coups)].append(plateau.plateau_ligne_texte_universel)
+                            # Eviter les doublons
+                            if plateau.plateau_ligne_texte_universel not in difficulte_courante:
+                                difficulte_courante.append(plateau.plateau_ligne_texte_universel)
             self.ordonner_difficulte_nombre_coups(solutions_classees["liste difficulte des plateaux"])
             solutions_classees_json.forcer_export(solutions_classees)
         else:

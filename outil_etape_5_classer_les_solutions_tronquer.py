@@ -29,7 +29,7 @@ class TronquerLesSolutions:
 
     def tronquer_les_solutions(self, taille, decallage = 0):
         # Configurer le logger
-        logger = logging.getLogger(f"tronquer.{NOM_TACHE}")
+        logger = logging.getLogger(f"tronquer.{self._nom_tache}")
         logger.info(f"\n\r*** Tronquer le classement des Solutions :")
 
         solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire=self._repertoire_solution)
