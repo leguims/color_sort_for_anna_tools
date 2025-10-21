@@ -59,6 +59,8 @@ class FluxProgressif:
             # Vérifier que le plateaux de base à ajouter n'est pas similaire à un plateau déjà existant.
             if self.verifier_similarite(iter_plateau, seuil_similarite_max):
                 self._lot_de_plateaux.est_ignore(plateau_ligne_texte)
+        # Indiquer la fin de recherche de plateaux (necessaire pour chercher des solutions)
+        self._lot_de_plateaux.arret_des_enregistrements()
         self._lot_de_plateaux.exporter_fichier_json()
 
     def verifier_similarite(self, plateau_ref : Plateau, seuil_similarite_max):
@@ -87,6 +89,18 @@ class FluxProgressif:
         # Mettre à jour le lot de plateaux
         self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
                                                 repertoire_export_json=self._repertoire_analyse)
+
+    def chercher_des_solutions(self):
+        chercheur = ChercherDesSolutions(
+            nb_colonnes=[self._nb_colonnes],
+            nb_lignes=[self._nb_lignes],
+            nb_colonnes_vides=self._nb_colonnes_vides,
+            repertoire_analyse=self._repertoire_analyse,
+            repertoire_solution=self._repertoire_solution,
+            nom_tache=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        chercheur.chercher_des_solutions(self._nb_colonnes, self._nb_lignes)
 
     def __len__(self):
         return len(self._lot_de_plateaux)
@@ -123,3 +137,4 @@ if __name__ == "__main__":
     print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
     flux_progressif.revalider_les_plateaux()
     print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
+    flux_progressif.chercher_des_solutions()
