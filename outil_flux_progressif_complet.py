@@ -115,6 +115,16 @@ class FluxProgressif:
         )
         classeur.classer_les_solutions(self._nb_colonnes, self._nb_lignes)
 
+    def tronquer_les_solutions(self, taille_tronquee, decallage=0):
+        tronqueur = TronquerLesSolutions(
+            repertoire_solution=self._repertoire_solution,
+            taille_tronquee=taille_tronquee,
+            nom_tache=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        tronqueur.tronquer_les_solutions(taille_tronquee, decallage)
+        tronqueur.afficher_synthese(decallage)
+
     def __len__(self):
         return len(self._lot_de_plateaux)
 
@@ -152,3 +162,4 @@ if __name__ == "__main__":
     print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
     flux_progressif.chercher_des_solutions()
     flux_progressif.classer_les_solutions(nb_coups_min=3)
+    flux_progressif.tronquer_les_solutions(taille_tronquee=10, decallage=0)
