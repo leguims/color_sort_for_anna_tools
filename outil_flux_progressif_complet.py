@@ -102,6 +102,19 @@ class FluxProgressif:
         )
         chercheur.chercher_des_solutions(self._nb_colonnes, self._nb_lignes)
 
+    def classer_les_solutions(self, nb_coups_min=3):
+        classeur = ClasserLesSolutions(
+            nb_colonnes=self._nb_colonnes,
+            nb_lignes=self._nb_lignes,
+            nb_colonnes_vides=self._nb_colonnes_vides,
+            repertoire_analyse=self._repertoire_analyse,
+            repertoire_solution=self._repertoire_solution,
+            nb_coups_min=nb_coups_min,
+            nom_tache=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        classeur.classer_les_solutions(self._nb_colonnes, self._nb_lignes)
+
     def __len__(self):
         return len(self._lot_de_plateaux)
 
@@ -138,3 +151,4 @@ if __name__ == "__main__":
     flux_progressif.revalider_les_plateaux()
     print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
     flux_progressif.chercher_des_solutions()
+    flux_progressif.classer_les_solutions(nb_coups_min=3)
