@@ -32,6 +32,7 @@ class FluxProgressif:
                  repertoire_analyse_base,
                  repertoire_analyse,
                  repertoire_solution,
+                 fichier_solution,
                  nom_tache,
                  fichier_journal):
         self._nb_colonnes = nb_colonnes
@@ -40,6 +41,7 @@ class FluxProgressif:
         self._repertoire_analyse_base = repertoire_analyse_base
         self._repertoire_analyse = repertoire_analyse
         self._repertoire_solution = repertoire_solution
+        self._fichier_solution = fichier_solution
         self._spec_plateau = (self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
         self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
                                                 repertoire_export_json=self._repertoire_analyse)
@@ -109,6 +111,7 @@ class FluxProgressif:
             nb_colonnes_vides=self._nb_colonnes_vides,
             repertoire_analyse=self._repertoire_analyse,
             repertoire_solution=self._repertoire_solution,
+            fichier_solution=self._fichier_solution,
             nb_coups_min=nb_coups_min,
             nom_tache=self._nom_tache,
             fichier_journal=self._fichier_journal
@@ -118,6 +121,7 @@ class FluxProgressif:
     def tronquer_les_solutions(self, taille_tronquee, decallage=0):
         tronqueur = TronquerLesSolutions(
             repertoire_solution=self._repertoire_solution,
+            fichier_solution=self._fichier_solution,
             taille_tronquee=taille_tronquee,
             nom_tache=self._nom_tache,
             fichier_journal=self._fichier_journal
@@ -154,7 +158,8 @@ if __name__ == "__main__":
                     nb_colonnes_vides=1,
                     repertoire_analyse_base='Analyses',
                     repertoire_analyse='Analyse_flux_progressif_'+str(similarite),
-                    repertoire_solution='Solutions_flux_progressif_'+str(similarite),
+                    repertoire_solution='Solutions_flux_progressif',
+                    fichier_solution='Solutions_classees_'+str(similarite),
                     nom_tache='flux_progressif_complet',
                     fichier_journal=pathlib.Path('logs') / f'{NOM_TACHE}.log'
                 )
