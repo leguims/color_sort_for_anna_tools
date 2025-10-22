@@ -15,6 +15,7 @@ class ClasserLesSolutions:
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides,
                 repertoire_analyse,
                 repertoire_solution,
+                fichier_solution,
                 nb_coups_min,
                 nom_tache,
                 fichier_journal,
@@ -25,6 +26,7 @@ class ClasserLesSolutions:
         self._nb_colonnes_vides = nb_colonnes_vides
         self._repertoire_analyse = repertoire_analyse
         self._repertoire_solution = repertoire_solution
+        self._fichier_solution = fichier_solution
         self._nb_coups_min = nb_coups_min
         self._nom_tache = nom_tache
         self._fichier_journal = fichier_journal
@@ -43,7 +45,7 @@ class ClasserLesSolutions:
             if not taciturne:
                 logger.info("Ce lot de plateaux est termine")
 
-            solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire=self._repertoire_solution)
+            solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
             solutions_classees = solutions_classees_json.importer()
             plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
 
@@ -162,6 +164,7 @@ if __name__ == "__main__":
         nb_colonnes_vides=1,
         repertoire_analyse='Analyse_nouvelle_architecture',
         repertoire_solution='Solutions_nouvelle_architecture',
+        fichier_solution='Solutions_classees',
         nb_coups_min=3,
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL
