@@ -146,8 +146,8 @@ if __name__ == "__main__":
     #   Changer de seuil de similarité (2%, 5%, 10% ...)
 
     for similarite in range(10, 90, 10):
-        for colonne in range(2, 12):
-            for ligne in range(2, 12):
+        for colonne in range(3, 12):
+            for ligne in range(3, 12):
                 flux_progressif = FluxProgressif(
                     nb_colonnes=colonne,
                     nb_lignes=ligne,
