@@ -145,21 +145,23 @@ if __name__ == "__main__":
     #     Sauvegarder le fichier de difficultés avec le nombre de plateaux totaux
     #   Changer de seuil de similarité (2%, 5%, 10% ...)
 
-    flux_progressif = FluxProgressif(
-        nb_colonnes=3,
-        nb_lignes=4,
-        nb_colonnes_vides=1,
-        repertoire_analyse_base='Analyse_nouvelle_architecture',
-        repertoire_analyse='Analyse_flux_progressif',
-        repertoire_solution='Solutions_flux_progressif',
-        nom_tache='flux_progressif_complet',
-        fichier_journal=pathlib.Path('logs') / f'{NOM_TACHE}.log'
-    )
-    # Seuil faible = moins de plateaux ; seuil élevé = plus de plateaux (similaires entre eux)
-    flux_progressif.copie_plateaux_base(seuil_similarite_max=10)
-    print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
-    flux_progressif.revalider_les_plateaux()
-    print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
-    flux_progressif.chercher_des_solutions()
-    flux_progressif.classer_les_solutions(nb_coups_min=3)
+    for colonne in range(2, 12):
+        for ligne in range(2, 12):
+            flux_progressif = FluxProgressif(
+                nb_colonnes=colonne,
+                nb_lignes=ligne,
+                nb_colonnes_vides=1,
+                repertoire_analyse_base='Analyses',
+                repertoire_analyse='Analyse_flux_progressif',
+                repertoire_solution='Solutions_flux_progressif',
+                nom_tache='flux_progressif_complet',
+                fichier_journal=pathlib.Path('logs') / f'{NOM_TACHE}.log'
+            )
+            # Seuil faible = moins de plateaux ; seuil élevé = plus de plateaux (similaires entre eux)
+            flux_progressif.copie_plateaux_base(seuil_similarite_max=10)
+            print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
+            flux_progressif.revalider_les_plateaux()
+            print(f"Nb plateaux dans le flux progressif : {len(flux_progressif)}")
+            flux_progressif.chercher_des_solutions()
+            flux_progressif.classer_les_solutions(nb_coups_min=3)
     flux_progressif.tronquer_les_solutions(taille_tronquee=10, decallage=0)
