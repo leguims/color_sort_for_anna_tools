@@ -15,12 +15,14 @@ class TronquerLesSolutions:
     Adapte pour avoir un fichier de solutions restreint pour le jeu"""
     def __init__(self,
                 repertoire_solution,
+                fichier_solution
                 taille_tronquee,
                 nom_tache,
                 fichier_journal,
                 profiler_le_code = False,
                 periode_scrutation_secondes = 30*60): # en secondes
         self._repertoire_solution = repertoire_solution
+        self._fichier_solution = fichier_solution
         self._taille_tronquee = taille_tronquee
         self._nom_tache = nom_tache
         self._fichier_journal = fichier_journal
@@ -32,9 +34,9 @@ class TronquerLesSolutions:
         logger = logging.getLogger(f"tronquer.{self._nom_tache}")
         logger.info(f"\n\r*** Tronquer le classement des Solutions :")
 
-        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire=self._repertoire_solution)
+        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
         solutions_classees = solutions_classees_json.importer()
-        solutions_classees_tronquees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{taille}_D{decallage}', repertoire=self._repertoire_solution)
+        solutions_classees_tronquees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'{self._fichier_solution}_T{taille}_D{decallage}', repertoire=self._repertoire_solution)
 
         if "liste difficulte des plateaux" in solutions_classees:
             dict_difficulte = solutions_classees["liste difficulte des plateaux"]
@@ -55,7 +57,7 @@ class TronquerLesSolutions:
         # Configurer le logger
         logger = logging.getLogger("tronquer.afficher_synthese")
         logger.info(f"*** Synthese des Solutions:")
-        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'Solutions_classees_T{self._taille_tronquee}_D{decallage}', repertoire=self._repertoire_solution)
+        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=f'{self._fichier_solution}_T{self._taille_tronquee}_D{decallage}', repertoire=self._repertoire_solution)
         solutions_classees = solutions_classees_json.importer()
 
         somme_plateaux = 0
@@ -86,8 +88,8 @@ class TronquerLesSolutions:
         logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
         for i in range(10):
             # Effacer l'existant
-            #solutions_classees_json = ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{TAILLE}_D{i * TAILLE}', repertoire=self._repertoire_solution)
-            solutions_classees_json = ExportJSON(0, 0, '', nom_export=f'Solutions_classees_T{(i+1)*self._taille_tronquee}_D{0}', repertoire=self._repertoire_solution)
+            #solutions_classees_json = ExportJSON(0, 0, '', nom_export=f'{self._fichier_solution}_T{TAILLE}_D{i * TAILLE}', repertoire=self._repertoire_solution)
+            solutions_classees_json = ExportJSON(0, 0, '', nom_export=f'{self._fichier_solution}_T{(i+1)*self._taille_tronquee}_D{0}', repertoire=self._repertoire_solution)
             solutions_classees_json.effacer()
             
             # tronquer_les_solutions(TAILLE, i * TAILLE)
@@ -104,6 +106,7 @@ if __name__ == "__main__":
 
     tronquer_solutions = TronquerLesSolutions(
         repertoire_solution='Solutions_nouvelle_architecture',
+        fichier_solution='Solutions_classees',
         taille_tronquee=10,
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL,
