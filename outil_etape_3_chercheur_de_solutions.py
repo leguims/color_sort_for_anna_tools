@@ -62,7 +62,7 @@ class ChercherDesSolutions:
                                                     repertoire_analyse=self._repertoire_analyse,
                                                     repertoire_solution=self._repertoire_solution)
                         resolution.backtracking()
-                        lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, resolution.solution_la_plus_courte)
+                        lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, len(resolution))
                     
                     # Afficher si dernier affichage > 5mins
                     nb_solutions_a_trouver -= 1

@@ -1,4 +1,4 @@
-"Module pour creer, resoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
+"Module pour creer, resoudre et qualifier les solutions des plateaux de 'ColorWoordSort'"
 from itertools import permutations
 import copy
 
@@ -6,44 +6,56 @@ from plateau import Plateau
 from export_json import ExportJSON
 
 class ResoudrePlateau:
-    "Classe de resultion d'un plateau par parcours de toutes les possibilites de choix"
+    "Classe de resolution d'un plateau par parcours de toutes les possibilites de choix"
     def __init__(self, plateau_initial: Plateau, repertoire_analyse, repertoire_solution):
         self._plateau_initial = copy.deepcopy(plateau_initial)
-        self._liste_des_solutions = []
         # Statistiques des solutions:
-        #   - la plus longue
-        #   - la plus courte
-        #   - la moyenne
-        #   - le nombre de solution
+        #    {
+        #        "plateau": "AAAB.BB  .AB  ",
+        #        # key = longueur de la solution
+        #        # value = nombre de solutions de cette longueur
+        #        "dico des longueurs": {3: 12, 4: 24},
+        #        # Produit des choix à chaque étape de la solution la plus courte / rapporté à la taille du plateau
+        #        # coup 1 = 3 choix, coup 2 = 2 choix et coup 3 = 1 choix
+        #        # difficulté = 3x2x1 * (12x12) / (3 x 4)
+        #        "difficulte": 72,
+        #        "solution": []
+        #    }
         # Les longueurs sont toutes egales (courtes et longues).
-        # La longueur de la solution est la grandeur qui quantifie la difficulte du plateau.
-        self._statistiques = {}
-        self._liste_plateaux_gagnants = None
-        self._liste_des_choix_possibles = None
-        self._liste_des_choix_courants = None
+        # La difficulté dépend de :
+        #   - Le nombre de choix
+        #   - La taille du plateau.
+        self._dico_des_longueurs = {}
         self._difficulte = None
+        self._solution = None
+
+        self._liste_des_choix_possibles = None
+        self._liste_plateaux_gagnants = None
+
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
-        nom = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
-        self._export_json_analyses = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = repertoire_analyse)
-        self._export_json_solutions = ExportJSON(delai=60, longueur=100, nom_plateau=nom_plateau, nom_export=nom, repertoire = repertoire_solution)
+        nom_solution = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
+        self._export_json_analyses = ExportJSON(delai=60, longueur=100,
+                                                nom_plateau=nom_plateau,
+                                                nom_export=nom_solution,
+                                                repertoire = repertoire_analyse)
+        self._export_json_solutions = ExportJSON(delai=60, longueur=100,
+                                                 nom_plateau=nom_plateau,
+                                                 nom_export=nom_solution,
+                                                 repertoire = repertoire_solution)
         self.__importer_fichier_json()
 
     def __len__(self):
         "La longueur de la solution definit la difficulte"
-        # Le nombre de soltuioon n'a pas d'incidence sur la difficulte
-        if self.solution_la_plus_courte:
-            return self.solution_la_plus_courte
-        return 0
+        # Le nombre de solution n'a pas d'incidence sur la difficulte
+        return len(self._solution) if self._solution else 0
 
     def to_dict(self):
-        dict_resoudre_plateau = {}
-        dict_resoudre_plateau['plateau'] = self._plateau_initial.plateau_ligne_texte_universel
-        dict_resoudre_plateau['nombre de solutions'] = self.nb_solutions
-        dict_resoudre_plateau['solution la plus courte'] = self.solution_la_plus_courte
-        dict_resoudre_plateau['solution la plus longue'] = self.solution_la_plus_longue
-        dict_resoudre_plateau['solution moyenne'] = self.solution_moyenne
-        dict_resoudre_plateau['difficulte'] = self.difficulte
-        dict_resoudre_plateau['liste des solutions'] = self._liste_des_solutions
+        dict_resoudre_plateau = {
+            'plateau': self._plateau_initial.plateau_ligne_texte_universel,
+            'dico des longueurs': self._dico_des_longueurs,
+            'difficulte': self._difficulte if self._difficulte else 0,
+            'solution': self._solution
+        }
         return dict_resoudre_plateau
 
     def __ensemble_des_choix_possibles(self):
@@ -75,17 +87,17 @@ class ResoudrePlateau:
                 self._liste_plateaux_gagnants.append(plateau_gagnant_courant.plateau_ligne_texte)
         return self._liste_plateaux_gagnants
 
-    def __ajouter_choix(self, plateau: Plateau, choix):
+    def __ajouter_choix(self, plateau: Plateau, liste_des_choix_courants, choix):
         "Enregistre un choix et modifie le plateau selon ce choix"
         # Enregistrer le choix
-        self._liste_des_choix_courants.append(choix[0:2])
+        liste_des_choix_courants.append(choix[0:2])
         # Modifier le plateau
         plateau.deplacer_blocs(*choix)
 
-    def __retirer_choix(self, plateau: Plateau, choix):
+    def __retirer_choix(self, plateau: Plateau, liste_des_choix_courants, choix):
         "Annule le dernier choix et restaure le plateau precedent"
         # Desenregistrer le choix
-        self._liste_des_choix_courants.pop()
+        liste_des_choix_courants.pop()
         # Modifier le plateau
         plateau.annuler_le_deplacer_blocs(*choix)
 
@@ -120,44 +132,41 @@ class ResoudrePlateau:
         # TODO : Evaluer si le plateau est "bloque" => a observer, mais verification inutile jusque la.
         return False
 
-    def __enregistrer_solution(self, plateau: Plateau):
+    def __enregistrer_solution(self, liste_des_choix_courants):
         "Enregistre le parcours de la solution pour la restituer"
-        # Enregistrer la liste des choix courant comme la solution
-        self._liste_des_solutions.append(copy.deepcopy(self._liste_des_choix_courants))
+        len_solution_courante = len(liste_des_choix_courants)
+        # Si elle est plus courte, enregistrer la liste des choix courant comme la solution
+        if self._solution is None or len_solution_courante < len(self._solution):
+            self._solution = copy.deepcopy(liste_des_choix_courants)
+            self._difficulte = None  # Reinitialiser la difficulte pour forcer son recalcul
+            self.difficulte  # Calculer la difficulté de la solution
 
-        if 'solution la plus longue' not in self._statistiques \
-            or len(self._liste_des_choix_courants) > self._statistiques['solution la plus longue']:
-            self._statistiques['solution la plus longue'] = len(self._liste_des_choix_courants)
-            
-        if 'solution la plus courte' not in self._statistiques \
-            or len(self._liste_des_choix_courants) < self._statistiques['solution la plus courte']:
-            self._statistiques['solution la plus courte'] = len(self._liste_des_choix_courants)
-
-        if 'nombre de solution' not in self._statistiques:
-            self._statistiques['nombre de solution'] = 1
+        # Mettre a jour les statistiques
+        if len_solution_courante in self._dico_des_longueurs:
+            self._dico_des_longueurs[len_solution_courante] += 1
         else:
-            self._statistiques['nombre de solution'] += 1
+            self._dico_des_longueurs[len_solution_courante] = 1
 
         self._export_json_solutions.exporter(self)
 
-    def backtracking(self, plateau: Plateau = None):
+    def backtracking(self, plateau: Plateau = None, liste_des_choix_courants = None, profondeur_recursion = None):
         "Parcours de tous les choix afin de debusquer toutes les solutions"
         if plateau is None:
-            if len(self._liste_des_solutions) != 0:
+            if self._solution is not None:
                 # Le plateau est deja resolu et enregistre
                 return
-            plateau = self._plateau_initial
-            self._liste_des_choix_courants = []
-            self._profondeur_recursion = -1
+            plateau = copy.deepcopy(self._plateau_initial)
+            liste_des_choix_courants = []
+            profondeur_recursion = -1
         
-        self._profondeur_recursion += 1
-        # self._logger.info(self._profondeur_recursion)
-        if self._profondeur_recursion > 50:
+        profondeur_recursion += 1
+        # self._logger.info(profondeur_recursionn)
+        if profondeur_recursion > 50:
             raise RuntimeError("Appels recursifs infinis !")
         
         if self.__solution_complete(plateau):   # Condition d'arret
-            self.__enregistrer_solution(plateau)
-            self._profondeur_recursion -= 1
+            self.__enregistrer_solution(liste_des_choix_courants)
+            profondeur_recursion -= 1
             return
 
         for choix in self.__ensemble_des_choix_possibles():
@@ -165,14 +174,14 @@ class ResoudrePlateau:
                 # Enrichir le choix du nombre de cases a deplacer (pour pouvoir retablir)
                 nb_cases_deplacees = plateau.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(choix[0])
                 choix += tuple([nb_cases_deplacees])
-                self.__ajouter_choix(plateau, choix)  # Prendre ce choix
-                self.backtracking(plateau)  # Appeler recursivement la fonction
-                self.__retirer_choix(plateau, choix)  # Annuler le choix (retour en arriere)
+                self.__ajouter_choix(plateau, liste_des_choix_courants, choix)  # Prendre ce choix
+                self.backtracking(plateau, liste_des_choix_courants, profondeur_recursion)  # Appeler recursivement la fonction
+                self.__retirer_choix(plateau, liste_des_choix_courants, choix)  # Annuler le choix (retour en arriere)
         
-        if self._profondeur_recursion == 0:
+        if profondeur_recursion == 0:
             # fin de toutes les recherches
             self.exporter_fichier_json()
-        self._profondeur_recursion -= 1
+        profondeur_recursion -= 1
 
     def exporter_fichier_json(self):
         """Enregistre un fichier JSON avec les solutions et les statistiques du plateau"""
@@ -181,56 +190,42 @@ class ResoudrePlateau:
     def __importer_fichier_json(self):
         """Lit l'enregistrement JSON s'il existe"""
         data_json = self._export_json_analyses.importer()
-        if 'nombre de solutions' in data_json:
-            self._statistiques['nombre de solution'] = data_json['nombre de solutions']
-        if 'solution la plus courte' in data_json:
-            self._statistiques['solution la plus courte'] = data_json['solution la plus courte']
-        if 'solution la plus longue' in data_json:
-            self._statistiques['solution la plus longue'] = data_json['solution la plus longue']
-        if 'solution moyenne' in data_json:
-            self._statistiques['solution moyenne'] = data_json['solution moyenne']
+        if 'dico des longueurs' in data_json:
+            self._dico_des_longueurs = data_json.get('dico des longueurs')
         if 'difficulte' in data_json:
-            self._difficulte = data_json['difficulte']
-        if 'liste des solutions' in data_json:
-            for solution in data_json['liste des solutions']:
-                self._liste_des_solutions.append(solution)
-
-    @property
-    def nb_solutions(self):
-        if 'nombre de solution' in self._statistiques:
-            return self._statistiques['nombre de solution']
-        return 0
-
-    @property
-    def solution_la_plus_courte(self):
-        if 'solution la plus courte' in self._statistiques:
-            return self._statistiques['solution la plus courte']
-        return None
-
-    @property
-    def solution_la_plus_longue(self):
-        if 'solution la plus longue' in self._statistiques:
-            return self._statistiques['solution la plus longue']
-        return None
-    #TODO : Sur quelques plateaux, la solution la plus courte etait differente en longueru de la plus longue.
-    #       C'etait sur un plateau 4x3 je crois. Voir s'il faut en tenir compte avec de grands ecarts.
-
-    @property
-    def solution_moyenne(self):
-        # TODO : ResoudrePlateau().solution_moyenne => ABANDONNE, nettoyer le code de la 'moyenne' !
-        if 'solution moyenne' in self._statistiques:
-            return self._statistiques['solution moyenne']
-        return None
+            self._difficulte = data_json.get('difficulte')
+        if 'solution' in data_json:
+            self._solution = data_json['solution']
 
     @property
     def difficulte(self):
         """Retourne la difficulte de la solution
-La difficulte est le nombre de coups pour resoudre le plateau rapporte a la taille du plateau."""
-        if self.solution_la_plus_courte is None:
+        La difficulté dépend de :
+        - Le nombre de choix
+        - La taille du plateau"""
+        if self._solution is None:
             return None
         if not self._difficulte:
             surface_plateau_max = 12 * 12
             surface_plateau = self._plateau_initial.nb_colonnes * self._plateau_initial.nb_lignes
             inverse_ratio_surface = surface_plateau_max / surface_plateau
-            self._difficulte = int( self.solution_la_plus_courte * inverse_ratio_surface )
+
+            # Parcourir la solution et quantifier le nombre de choix
+            nb_choix_total = 1
+            plateau = copy.deepcopy(self._plateau_initial)
+            liste_des_choix_courants = []
+            for coup in self._solution:
+                nb_choix_courant = 0
+                for choix_possible in self.__ensemble_des_choix_possibles():
+                    if self.__est_valide(plateau, choix_possible):
+                        nb_choix_courant += 1
+                # Multiplier les niveaux de choix
+                nb_choix_total *= nb_choix_courant
+                # Appliquer le coup pour avancer dans la solution
+                nb_cases_deplacees = plateau.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(coup[0])
+                coup += tuple([nb_cases_deplacees])
+                self.__ajouter_choix(plateau, liste_des_choix_courants, coup)  # Jouer ce coup
+
+            self._difficulte = int( nb_choix_total * inverse_ratio_surface )
+            # print(f"Calcul de la difficulté : {nb_choix_total} x {inverse_ratio_surface} = {self._difficulte} pour le plateau '{self._plateau_initial.plateau_ligne_texte_universel.replace(' ','-')}' avec une solution de longueur {len(self._solution)} (surface {surface_plateau})")
         return self._difficulte

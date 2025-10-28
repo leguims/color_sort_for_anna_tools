@@ -15,7 +15,7 @@ class TronquerLesSolutions:
     Adapte pour avoir un fichier de solutions restreint pour le jeu"""
     def __init__(self,
                 repertoire_solution,
-                fichier_solution
+                fichier_solution,
                 taille_tronquee,
                 nom_tache,
                 fichier_journal,
