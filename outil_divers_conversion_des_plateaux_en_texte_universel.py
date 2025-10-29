@@ -6,8 +6,8 @@ from lot_de_plateaux import LotDePlateaux
 from profiler_le_code import ProfilerLeCode
 from creer_les_taches import CreerLesTaches
 
-COLONNES = [2] # range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
-LIGNES = [2] # range(2, 14) #[3] # [2,3] #4
+COLONNES = [3] # range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
+LIGNES = [3] # range(2, 14) #[3] # [2,3] #4
 COLONNES_VIDES_MAX = 1
 PROFILER_LE_CODE = False
 NOM_TACHE = 'conversion_des_plateaux_en_texte_universel'

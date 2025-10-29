@@ -26,6 +26,7 @@ class ResoudrePlateau:
         #   - Le nombre de choix
         #   - La taille du plateau.
         self._dico_des_longueurs = {}
+        self._recherche_terminee = False
         self._difficulte = None
         self._solution = None
 
@@ -52,6 +53,7 @@ class ResoudrePlateau:
     def to_dict(self):
         dict_resoudre_plateau = {
             'plateau': self._plateau_initial.plateau_ligne_texte_universel,
+            'recherche terminee': self._recherche_terminee,
             'dico des longueurs': self._dico_des_longueurs,
             'difficulte': self._difficulte if self._difficulte else 0,
             'solution': self._solution
@@ -147,7 +149,7 @@ class ResoudrePlateau:
         else:
             self._dico_des_longueurs[len_solution_courante] = 1
 
-        self._export_json_solutions.exporter(self)
+        self._export_json_solutions.forcer_export(self)
 
     def backtracking(self, plateau: Plateau = None, liste_des_choix_courants = None, profondeur_recursion = None):
         "Parcours de tous les choix afin de debusquer toutes les solutions"
@@ -180,6 +182,7 @@ class ResoudrePlateau:
         
         if profondeur_recursion == 0:
             # fin de toutes les recherches
+            self._recherche_terminee = True
             self.exporter_fichier_json()
         profondeur_recursion -= 1
 
@@ -192,6 +195,8 @@ class ResoudrePlateau:
         data_json = self._export_json_analyses.importer()
         if 'dico des longueurs' in data_json:
             self._dico_des_longueurs = data_json.get('dico des longueurs')
+        if 'recherche terminee' in data_json:
+            self._recherche_terminee = data_json.get('recherche terminee')
         if 'difficulte' in data_json:
             self._difficulte = data_json.get('difficulte')
         if 'solution' in data_json:
@@ -203,6 +208,8 @@ class ResoudrePlateau:
         La difficulté dépend de :
         - Le nombre de choix
         - La taille du plateau"""
+        # TODO : Pour les tableaux 10x4, la valeur de difficulté explose.
+        #        La division par (12x12 / 10x4) est à revoir.
         if self._solution is None:
             return None
         if not self._difficulte:
@@ -228,4 +235,9 @@ class ResoudrePlateau:
 
             self._difficulte = int( nb_choix_total * inverse_ratio_surface )
             # print(f"Calcul de la difficulté : {nb_choix_total} x {inverse_ratio_surface} = {self._difficulte} pour le plateau '{self._plateau_initial.plateau_ligne_texte_universel.replace(' ','-')}' avec une solution de longueur {len(self._solution)} (surface {surface_plateau})")
+
+            # Rechercher terminée et il manque la difficulté ...
+            # ... Enregistrer la difficulté dans le fichier JSON
+            if self._recherche_terminee:
+                self._export_json_solutions.forcer_export(self)
         return self._difficulte
