@@ -154,7 +154,7 @@ class ResoudrePlateau:
     def backtracking(self, plateau: Plateau = None, liste_des_choix_courants = None, profondeur_recursion = None):
         "Parcours de tous les choix afin de debusquer toutes les solutions"
         if plateau is None:
-            if self._solution is not None:
+            if self._recherche_terminee:
                 # Le plateau est deja resolu et enregistre
                 return
             plateau = copy.deepcopy(self._plateau_initial)

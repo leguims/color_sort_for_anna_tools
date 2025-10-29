@@ -22,7 +22,7 @@ def conversion_des_anciennes_solutions(colonnes, lignes):
     if REPERTOIRE_SOLUTIONS_ANCIEN_FORMAT.exists() \
         and REPERTOIRE_SOLUTIONS_PLATEAUX.exists():
         fichiers = REPERTOIRE_SOLUTIONS_PLATEAUX.glob("*_Resolution_*.json")
-        # Creer les nouveau repertoire
+        # Creer les nouveaux repertoire
         REPERTOIRE_SOLUTIONS_NOUVEAU_FORMAT_PLATEAUX = REPERTOIRE_SOLUTIONS_NOUVEAU_FORMAT / nom_plateau
         REPERTOIRE_SOLUTIONS_NOUVEAU_FORMAT_PLATEAUX.mkdir(parents=True, exist_ok=True)
 
