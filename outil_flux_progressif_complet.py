@@ -165,9 +165,11 @@ if __name__ == "__main__":
                 )
                 # Seuil faible = moins de plateaux ; seuil élevé = plus de plateaux (similaires entre eux)
                 flux_progressif.copie_plateaux_base(seuil_similarite_max=similarite)
-                print(f"{colonne}x{ligne} SIM-{similarite} : Nb plateaux dans le flux progressif : {len(flux_progressif)}")
-                flux_progressif.revalider_les_plateaux()
-                print(f"{colonne}x{ligne} SIM-{similarite} : Nb plateaux revalides : {len(flux_progressif)}")
-                flux_progressif.chercher_des_solutions()
-                flux_progressif.classer_les_solutions(nb_coups_min=3)
+                entete = f"{colonne}x{ligne} SIM-{similarite} : "
+                print(f"{entete}Nb plateaux dans le flux progressif : {len(flux_progressif)}")
+                if len(flux_progressif):
+                    flux_progressif.revalider_les_plateaux()
+                    print(f"{' ' * len(entete)}Nb plateaux revalides : {len(flux_progressif)}")
+                    flux_progressif.chercher_des_solutions()
+                    flux_progressif.classer_les_solutions(nb_coups_min=3)
     flux_progressif.tronquer_les_solutions(taille_tronquee=10, decallage=0)
