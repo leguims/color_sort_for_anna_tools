@@ -20,6 +20,7 @@ class ChercherDesPlateaux:
         self._nb_colonnes_vides = nb_colonnes_vides
         self._repertoire_analyse = repertoire_analyse
         self._nom_tache = nom_tache
+        self._nom_etape = 'chercher_des_plateaux'
         self._fichier_journal = fichier_journal
         self._profiler_le_code = profiler_le_code
         self._periode_affichage = periode_affichage
@@ -27,8 +28,8 @@ class ChercherDesPlateaux:
     def chercher_des_plateaux(self, colonnes, lignes):
         # Configurer le logger en doublon pour la paralelisation
         logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        logger = logging.getLogger(f"{colonnes}.{lignes}.{NOM_TACHE}")
-        logger.info(f"DEBUT")
+        logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
+        logger.info(f"DEBUT {self._nom_etape}")
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse)
         if not lot_de_plateaux.est_deja_termine():

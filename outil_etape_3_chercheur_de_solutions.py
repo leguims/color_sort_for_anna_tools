@@ -26,6 +26,7 @@ class ChercherDesSolutions:
         self._repertoire_analyse = repertoire_analyse
         self._repertoire_solution = repertoire_solution
         self._nom_tache = nom_tache
+        self._nom_etape = 'chercher_des_solutions'
         self._fichier_journal = fichier_journal
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
@@ -34,9 +35,9 @@ class ChercherDesSolutions:
 
     def chercher_des_solutions(self, colonnes, lignes, taciturne=False):
         # Configurer le logger
-        logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_tache}")
+        logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
         if not taciturne:
-            logger.info(f"DEBUT")
+            logger.info(f"DEBUT {self._nom_etape}")
 
         plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
@@ -59,7 +60,6 @@ class ChercherDesSolutions:
                     plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
                     if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):
                         resolution = ResoudrePlateau(plateau,
-                                                    repertoire_analyse=self._repertoire_analyse,
                                                     repertoire_solution=self._repertoire_solution)
                         resolution.backtracking()
                         lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, len(resolution))

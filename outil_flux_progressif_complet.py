@@ -50,11 +50,15 @@ class FluxProgressif:
 
     def copie_plateaux_base(self, seuil_similarite_max):
         """Créer une copie des plateaux de base vers le repertoire d'analyse courant"""
+        logger = logging.getLogger(f"{self._nb_colonnes}.{self._nb_lignes}.{self._nom_tache}")
+        logger.info("DEBUT copie_plateaux_base")
+        logger.info("Lecture des plateaux de references")
         spec_plateau = (self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
         lot_de_plateaux_base = LotDePlateaux(spec_plateau,
                                             repertoire_export_json=self._repertoire_analyse_base)
         iter_plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
-        # Parcourir les plteaux de base
+        # Parcourir les plateaux de base
+        logger.info("Copie des plateaux selon similarite")
         for plateau_ligne_texte in lot_de_plateaux_base.plateaux_valides:
             iter_plateau.clear()
             iter_plateau.plateau_ligne_texte = plateau_ligne_texte
@@ -64,6 +68,7 @@ class FluxProgressif:
         # Indiquer la fin de recherche de plateaux (necessaire pour chercher des solutions)
         self._lot_de_plateaux.arret_des_enregistrements()
         self._lot_de_plateaux.exporter_fichier_json()
+        logger.info("Copie des plateaux terminee")
 
     def verifier_similarite(self, plateau_ref : Plateau, seuil_similarite_max):
         """Retourner l'intervale de similarite avec les plateaux existants"""
@@ -148,7 +153,6 @@ if __name__ == "__main__":
     #     Sauvegarder les solutions
     #     Sauvegarder le fichier de difficultés avec le nombre de plateaux totaux
     #   Changer de seuil de similarité (2%, 5%, 10% ...)
-
     for similarite in range(10, 90, 10):
         for colonne in range(3, 12):
             for ligne in range(3, 12):
@@ -168,8 +172,9 @@ if __name__ == "__main__":
                 entete = f"{colonne}x{ligne} SIM-{similarite} : "
                 print(f"{entete}Nb plateaux dans le flux progressif : {len(flux_progressif)}")
                 if len(flux_progressif):
-                    flux_progressif.revalider_les_plateaux()
-                    print(f"{' ' * len(entete)}Nb plateaux revalides : {len(flux_progressif)}")
+                    if len(flux_progressif) > 1:
+                        flux_progressif.revalider_les_plateaux()
+                        print(f"{' ' * len(entete)}Nb plateaux revalides : {len(flux_progressif)}")
                     flux_progressif.chercher_des_solutions()
                     flux_progressif.classer_les_solutions(nb_coups_min=3)
     flux_progressif.tronquer_les_solutions(taille_tronquee=10, decallage=0)

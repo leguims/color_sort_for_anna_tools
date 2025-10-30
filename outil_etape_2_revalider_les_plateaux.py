@@ -20,6 +20,7 @@ class RevaliderLesPlateaux:
         self._nb_colonnes_vides = nb_colonnes_vides
         self._repertoire_analyse = repertoire_analyse
         self._nom_tache = nom_tache
+        self._nom_etape = 'revalider_les_plateaux'
         self._fichier_journal = fichier_journal
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
@@ -28,8 +29,8 @@ class RevaliderLesPlateaux:
     def revalider_les_plateaux(self, nb_colonnes, nb_lignes):
         # Configurer le logger en doublon pour la paralelisation
         logging.basicConfig(filename=self._fichier_journal, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        logger = logging.getLogger(f"{nb_colonnes}.{nb_lignes}.{self._nom_tache}")
-        logger.info(f"DEBUT")
+        logger = logging.getLogger(f"{nb_colonnes}.{nb_lignes}.{self._nom_etape}")
+        logger.info(f"DEBUT {self._nom_etape}")
         lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse,
                                         nb_plateaux_max = self._memoire_max)

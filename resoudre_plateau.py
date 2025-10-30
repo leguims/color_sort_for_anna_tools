@@ -7,7 +7,9 @@ from export_json import ExportJSON
 
 class ResoudrePlateau:
     "Classe de resolution d'un plateau par parcours de toutes les possibilites de choix"
-    def __init__(self, plateau_initial: Plateau, repertoire_analyse, repertoire_solution):
+    def __init__(self,
+                 plateau_initial: Plateau,
+                 repertoire_solution):
         self._plateau_initial = copy.deepcopy(plateau_initial)
         # Statistiques des solutions:
         #    {
@@ -34,11 +36,7 @@ class ResoudrePlateau:
         self._liste_plateaux_gagnants = None
 
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
-        nom_solution = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
-        self._export_json_analyses = ExportJSON(delai=60, longueur=100,
-                                                nom_plateau=nom_plateau,
-                                                nom_export=nom_solution,
-                                                repertoire = repertoire_analyse)
+        nom_solution = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{self._plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
         self._export_json_solutions = ExportJSON(delai=60, longueur=100,
                                                  nom_plateau=nom_plateau,
                                                  nom_export=nom_solution,
@@ -156,13 +154,15 @@ class ResoudrePlateau:
         if plateau is None:
             if self._recherche_terminee:
                 # Le plateau est deja resolu et enregistre
+                print("Resolution" \
+                      + f" '{self._plateau_initial.plateau_ligne_texte.replace(' ', '-')}'" \
+                      + " : deja resolu")
                 return
             plateau = copy.deepcopy(self._plateau_initial)
             liste_des_choix_courants = []
             profondeur_recursion = -1
         
         profondeur_recursion += 1
-        # self._logger.info(profondeur_recursionn)
         if profondeur_recursion > 50:
             raise RuntimeError("Appels recursifs infinis !")
         
@@ -184,6 +184,9 @@ class ResoudrePlateau:
             # fin de toutes les recherches
             self._recherche_terminee = True
             self.exporter_fichier_json()
+            print("Resolution" \
+                  + f" '{self._plateau_initial.plateau_ligne_texte.replace(' ', '-')}'" \
+                  + " : resolution achevee")
         profondeur_recursion -= 1
 
     def exporter_fichier_json(self):
@@ -191,8 +194,8 @@ class ResoudrePlateau:
         self._export_json_solutions.forcer_export(self)
 
     def __importer_fichier_json(self):
-        """Lit l'enregistrement JSON s'il existe"""
-        data_json = self._export_json_analyses.importer()
+        """Lit l'enregistrement JSON de la solution s'il existe"""
+        data_json = self._export_json_solutions.importer()
         if 'dico des longueurs' in data_json:
             self._dico_des_longueurs = data_json.get('dico des longueurs')
         if 'recherche terminee' in data_json:
@@ -240,4 +243,7 @@ class ResoudrePlateau:
             # ... Enregistrer la difficulté dans le fichier JSON
             if self._recherche_terminee:
                 self._export_json_solutions.forcer_export(self)
+                print("Resolution" \
+                      + f" '{self._plateau_initial.plateau_ligne_texte.replace(' ', '-')}'" \
+                      + " : MaJ difficulte")
         return self._difficulte

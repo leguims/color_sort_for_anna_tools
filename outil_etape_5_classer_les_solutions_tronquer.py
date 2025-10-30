@@ -25,13 +25,14 @@ class TronquerLesSolutions:
         self._fichier_solution = fichier_solution
         self._taille_tronquee = taille_tronquee
         self._nom_tache = nom_tache
+        self._nom_etape = 'tronquer_les_solutions'
         self._fichier_journal = fichier_journal
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
 
     def tronquer_les_solutions(self, taille, decallage = 0):
         # Configurer le logger
-        logger = logging.getLogger(f"tronquer.{self._nom_tache}")
+        logger = logging.getLogger(f"{self._nom_tache}.{self._nom_etape}")
         logger.info(f"\n\r*** Tronquer le classement des Solutions :")
 
         solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)

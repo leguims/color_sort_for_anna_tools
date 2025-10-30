@@ -74,9 +74,13 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         else:
             self._logger.debug(f"__next__ : NOT est_deja_termine.")
             dernier_affichage  = datetime.datetime.now().timestamp() - DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX
+            derniere_iter = []
             while True:
                 # Itérer avec les permutations
                 self._iter_permutation = next(self._iter_iterateur)
+                if derniere_iter == self._iter_permutation:
+                    continue
+                derniere_iter = self._iter_permutation
                 # Ultime optimisation :
                 #  - Si la colonne 1 n'a pas de 'A' => FIN des permutations.
                 nb_A_sur_colonne_1 = self._iter_permutation[0:self._nb_lignes].count('A')
