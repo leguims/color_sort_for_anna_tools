@@ -41,25 +41,28 @@ def conversion_des_anciennes_solutions(colonnes, lignes):
 
             # Lire le contenu
             ancien_json = export_json_solution_ancienne.importer()
-            # Convertir au nouveau format
-            nouveau_json = {}
-            if 'plateau' in ancien_json:
-                nouveau_json['plateau'] = ancien_json.get('plateau')
-            if 'liste des solutions' in ancien_json:
-                nouveau_json["dico des longueurs"] = {}
-                nouveau_json["solution"] = []
-                for solution in ancien_json.get('liste des solutions'):
-                    if len(solution) not in nouveau_json.get("dico des longueurs"):
-                        nouveau_json["dico des longueurs"][len(solution)] = 1
-                    else:
-                        nouveau_json["dico des longueurs"][len(solution)] += 1
-                    if not nouveau_json["solution"] \
-                        or len(solution) < len(nouveau_json["solution"]):
-                        nouveau_json["solution"] = solution
-            nouveau_json['recherche terminee'] = True
-
-            # Enregistrer le nouveau format
-            export_json_solution_nouvelle.forcer_export(nouveau_json)
+            nouveau_json = export_json_solution_nouvelle.importer()
+            # Vérifier que le nouveau fichier n'est pas deja converti
+            if 'recherche terminee' not in nouveau_json:
+                # Convertir au nouveau format
+                nouveau_json = {}
+                if 'plateau' in ancien_json:
+                    nouveau_json['plateau'] = ancien_json.get('plateau')
+                if 'liste des solutions' in ancien_json:
+                    nouveau_json["dico des longueurs"] = {}
+                    nouveau_json["solution"] = []
+                    for solution in ancien_json.get('liste des solutions'):
+                        if len(solution) not in nouveau_json.get("dico des longueurs"):
+                            nouveau_json["dico des longueurs"][len(solution)] = 1
+                        else:
+                            nouveau_json["dico des longueurs"][len(solution)] += 1
+                        if not nouveau_json["solution"] \
+                            or len(solution) < len(nouveau_json["solution"]):
+                            nouveau_json["solution"] = solution
+                nouveau_json['recherche terminee'] = True
+    
+                # Enregistrer le nouveau format
+                export_json_solution_nouvelle.forcer_export(nouveau_json)
 
 def chercher_en_sequence():
     # Configurer le logger
