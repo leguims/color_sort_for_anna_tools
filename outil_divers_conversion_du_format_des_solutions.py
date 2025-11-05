@@ -63,6 +63,8 @@ def conversion_des_anciennes_solutions(colonnes, lignes):
     
                 # Enregistrer le nouveau format
                 export_json_solution_nouvelle.forcer_export(nouveau_json)
+            else:
+                logger.info(f"{fichier.stem} : deja resolu")
 
 def chercher_en_sequence():
     # Configurer le logger
