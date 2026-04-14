@@ -2,7 +2,7 @@
 
 Créer une copie des plateaux
 Appliquer un filtrage de similarité severe (1% par exemple)
-Appliquer les étapt 2 à 5
+Appliquer les étapes 2 à 5
 
 Recommencer tout en augmentant legerement la similarité.
 

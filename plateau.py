@@ -223,6 +223,25 @@ class Plateau:
             self.plateau_ligne = tuple(plateau)
             self._logger.info(f"Plateau de permutation initial = '{self.plateau_ligne_texte_universel}'")
 
+    def rendre_valide(self):
+        case_vide = ' '
+        if not self.est_valide:
+            plateau_valide_ligne_texte = ''
+            for ligne in self.plateau_rectangle:
+                # Les cases vides sont sur les dernieres cases de la colonne
+                ligne_valide_rectangle = sorted(ligne, key=lambda x: x == case_vide)
+                ligne_valide_texte = ''.join(ligne_valide_rectangle)
+                plateau_valide_ligne_texte += ligne_valide_texte
+            plateau_valide = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+            plateau_valide.clear()
+            plateau_valide.plateau_ligne_texte = plateau_valide_ligne_texte
+            if plateau_valide.est_valide:
+                self.clear()
+                self.plateau_ligne = plateau_valide.plateau_ligne
+                self._logger.info(f"Plateau rendu valide = '{self.plateau_ligne_texte}'")
+            else:
+                self._logger.error(f"Le plateau rendu valide n'est pas valide : '{plateau_valide.plateau_ligne_texte}'")
+                raise ValueError("Le plateau rendu valide n'est pas valide")
 
     @property
     def est_valide(self):
@@ -345,7 +364,3 @@ class Plateau:
         # colonne d'arrivee : 'C   ' => 'CAA '
         plateau[colonne_depart_a_annuler] = plateau[colonne_depart_a_annuler].replace(case_vide, couleur, nombre_blocs)
         self.plateau_rectangle_texte = plateau
-
-    def a_gagne(self):
-        """"Verifie si le plateau actuel est gagnant"""
-        return False

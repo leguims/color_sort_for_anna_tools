@@ -96,6 +96,16 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 if nb_VIDE_sur_colonne_N == 0:
                     continue
                 est_ignore = self.est_ignore(''.join(self._iter_permutation))
+                if est_ignore and not self._plateau_courant.est_valide:
+                    self._plateau_courant.rendre_valide()
+                    # 'self.est_ignore' ajusté
+                    if self._plateau_courant.est_interessant:
+                        self.__ajouter_le_plateau(self._plateau_courant)
+                        est_ignore = False
+                        # Ne pas poursuivre l'itération à ce plateau valide
+                    else:
+                        self.__ignorer_le_plateau(self._plateau_courant)
+
                 # Enregistrement du plateau courant pour une eventuelle reprise.
                 self._recherche_dernier_plateau = self._plateau_courant.plateau_ligne_texte_universel
                 self._export_json.exporter(self)
@@ -492,13 +502,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._revalidation_phase_4_terminee = True
         self._export_json.forcer_export(self)
         self._logger.info(f"{prefixe_log} terminee")
-
-    @property
-    def dernier_plateau_valide(self):
-        "Ensemble des plateaux valides"
-        liste_plateau_valide = list(self._ensemble_des_plateaux_valides)
-        liste_plateau_valide.sort()
-        return liste_plateau_valide[-1]
 
     @property
     def plateaux_valides(self):
