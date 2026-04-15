@@ -27,7 +27,7 @@ class ChercherDesPlateaux:
 
     def chercher_des_plateaux(self, colonnes, lignes):
         # Configurer le logger en doublon pour la paralelisation
-        logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
         logger.info(f"DEBUT {self._nom_etape}")
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
