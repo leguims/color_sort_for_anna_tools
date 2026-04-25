@@ -20,7 +20,6 @@ def effacer_les_difficulte_dans_les_analyse(colonnes, lignes):
     logger.info(f"DEBUT")
     lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX),
                                     repertoire_export_json=REPERTOIRE_EXPORT_JSON)
-    lot_de_plateaux.est_deja_termine()
 
     lot_de_plateaux.effacer_difficulte_plateau()
     lot_de_plateaux.exporter_fichier_json()

@@ -48,7 +48,7 @@ class ChercherDesSolutions:
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse,
                                         nb_plateaux_max = self._memoire_max)
-        if lot_de_plateaux.est_deja_termine(): # or True: # True = Chercher toutes les solutions a l'heure actuel.
+        if lot_de_plateaux.est_deja_termine: # or True: # True = Chercher toutes les solutions a l'heure actuel.
             if not taciturne:
                 logger.info("Ce lot de plateaux est termine")
 

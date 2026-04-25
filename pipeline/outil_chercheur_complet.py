@@ -32,7 +32,7 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
     lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX),
                                     repertoire_export_json=REPERTOIRE_EXPORT_JSON,
                                     nb_plateaux_max = MEMOIRE_MAX)
-    if not lot_de_plateaux.est_deja_termine():
+    if not lot_de_plateaux.est_deja_termine:
         # lot_de_plateaux.fixer_taille_memoire_max(5)
         for permutation_courante in permutations(plateau.pour_permutations):
             # Verifier que ce plateau est nouveau

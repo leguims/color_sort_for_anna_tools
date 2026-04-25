@@ -20,7 +20,6 @@ def conversion_des_plateaux_en_texte_universel(colonnes, lignes):
     logger.info(f"DEBUT")
     lot_de_plateaux = LotDePlateaux((colonnes, lignes, COLONNES_VIDES_MAX),
                                     repertoire_export_json=REPERTOIRE_EXPORT_JSON)
-    lot_de_plateaux.est_deja_termine()
 
     # Forcer la réécriture du JSON pour mettre à jour le format universel
     lot_de_plateaux._a_change = True

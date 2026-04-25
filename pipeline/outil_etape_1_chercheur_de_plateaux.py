@@ -36,7 +36,7 @@ class ChercherDesPlateaux:
         logger.info(f"DEBUT {self._nom_etape}")
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse)
-        if not lot_de_plateaux.est_deja_termine():
+        if not lot_de_plateaux.est_deja_termine:
             dernier_affichage  = datetime.datetime.now().timestamp()
             for plateau_ligne_texte_universel in lot_de_plateaux:
                 if datetime.datetime.now().timestamp() - dernier_affichage > self._periode_affichage:
