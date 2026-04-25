@@ -36,6 +36,7 @@ class TronquerLesSolutions:
 
     def tronquer_les_solutions(self, taille, decallage = 0):
         # Configurer le logger
+        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{self._nom_tache}.{self._nom_etape}")
         logger.info(f"\n\r*** Tronquer le classement des Solutions :")
 

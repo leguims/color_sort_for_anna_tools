@@ -40,6 +40,7 @@ class ClasserLesSolutions:
 
     def classer_les_solutions(self, colonnes, lignes, taciturne=False):
         # Configurer le logger
+        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
         if not taciturne:
             logger.info(f"DEBUT {self._nom_etape}")

@@ -238,7 +238,7 @@ class Plateau:
             if plateau_valide.est_valide:
                 self.clear()
                 self.plateau_ligne = plateau_valide.plateau_ligne
-                self._logger.info(f"Plateau rendu valide = '{self.plateau_ligne_texte}'")
+                self._logger.debug(f"Plateau rendu valide = '{self.plateau_ligne_texte}'")
             else:
                 self._logger.error(f"Le plateau rendu valide n'est pas valide : '{plateau_valide.plateau_ligne_texte}'")
                 raise ValueError("Le plateau rendu valide n'est pas valide")
