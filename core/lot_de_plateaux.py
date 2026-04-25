@@ -572,9 +572,9 @@ Le plateau lui-meme n'est pas dans les permutations."""
             for jeton in plateau.plateau_ligne:
                 if jeton != case_vide:
                     # Pour chaque jeton (sauf case vide), appliquer sa transposition
-                    indice_jeton = ord(jeton) - ord(self._plateau_courant._liste_familles[0])
+                    indice_jeton = ord(jeton) - ord(self._plateau_courant.liste_familles[0])
                     nouvel_indice_jeton = permutation_nombre_courante[indice_jeton]
-                    nouveau_jeton = self._plateau_courant._liste_familles[nouvel_indice_jeton]
+                    nouveau_jeton = self._plateau_courant.liste_familles[nouvel_indice_jeton]
                 else:
                     nouveau_jeton = case_vide
                 # Creation de la transposition jeton apres jeton

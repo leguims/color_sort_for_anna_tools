@@ -25,7 +25,7 @@ def la_colonne_est_pleine_et_monocouleur(plateau: Plateau, colonne) -> bool:
 def une_colonne_est_pleine_et_monocouleur(plateau: Plateau) -> bool:
     """Retourne True si au moins une colonne est pleine et monocouleur, False sinon."""
     for colonne in range(plateau.nb_colonnes):
-        if plateau.la_colonne_est_pleine_et_monocouleur(colonne):
+        if la_colonne_est_pleine_et_monocouleur(plateau, colonne):
             return True
     return False
 
@@ -46,15 +46,19 @@ def nombre_de_case_vide_de_la_colonne(plateau: Plateau, colonne) -> int:
 
 def nombre_de_cases_monocouleur_au_sommet_de_la_colonne(plateau: Plateau, colonne) -> int:
     """Retourne le nombre de cases de la couleur au sommet de la colonne."""
-    couleur = plateau.la_couleur_au_sommet_de_la_colonne(colonne)
+    couleur = la_couleur_au_sommet_de_la_colonne(plateau, colonne)
     colonne_texte = plateau.plateau_rectangle_texte[colonne]
-    return plateau.compter_la_couleur_au_sommet(colonne_texte, couleur)
+    return compter_la_couleur_au_sommet(colonne_texte, couleur)
 
 def deplacer_blocs(plateau: Plateau, colonne_depart, colonne_arrivee, nombre_blocs = 1) -> None:
     # Vérification logique : le nombre de bloc a deplacer doit etre egal au nombre de cases monocouleur au sommet de la colonne de depart
     if nombre_blocs != plateau.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(colonne_depart):
         raise ValueError("Le nombre de bloc a deplacer est different de celui du plateau")
     deplacer_blocs_sans_verification(plateau, colonne_depart, colonne_arrivee, nombre_blocs)
+
+def annuler_le_deplacer_blocs(plateau: Plateau, colonne_depart_a_annuler, colonne_arrivee_a_annuler, nombre_blocs = 1) -> None:
+    # Annuler n'est pas logique, il separe une suite de blocs monocouleurs
+    deplacer_blocs_sans_verification(plateau, colonne_arrivee_a_annuler, colonne_depart_a_annuler, nombre_blocs)
 
 # Fonctions internes
 

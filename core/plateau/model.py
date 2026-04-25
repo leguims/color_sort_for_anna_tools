@@ -1,15 +1,6 @@
 "Module pour creer, resoudre et qualifier les solutions des plateaux de 'ColorWoordSort'"
 import logging
 
-from .format import (
-    creer_plateau_ligne_texte,
-    creer_plateau_ligne_texte_universel,
-    creer_plateau_rectangle,
-    creer_plateau_rectangle_texte,
-    creer_les_familles
-)
-from .validator import plateau_est_valide
-
 # TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
 
 class Plateau:
@@ -102,6 +93,7 @@ class Plateau:
         """Representation en 1 ligne du plateau (texte)
         'AA.BB.  ' => 'AABB  '"""
         if not self._plateau_ligne_texte:
+            from .format import  creer_plateau_ligne_texte
             creer_plateau_ligne_texte(self)
         return self._plateau_ligne_texte
 
@@ -118,6 +110,7 @@ class Plateau:
         """Representation en 1 ligne du plateau (texte)
         'AA.BB.  ' => 'AA.BB.  '"""
         if not self._plateau_ligne_texte_universel:
+            from .format import creer_plateau_ligne_texte_universel
             creer_plateau_ligne_texte_universel(self)
         return self._plateau_ligne_texte_universel
 
@@ -134,6 +127,7 @@ class Plateau:
         """Representation en rectangle (colonnes et lignes) du plateau (liste)
         'AA.BB.  ' => [['A', 'A'], ['B', 'B'], [' ', ' ']]"""
         if not self._plateau_rectangle:
+            from .format import creer_plateau_rectangle
             creer_plateau_rectangle(self)
         return self._plateau_rectangle
 
@@ -142,6 +136,7 @@ class Plateau:
         """Representation en rectangle (colonnes et lignes) du plateau (texte)
         'AA.BB.  ' => ['AA', 'BB', '  ']"""
         if not self._plateau_rectangle_texte:
+            from .format import creer_plateau_rectangle_texte
             creer_plateau_rectangle_texte(self)
         return self._plateau_rectangle_texte
 
@@ -166,15 +161,9 @@ class Plateau:
     def liste_familles(self) -> list:
         """Liste des familles de couleurs dans le plateau"""
         if not self._liste_familles:
-            creer_les_familles()
+            from .format import creer_les_familles
+            creer_les_familles(self)
         return self._liste_familles
-
-    @property
-    def est_valide(self) -> bool:
-        """"Verifie si le plateau en parametre est valide"""
-        if self._est_valide is None:
-            plateau_est_valide(self)
-        return self._est_valide
 
     @property
     def pour_permutations(self) -> tuple:
@@ -186,5 +175,70 @@ class Plateau:
     def est_interessant(self) -> bool:
         """"Verifie si le plateau en parametre est interessant"""
         if self._est_interessant is None:
+            from .heuristics import est_interessant
             est_interessant(self)
         return self._est_interessant
+
+    # API Ops
+    def la_colonne_est_vide(self, colonne) -> bool:
+        from .ops import la_colonne_est_vide
+        return la_colonne_est_vide(self, colonne)
+
+    def la_colonne_est_pleine(self, colonne) -> bool:
+        from .ops import la_colonne_est_pleine
+        return la_colonne_est_pleine(self, colonne)
+
+    def la_colonne_est_pleine_et_monocouleur(self, colonne) -> bool:
+        from .ops import la_colonne_est_pleine_et_monocouleur
+        return la_colonne_est_pleine_et_monocouleur(self, colonne)
+
+    def une_colonne_est_pleine_et_monocouleur(self) -> bool:
+        from .ops import une_colonne_est_pleine_et_monocouleur
+        return une_colonne_est_pleine_et_monocouleur(self)
+
+    def la_couleur_au_sommet_de_la_colonne(self, colonne) -> str:
+        from .ops import la_couleur_au_sommet_de_la_colonne
+        return la_couleur_au_sommet_de_la_colonne(self, colonne)
+
+    def nombre_de_case_vide_de_la_colonne(self, colonne) -> int:
+        from .ops import nombre_de_case_vide_de_la_colonne
+        return nombre_de_case_vide_de_la_colonne(self, colonne)
+
+    def nombre_de_cases_monocouleur_au_sommet_de_la_colonne(self, colonne) -> int:
+        from .ops import nombre_de_cases_monocouleur_au_sommet_de_la_colonne
+        return nombre_de_cases_monocouleur_au_sommet_de_la_colonne(self, colonne)
+
+    def deplacer_blocs(self, colonne_depart, colonne_arrivee, nombre_blocs = 1) -> None:
+        from .ops import deplacer_blocs
+        deplacer_blocs(self, colonne_depart, colonne_arrivee, nombre_blocs)
+
+    def annuler_le_deplacer_blocs(self, colonne_depart_a_annuler, colonne_arrivee_a_annuler, nombre_blocs = 1) -> None:
+        from .ops import annuler_le_deplacer_blocs
+        annuler_le_deplacer_blocs(self, colonne_depart_a_annuler, colonne_arrivee_a_annuler, nombre_blocs)
+
+    # API Generator
+    def creer_plateau_initial(self) -> None:
+        from .generator import creer_plateau_initial
+        creer_plateau_initial(self)
+ 
+    def creer_plateau_permutation_initial(self) -> None:
+        from .generator import creer_plateau_permutation_initial
+        creer_plateau_permutation_initial(self)
+
+    # API Normalize
+    def rendre_valide(self) -> None:
+        from .normalize import rendre_valide
+        rendre_valide(self)
+
+    # API Validator
+    @property
+    def est_valide(self) -> bool:
+        from .validator import plateau_est_valide
+        return plateau_est_valide(self)
+
+    # API Heuristics
+    @property
+    def est_interessant(self) -> bool:
+        from .heuristics import est_interessant
+        return est_interessant(self)
+

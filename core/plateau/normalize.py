@@ -15,7 +15,7 @@ def rendre_valide(plateau: Plateau) -> None:
         if plateau_valide.est_valide:
             plateau.clear()
             plateau.plateau_ligne = plateau_valide.plateau_ligne
-            plateau._logger.debug(f"Plateau rendu valide = '{plateau.plateau_ligne_texte}'")
+            plateau.logger.debug(f"Plateau rendu valide = '{plateau.plateau_ligne_texte}'")
         else:
-            plateau._logger.error(f"Le plateau rendu valide n'est pas valide : '{plateau_valide.plateau_ligne_texte}'")
+            plateau.logger.error(f"Le plateau rendu valide n'est pas valide : '{plateau_valide.plateau_ligne_texte}'")
             raise PlateauInvalidable("Le plateau rendu valide n'est pas valide")
