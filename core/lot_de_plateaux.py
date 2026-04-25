@@ -4,8 +4,8 @@ import datetime
 import copy
 import logging
 
-from plateau import Plateau
-from export_json import ExportJSON
+from core.plateau import Plateau
+from io_utils.export_json import ExportJSON
 
 DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 30*60
 TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000

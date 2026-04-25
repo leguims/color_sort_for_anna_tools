@@ -10,18 +10,24 @@ L'objectif est de traiter de bout en bout des plateaux qui ne se ressemblent pas
 Biensur, la démarche Etape 1 à 5 est à conserver, mais elle est très longue."""
 import logging
 import pathlib
-import datetime
 from rapidfuzz import fuzz
 
-from plateau import Plateau
-from lot_de_plateaux import LotDePlateaux
-from profiler_le_code import ProfilerLeCode
-from creer_les_taches import CreerLesTaches
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
 
-from outil_etape_2_revalider_les_plateaux import RevaliderLesPlateaux
-from outil_etape_3_chercheur_de_solutions import ChercherDesSolutions
-from outil_etape_4_classer_les_solutions import ClasserLesSolutions
-from outil_etape_5_classer_les_solutions_tronquer import TronquerLesSolutions
+from core.plateau import Plateau
+from core.lot_de_plateaux import LotDePlateaux
+from io_utils.profiler_le_code import ProfilerLeCode
+from io_utils.creer_les_taches import CreerLesTaches
+
+from pipeline.outil_etape_2_revalider_les_plateaux import RevaliderLesPlateaux
+from pipeline.outil_etape_3_chercheur_de_solutions import ChercherDesSolutions
+from pipeline.outil_etape_4_classer_les_solutions import ClasserLesSolutions
+from pipeline.outil_etape_5_classer_les_solutions_tronquer import TronquerLesSolutions
+
+# TODO : Appliquer le filtre par similarité basse sur l'ensemble des plateaux avec solutions (Après étape 3)
+# TODO : Prévoir une étape pour le faire en essayant d'atteindre un nombre de plateau X par difficulté (Après étape 3)
 
 class FluxProgressif:
     "Module pour traiter la chaine complete Etape 2 à 5 avec un ensemble de plateaux différents'"
@@ -153,16 +159,16 @@ if __name__ == "__main__":
     #     Sauvegarder les solutions
     #     Sauvegarder le fichier de difficultés avec le nombre de plateaux totaux
     #   Changer de seuil de similarité (2%, 5%, 10% ...)
-    for similarite in range(10, 90, 10):
-        for colonne in range(3, 12):
-            for ligne in range(3, 12):
+    for similarite in [90]: # range(50, 90, 5):
+        for colonne in [3]: # range(3, 12):
+            for ligne in [4]: # range(3, 12):
                 flux_progressif = FluxProgressif(
                     nb_colonnes=colonne,
                     nb_lignes=ligne,
                     nb_colonnes_vides=1,
                     repertoire_analyse_base='Analyses',
                     repertoire_analyse='Analyse_flux_progressif_'+str(similarite),
-                    repertoire_solution='Solutions_flux_progressif',
+                    repertoire_solution='Solutions_flux_progressif_NEW_RESOLUTION',
                     fichier_solution='Solutions_classees_'+str(similarite),
                     nom_tache='flux_progressif_complet',
                     fichier_journal=pathlib.Path('logs') / f'{NOM_TACHE}.log'

@@ -2,9 +2,13 @@
 import logging
 import pathlib
 
-from lot_de_plateaux import LotDePlateaux
-from profiler_le_code import ProfilerLeCode
-from creer_les_taches import CreerLesTaches
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+
+from core.lot_de_plateaux import LotDePlateaux
+from io_utils.profiler_le_code import ProfilerLeCode
+from io_utils.creer_les_taches import CreerLesTaches
 
 class RevaliderLesPlateaux:
     "Parcourt les plateaux et pratique un elagage des doublons et de similarite"
@@ -71,7 +75,7 @@ if __name__ == "__main__":
 
     revalider = RevaliderLesPlateaux(
         nb_colonnes=[3], #range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
-        nb_lignes=[4], #range(2,6) #[5] #range(2,6) #range(2, 14) #[3] # [2,3] #4
+        nb_lignes=[3], #range(2,6) #[5] #range(2,6) #range(2, 14) #[3] # [2,3] #4
         nb_colonnes_vides=1,
         repertoire_analyse='Analyse_nouvelle_architecture',
         nom_tache=NOM_TACHE,

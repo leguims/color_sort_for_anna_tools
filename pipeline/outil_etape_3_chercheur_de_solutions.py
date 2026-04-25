@@ -4,10 +4,14 @@ import time
 import logging
 import pathlib
 
-from plateau import Plateau
-from lot_de_plateaux import LotDePlateaux
-from resoudre_plateau import ResoudrePlateau
-from profiler_le_code import ProfilerLeCode
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+
+from core.plateau import Plateau
+from core.lot_de_plateaux import LotDePlateaux
+from core.resoudre_plateau import ResoudrePlateau
+from io_utils.profiler_le_code import ProfilerLeCode
 
 class ChercherDesSolutions:
     "Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoodSort'"
@@ -118,7 +122,7 @@ if __name__ == "__main__":
 
     chercher_solutions = ChercherDesSolutions(
         nb_colonnes=[3], #range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
-        nb_lignes=[4], #range(2,6) #[5] #range(2,6) #range(2, 14) #[3] # [2,3] #4
+        nb_lignes=[3], #range(2,6) #[5] #range(2,6) #range(2, 14) #[3] # [2,3] #4
         nb_colonnes_vides=1,
         repertoire_analyse='Analyse_nouvelle_architecture',
         repertoire_solution='Solutions_nouvelle_architecture',

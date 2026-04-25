@@ -5,8 +5,12 @@ import time
 import logging
 import pathlib
 
-from export_json import ExportJSON
-from profiler_le_code import ProfilerLeCode
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+
+from io_utils.export_json import ExportJSON
+from io_utils.profiler_le_code import ProfilerLeCode
 
 # TODO : Classer par difficulté dans le fichier de solutions
 

@@ -4,10 +4,14 @@ import time
 import logging
 import pathlib
 
-from plateau import Plateau
-from lot_de_plateaux import LotDePlateaux
-from profiler_le_code import ProfilerLeCode
-from export_json import ExportJSON
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+
+from core.plateau import Plateau
+from core.lot_de_plateaux import LotDePlateaux
+from io_utils.profiler_le_code import ProfilerLeCode
+from io_utils.export_json import ExportJSON
 
 class ClasserLesSolutions:
     """Parcourt les plateaux resolus et les rassemble dans le fichier

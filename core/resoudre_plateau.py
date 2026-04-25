@@ -2,8 +2,8 @@
 from itertools import permutations
 import copy
 
-from plateau import Plateau
-from export_json import ExportJSON
+from core.plateau import Plateau
+from io_utils.export_json import ExportJSON
 
 class ResoudrePlateau:
     "Classe de resolution d'un plateau par parcours de toutes les possibilites de choix"

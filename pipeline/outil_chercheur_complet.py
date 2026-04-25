@@ -3,10 +3,14 @@ from itertools import permutations #, product, combinations#, combinations_with_
 import logging
 import pathlib
 
-from plateau import Plateau
-from lot_de_plateaux import LotDePlateaux
-from resoudre_plateau import ResoudrePlateau
-from profiler_le_code import ProfilerLeCode
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+
+from core.plateau import Plateau
+from core.lot_de_plateaux import LotDePlateaux
+from core.resoudre_plateau import ResoudrePlateau
+from io_utils.profiler_le_code import ProfilerLeCode
 
 COLONNES = [2] # range(2, 5) # range(2, 5) #11
 LIGNES = [2] # [2,3] #4

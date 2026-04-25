@@ -2,7 +2,7 @@
 import logging
 import pathlib
 
-from export_json import ExportJSON
+from io_utils.export_json import ExportJSON
 
 COLONNES = range(2, 12)
 LIGNES = range(2, 14)
