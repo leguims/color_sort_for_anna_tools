@@ -36,7 +36,7 @@ def chercher_les_plateaux_et_les_solutions(colonnes, lignes):
         # lot_de_plateaux.fixer_taille_memoire_max(5)
         for permutation_courante in permutations(plateau.pour_permutations):
             # Verifier que ce plateau est nouveau
-            if not lot_de_plateaux.est_ignore(permutation_courante):
+            if not lot_de_plateaux.plateau_est_ignore(permutation_courante):
                 if lot_de_plateaux.nb_plateaux_valides % 400 == 0:
                     logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
 

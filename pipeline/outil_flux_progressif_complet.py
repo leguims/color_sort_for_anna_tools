@@ -70,7 +70,7 @@ class FluxProgressif:
             iter_plateau.plateau_ligne_texte = plateau_ligne_texte
             # Vérifier que le plateaux de base à ajouter n'est pas similaire à un plateau déjà existant.
             if self.verifier_similarite(iter_plateau, seuil_similarite_max):
-                self._lot_de_plateaux.est_ignore(plateau_ligne_texte)
+                self._lot_de_plateaux.plateau_est_ignore(plateau_ligne_texte)
         # Indiquer la fin de recherche de plateaux (necessaire pour chercher des solutions)
         self._lot_de_plateaux.arret_des_enregistrements()
         self._lot_de_plateaux.exporter_fichier_json()

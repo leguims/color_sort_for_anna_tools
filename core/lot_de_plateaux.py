@@ -95,7 +95,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 nb_VIDE_sur_colonne_N = self._iter_permutation[-self._nb_lignes:].count(' ')
                 if nb_VIDE_sur_colonne_N == 0:
                     continue
-                est_ignore = self.est_ignore(''.join(self._iter_permutation))
+                est_ignore = self.plateau_est_ignore(''.join(self._iter_permutation))
                 if est_ignore and not self._plateau_courant.est_valide:
                     self._plateau_courant.rendre_valide()
                     # 'self.est_ignore' ajusté
@@ -122,10 +122,10 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self.arret_des_enregistrements()
         raise StopIteration
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.nb_plateaux_valides
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         dict_lot_de_plateaux = {}
         
         # Ajouter les informations de colonnes et lignes si disponibles
@@ -170,7 +170,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
 
         return dict_lot_de_plateaux
 
-    def creer_plateau_initial_optimisation_permutation(self):
+    def creer_plateau_initial_optimisation_permutation(self) -> list:
         """"Reprendre au plateau valide le plus avancé dans les permutations
         ou créer le plateau de permutations initial."""
         if self._recherche_dernier_plateau is not None:
@@ -189,7 +189,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._plateau_courant.creer_plateau_permutation_initial()
         return self._plateau_courant.pour_permutations
 
-    def arret_des_enregistrements(self):
+    def arret_des_enregistrements(self) -> None:
         "Methode qui finalise la recherche de plateaux"
         self._ensemble_des_plateaux_a_ignorer.clear()
         self._recherche_terminee = True
@@ -197,7 +197,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         # Forcer l'enregistrement, car c'est l'arret et il n'y aura plus d'enregistrements.
         self._export_json.forcer_export(self)
 
-    def est_ignore(self, permutation_plateau):
+    def plateau_est_ignore(self, permutation_plateau) -> bool:
         "Retourne 'True' si le plateau est deja connu"
         if permutation_plateau not in self._ensemble_des_plateaux_valides \
             and permutation_plateau not in self._ensemble_des_plateaux_a_ignorer:
@@ -214,7 +214,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 self.__ignorer_le_plateau(self._plateau_courant)
         return True
 
-    def mettre_a_jour_les_plateaux_valides(self, periode_affichage):
+    def mettre_a_jour_les_plateaux_valides(self, periode_affichage) -> None:
         "Verifie la liste des plateaux valides car les regles ont change ou des regles de lots de plateaux sont a appliquer."
         #if not self._recherche_terminee:
         #    self._logger.error("mettre_a_jour_les_plateaux_valides() : la recherche de plateaux n'est pas terminee")
@@ -232,7 +232,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self.__mettre_a_jour_les_plateaux_valides_phase_3(periode_affichage)
         self.__mettre_a_jour_les_plateaux_valides_phase_4(periode_affichage)
 
-    def __effacer_plateaux_valides(self, set_plateaux_a_effacer, prefixe_log, plateau_courant):
+    def __effacer_plateaux_valides(self, set_plateaux_a_effacer, prefixe_log, plateau_courant) -> None:
         if set_plateaux_a_effacer:
             plateau = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
             for iter_plateau_a_effacer in set_plateaux_a_effacer:
@@ -244,7 +244,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                     # Reduire la liste des plateaux valides enregistrés
                     self._export_json.exporter(self)
 
-    def __mettre_a_jour_les_plateaux_valides_phase_1(self, periode_affichage):
+    def __mettre_a_jour_les_plateaux_valides_phase_1(self, periode_affichage) -> None:
         """Phase 1 : Valider les plateaux au sens de la classe 'Plateau.est_valide'"""
         prefixe_log = "Phase 1 :"
         if self._revalidation_phase_1_terminee:
@@ -301,7 +301,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._export_json.forcer_export(self)
         self._logger.info(f"{prefixe_log} terminee")
 
-    def __mettre_a_jour_les_plateaux_valides_phase_2(self, periode_affichage):
+    def __mettre_a_jour_les_plateaux_valides_phase_2(self, periode_affichage) -> None:
         """Phase 2 : Chercher les doublons (permutations de jetons)"""
         prefixe_log = "Phase 2 :"
         if not self._revalidation_phase_1_terminee:
@@ -363,7 +363,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._export_json.forcer_export(self)
         self._logger.info(f"{prefixe_log} terminee")
 
-    def __mettre_a_jour_les_plateaux_valides_phase_3(self, periode_affichage):
+    def __mettre_a_jour_les_plateaux_valides_phase_3(self, periode_affichage) -> None:
         """Phase 3 : Chercher les doublons (permutations de piles)"""
         prefixe_log = "Phase 3 :"
         if not self._revalidation_phase_1_terminee:
@@ -428,7 +428,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._export_json.forcer_export(self)
         self._logger.info(f"{prefixe_log} terminee")
 
-    def __mettre_a_jour_les_plateaux_valides_phase_4(self, periode_affichage):
+    def __mettre_a_jour_les_plateaux_valides_phase_4(self, periode_affichage) -> None:
         """Phase 4 : Chercher les doublons (permutations de jetons des permutations de piles)"""
         prefixe_log = "Phase 4 :"
         if not self._revalidation_phase_1_terminee:
@@ -504,28 +504,28 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._logger.info(f"{prefixe_log} terminee")
 
     @property
-    def plateaux_valides(self):
+    def plateaux_valides(self) -> set:
         "Ensemble des plateaux valides"
         return self._ensemble_des_plateaux_valides
 
     @property
-    def plateaux_valides_liste_classee(self):
+    def plateaux_valides_liste_classee(self) -> list:
         "Liste classee des plateaux valides"
         liste_classee = list(self._ensemble_des_plateaux_valides)
         liste_classee.sort()
         return liste_classee
 
     @property
-    def nb_plateaux_valides(self):
+    def nb_plateaux_valides(self) -> int:
         "Nombre de plateaux valides"
         return len(self._ensemble_des_plateaux_valides)
 
     @property
-    def nb_plateaux_ignores(self):
+    def nb_plateaux_ignores(self) -> int:
         "Nombre de plateaux ignores"
         return len(self._ensemble_des_plateaux_a_ignorer)
 
-    def __ajouter_le_plateau(self, plateau: Plateau):
+    def __ajouter_le_plateau(self, plateau: Plateau) -> None:
         "Memorise un plateau deja traite"
         # La recherche de doublons et de permutations est réalisée lors de la phase de 'revalidation'
         # afin d'accelerer la recherche de plateaux valides.
@@ -542,7 +542,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         #   True    |   True     ||  False
         self._a_change = self._a_change and not self._export_json.exporter(self)
 
-    def __construire_les_permutations_de_colonnes(self, plateau: Plateau):
+    def __construire_les_permutations_de_colonnes(self, plateau: Plateau) -> list:
         """Methode qui construit les permutations de colonnes d'un plateau.
 Le plateau lui-meme n'est pas dans les permutations."""
         liste_permutations_de_colonnes = []
@@ -556,7 +556,7 @@ Le plateau lui-meme n'est pas dans les permutations."""
                 liste_permutations_de_colonnes.append(plateau_a_ignorer)
         return liste_permutations_de_colonnes
 
-    def __construire_les_permutations_de_jetons(self, plateau: Plateau):
+    def __construire_les_permutations_de_jetons(self, plateau: Plateau) -> list:
         """Methode qui construit les permutations de jetons d'un plateau.
 Par exemple, ces deux plateaux sont equivalents pour un humain : 'ABC.CBA' ==(A devient B)== 'BAC.CAB'
 Le plateau lui-meme n'est pas dans les permutations."""
@@ -587,40 +587,40 @@ Le plateau lui-meme n'est pas dans les permutations."""
         return liste_permutations_de_jetons
 
 
-    def __ignorer_le_plateau(self, plateau_a_ignorer: Plateau):
+    def __ignorer_le_plateau(self, plateau_a_ignorer: Plateau) -> None:
         "Ignore un plateau et met a jour les ensembles et compteurs"
         # Ignorer le plateau
         self._ensemble_des_plateaux_a_ignorer.add(plateau_a_ignorer.plateau_ligne_texte)
         # Optimiser la memoire
         self.__reduire_memoire()
 
-    def __reduire_memoire(self):
+    def __reduire_memoire(self) -> None:
         "Optimisation memoire quand la memoire maximum est atteinte"
         if len(self._ensemble_des_plateaux_a_ignorer) > self._nb_plateaux_max:
             self._logger.info('Reduction memoire.')
             # Vider les memoires et compteurs
             self._ensemble_des_plateaux_a_ignorer.clear()
 
-    def fixer_taille_memoire_max(self, nb_plateaux_max):
+    def fixer_taille_memoire_max(self, nb_plateaux_max) -> None:
         "Fixe le nombre maximum de plateau a memoriser"
         if nb_plateaux_max > 0:
             self._nb_plateaux_max = nb_plateaux_max
         self.__reduire_memoire()
 
-    def __init_export_json(self):
+    def __init_export_json(self) -> None:
         nom = f"Plateaux_{self._nb_colonnes}x{self._nb_lignes}"
         self._export_json = ExportJSON(delai=DELAI_ENREGISTRER_LOT_DE_PLATEAUX,
                                        longueur=TAILLE_ENREGISTRER_LOT_DE_PLATEAUX,
                                        nom_plateau=nom, nom_export=nom,
                                        repertoire=self._repertoire_export_json)
 
-    def exporter_fichier_json(self):
+    def exporter_fichier_json(self) -> None:
         """Enregistre un fichier JSON avec les plateaux valides"""
         # Enregistrement des donnees dans un fichier JSON
         if self.nb_plateaux_valides > 0 and self._a_change:
             self._a_change = self._a_change and not self._export_json.forcer_export(self)
 
-    def __importer_fichier_json(self):
+    def __importer_fichier_json(self) -> None:
         """Lit l'enregistrement JSON s'il existe"""
         data_json = self._export_json.importer()
         if "colonnes" in data_json:
@@ -691,10 +691,10 @@ Le plateau lui-meme n'est pas dans les permutations."""
                         plateau.plateau_ligne_texte_universel = plateau_txt
                         self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau.plateau_ligne_texte)
 
-    def est_deja_termine(self):
+    def est_deja_termine(self) -> bool:
         return self._recherche_terminee
     
-    def est_deja_connu_difficulte_plateau(self, plateau: Plateau):
+    def est_deja_connu_difficulte_plateau(self, plateau: Plateau) -> bool:
         "Methode qui verifie si le plateau est deja resolu"
         est_connu = False
         for difficulte in self._ensemble_des_difficultes_de_plateaux.keys():
@@ -703,7 +703,7 @@ Le plateau lui-meme n'est pas dans les permutations."""
                 break
         return est_connu
 
-    def definir_difficulte_plateau(self, plateau: Plateau, difficulte, nb_coups):
+    def definir_difficulte_plateau(self, plateau: Plateau, difficulte, nb_coups) -> None:
         "Methode qui enregistre les difficultes des plateaux et la profondeur de leur solution"
         if difficulte not in self._ensemble_des_difficultes_de_plateaux:
             self._ensemble_des_difficultes_de_plateaux[difficulte] = {}
@@ -713,12 +713,12 @@ Le plateau lui-meme n'est pas dans les permutations."""
             self._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau.plateau_ligne_texte)
             self._a_change = True
 
-    def effacer_difficulte_plateau(self):
+    def effacer_difficulte_plateau(self) -> None:
         "Methode qui enregistre les difficultes des plateaux et la profondeur de leur solution"
         self._ensemble_des_difficultes_de_plateaux.clear()
         self._a_change = True
 
-    def arret_des_enregistrements_de_difficultes_plateaux(self):
+    def arret_des_enregistrements_de_difficultes_plateaux(self) -> None:
         "Methode qui finalise l'arret des enregistrements des difficultes de plateaux"
         # Classement des difficultes
         cles_difficulte = list(self._ensemble_des_difficultes_de_plateaux.keys())
@@ -749,11 +749,11 @@ Le plateau lui-meme n'est pas dans les permutations."""
         self.exporter_fichier_json()
 
     @property
-    def difficulte_plateaux(self):
+    def difficulte_plateaux(self) -> dict:
         "Ensemble des difficultes de plateaux resolus"
         return self._ensemble_des_difficultes_de_plateaux
 
     @property
-    def nb_plateaux_solutionnes(self):
+    def nb_plateaux_solutionnes(self) -> int:
         "Nombre de plateaux valides"
         return sum([len(liste_plateaux) for difficulte, dico_nb_coups in self._ensemble_des_difficultes_de_plateaux.items() for nb_coups, liste_plateaux in dico_nb_coups.items()])

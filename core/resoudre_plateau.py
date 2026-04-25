@@ -43,12 +43,12 @@ class ResoudrePlateau:
                                                  repertoire = repertoire_solution)
         self.__importer_fichier_json()
 
-    def __len__(self):
+    def __len__(self) -> int:
         "La longueur de la solution definit la difficulte"
         # Le nombre de solution n'a pas d'incidence sur la difficulte
         return len(self._solution) if self._solution else 0
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         dict_resoudre_plateau = {
             'plateau': self._plateau_initial.plateau_ligne_texte_universel,
             'recherche terminee': self._recherche_terminee,
@@ -58,7 +58,7 @@ class ResoudrePlateau:
         }
         return dict_resoudre_plateau
 
-    def __ensemble_des_choix_possibles(self):
+    def __ensemble_des_choix_possibles(self) -> list:
         "Liste tous les choix possible pour un plateau (valide et invalides)"
         if not self._liste_des_choix_possibles:
             # Liste de tous les possibles a construire selon la dimension du plateau
@@ -70,7 +70,7 @@ class ResoudrePlateau:
         # Nombre de choix = (nb_colonnes * (nb_colonnes-1))
         return self._liste_des_choix_possibles
 
-    def __ensemble_des_plateaux_gagnants(self):
+    def __ensemble_des_plateaux_gagnants(self) -> list:
         "Liste tous les plateaux gagnants"
         if self._liste_plateaux_gagnants is None:
             nb_c = self._plateau_initial.nb_colonnes
@@ -87,21 +87,21 @@ class ResoudrePlateau:
                 self._liste_plateaux_gagnants.append(plateau_gagnant_courant.plateau_ligne_texte)
         return self._liste_plateaux_gagnants
 
-    def __ajouter_choix(self, plateau: Plateau, liste_des_choix_courants, choix):
+    def __ajouter_choix(self, plateau: Plateau, liste_des_choix_courants, choix) -> None:
         "Enregistre un choix et modifie le plateau selon ce choix"
         # Enregistrer le choix
         liste_des_choix_courants.append(choix[0:2])
         # Modifier le plateau
         plateau.deplacer_blocs(*choix)
 
-    def __retirer_choix(self, plateau: Plateau, liste_des_choix_courants, choix):
+    def __retirer_choix(self, plateau: Plateau, liste_des_choix_courants, choix) -> None:
         "Annule le dernier choix et restaure le plateau precedent"
         # Desenregistrer le choix
         liste_des_choix_courants.pop()
         # Modifier le plateau
         plateau.annuler_le_deplacer_blocs(*choix)
 
-    def __est_valide(self, plateau: Plateau, choix):
+    def __est_valide(self, plateau: Plateau, choix) -> bool:
         "Verifie la validite du choix"
         c_depart, c_arrivee = choix
         # INVALIDE Si les colonnes de depart et d'arrivee sont identiques
@@ -125,14 +125,14 @@ class ResoudrePlateau:
             return False
         return True
 
-    def __solution_complete(self, plateau: Plateau):
+    def __solution_complete(self, plateau: Plateau) -> bool:
         "Evalue si le plateau est termine (gagne ou bloque)"
         if plateau.plateau_ligne_texte in self.__ensemble_des_plateaux_gagnants():
             return True
         # TODO : Evaluer si le plateau est "bloque" => a observer, mais verification inutile jusque la.
         return False
 
-    def __enregistrer_solution(self, liste_des_choix_courants):
+    def __enregistrer_solution(self, liste_des_choix_courants) -> None:
         "Enregistre le parcours de la solution pour la restituer"
         len_solution_courante = len(liste_des_choix_courants)
         # Si elle est plus courte, enregistrer la liste des choix courant comme la solution
@@ -149,7 +149,7 @@ class ResoudrePlateau:
 
         self._export_json_solutions.forcer_export(self)
 
-    def backtracking(self, plateau: Plateau = None, liste_des_choix_courants = None, profondeur_recursion = None):
+    def backtracking(self, plateau: Plateau = None, liste_des_choix_courants = None, profondeur_recursion = None) -> None:
         "Parcours de tous les choix afin de debusquer toutes les solutions"
         if plateau is None:
             if self._recherche_terminee:
@@ -189,11 +189,11 @@ class ResoudrePlateau:
                   + " : resolution achevee")
         profondeur_recursion -= 1
 
-    def exporter_fichier_json(self):
+    def exporter_fichier_json(self) -> None:
         """Enregistre un fichier JSON avec les solutions et les statistiques du plateau"""
         self._export_json_solutions.forcer_export(self)
 
-    def __importer_fichier_json(self):
+    def __importer_fichier_json(self) -> None:
         """Lit l'enregistrement JSON de la solution s'il existe"""
         data_json = self._export_json_solutions.importer()
         if 'dico des longueurs' in data_json:
@@ -206,7 +206,7 @@ class ResoudrePlateau:
             self._solution = data_json['solution']
 
     @property
-    def difficulte(self):
+    def difficulte(self) -> int | None:
         """Retourne la difficulte de la solution
         La difficulté dépend de :
         - Le nombre de choix

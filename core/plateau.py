@@ -3,6 +3,10 @@ import logging
 
 # TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
 
+class PlateauInvalidable(Exception):
+    """Erreur levée lorsqu'un plateau ne peut pas devenir valide par modification"""
+    pass
+
 class Plateau:
     "Classe qui implemente un plateau. Son contenu et ses differentes representations."
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides=1):
@@ -28,7 +32,7 @@ class Plateau:
         self.__creer_les_familles()
         self._logger = logging.getLogger(f"{self._nb_colonnes}.{self._nb_lignes}.{Plateau.__name__}")
 
-    def clear(self):
+    def clear(self) -> None:
         "Efface le plateau pour en ecrire un nouveau"
         self._est_valide = None
         self._est_interessant = None
@@ -39,13 +43,13 @@ class Plateau:
         self._plateau_rectangle_texte = None
         self._str_format = ""
 
-    def __str__(self):
+    def __str__(self) -> str:
         if not self._str_format:
             for ligne in self.plateau_rectangle:
                 self._str_format += f"{ligne}\n"
         return self._str_format
 
-    def __eq__(self, autre):
+    def __eq__(self, autre) -> bool:
         if not isinstance(autre, Plateau):
             # Ne sont pas comparables
             return NotImplemented
@@ -57,27 +61,28 @@ class Plateau:
         return hash((self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides, self._plateau_ligne))
 
     @property
-    def nb_colonnes(self):
+    def nb_colonnes(self) -> int:
         "Nombre de colonnes du plateau"
         return self._nb_colonnes
 
     @property
-    def nb_lignes(self):
+    def nb_lignes(self) -> int:
         "Nombre de lignes du plateau"
         return self._nb_lignes
 
     @property
-    def nb_colonnes_vides(self):
+    def nb_colonnes_vides(self) -> int:
         "Nombre de colonnes vides du plateau"
         return self._nb_colonnes_vides
 
     @property
-    def plateau_ligne(self):
-        "Representation en 1 ligne du plateau (liste)"
+    def plateau_ligne(self) -> tuple:
+        """Representation en 1 ligne du plateau (liste)
+        'AA.BB.  ' => ['A', 'A', 'B', 'B', ' ', ' ']"""
         return self._plateau_ligne
 
     @plateau_ligne.setter
-    def plateau_ligne(self, plateau_ligne):
+    def plateau_ligne(self, plateau_ligne) -> None:
         # Pas de verification sur la validite,
         # pour pouvoir traiter les plateaux invalides
         # a ignorer.
@@ -85,14 +90,15 @@ class Plateau:
         self._plateau_ligne = tuple(plateau_ligne)
 
     @property
-    def plateau_ligne_texte(self):
-        "Representation en 1 ligne du plateau (texte)"
+    def plateau_ligne_texte(self) -> str:
+        """Representation en 1 ligne du plateau (texte)
+        'AA.BB.  ' => 'AABB  '"""
         if not self._plateau_ligne_texte:
             self.__creer_plateau_ligne_texte()
         return self._plateau_ligne_texte
 
     @plateau_ligne_texte.setter
-    def plateau_ligne_texte(self, plateau_ligne_texte):
+    def plateau_ligne_texte(self, plateau_ligne_texte) -> None:
         # Pas de verification sur la validite,
         # pour pouvoir traiter les plateaux invalides
         # a ignorer.
@@ -100,14 +106,15 @@ class Plateau:
         self._plateau_ligne_texte = plateau_ligne_texte
 
     @property
-    def plateau_ligne_texte_universel(self):
-        "Representation en 1 ligne du plateau (texte)"
+    def plateau_ligne_texte_universel(self) -> str:
+        """Representation en 1 ligne du plateau (texte)
+        'AA.BB.  ' => 'AA.BB.  '"""
         if not self._plateau_ligne_texte_universel:
             self.__creer_plateau_ligne_texte_universel()
         return self._plateau_ligne_texte_universel
 
     @plateau_ligne_texte_universel.setter
-    def plateau_ligne_texte_universel(self, plateau_ligne_texte_universel):
+    def plateau_ligne_texte_universel(self, plateau_ligne_texte_universel) -> None:
         # Pas de verification sur la validite,
         # pour pouvoir traiter les plateaux invalides
         # a ignorer.
@@ -115,44 +122,46 @@ class Plateau:
         self.plateau_ligne = [c for c in self._plateau_ligne_texte] # via setter
 
     @property
-    def plateau_rectangle(self):
-        "Representation en rectangle (colonnes et lignes) du plateau (liste)"
+    def plateau_rectangle(self) -> list:
+        """Representation en rectangle (colonnes et lignes) du plateau (liste)
+        'AA.BB.  ' => [['A', 'A'], ['B', 'B'], [' ', ' ']]"""
         if not self._plateau_rectangle:
             self.__creer_plateau_rectangle()
         return self._plateau_rectangle
 
     @property
-    def plateau_rectangle_texte(self):
-        "Representation en rectangle (colonnes et lignes) du plateau (texte)"
+    def plateau_rectangle_texte(self) -> list:
+        """Representation en rectangle (colonnes et lignes) du plateau (texte)
+        'AA.BB.  ' => ['AA', 'BB', '  ']"""
         if not self._plateau_rectangle_texte:
             self.__creer_plateau_rectangle_texte()
         return self._plateau_rectangle_texte
 
     @plateau_rectangle_texte.setter
-    def plateau_rectangle_texte(self, plateau_rectangle_texte):
+    def plateau_rectangle_texte(self, plateau_rectangle_texte) -> None:
         # Rectangle_texte => plateau_ligne_texte
         plateau_ligne_texte = ''.join(plateau_rectangle_texte)
         # plateau_ligne_texte => plateau_ligne
         self.plateau_ligne = [c for c in plateau_ligne_texte]
 
     @property
-    def pour_permutations(self):
+    def pour_permutations(self) -> tuple:
         "Format du plateau utilise pour les permutations"
         return self.plateau_ligne
 
-    def __creer_plateau_ligne_texte(self):
+    def __creer_plateau_ligne_texte(self) -> None:
         """['A', 'A', 'B', 'B', ' ', ' '] => ['AABB  ']"""
         if self._plateau_ligne:
             self._plateau_ligne_texte = ''.join(self._plateau_ligne)
 
-    def __creer_plateau_ligne_texte_universel(self):
+    def __creer_plateau_ligne_texte_universel(self) -> None:
         """['A', 'A', 'B', 'B', ' ', ' '] => ['AA.BB.  ']"""
         if not self._plateau_rectangle_texte:
             self.__creer_plateau_rectangle_texte()
         if self._plateau_rectangle_texte:
             self._plateau_ligne_texte_universel = '.'.join(self._plateau_rectangle_texte)
 
-    def __creer_plateau_rectangle(self):
+    def __creer_plateau_rectangle(self) -> None:
         """"['A', 'A', 'B', 'B', ' ', ' '] => [['A', 'A'], ['B', 'B'], [' ', ' ']]"""
         if self._plateau_ligne:
             self._plateau_rectangle = []
@@ -160,7 +169,7 @@ class Plateau:
                 self._plateau_rectangle.append(
                     self._plateau_ligne[colonne*self._nb_lignes : (colonne + 1)*self._nb_lignes])
 
-    def __creer_plateau_rectangle_texte(self):
+    def __creer_plateau_rectangle_texte(self) -> None:
         """"['A', 'A', 'B', 'B', ' ', ' '] => ['AA', 'BB', '  ']"""
         if self._plateau_ligne:
             self._plateau_rectangle_texte = []
@@ -169,17 +178,16 @@ class Plateau:
                     self._plateau_ligne[colonne*self._nb_lignes : (colonne + 1)*self._nb_lignes]))
 
     @property
-    def nb_familles(self):
+    def nb_familles(self) -> int:
         "Nombre de familles de couleurs dans le plateau"
         return self._nb_familles
 
-    def __creer_les_familles(self):
+    def __creer_les_familles(self) -> None:
         "Creer une liste des familles"
         if not self._liste_familles:
             self._liste_familles = [chr(ord('A')+F) for F in range(self._nb_familles) ]
-        return self._liste_familles
 
-    def creer_plateau_initial(self):
+    def creer_plateau_initial(self) -> None:
         """"Cree un plateau en ligne initial = ['A', 'A', 'B', 'B', ' ', ' ']"""
         if not self._plateau_ligne:
             self.plateau_ligne = tuple(
@@ -188,7 +196,7 @@ class Plateau:
                 +[' ' for vide in range(self._nb_colonnes_vides)
                          for membre in range(self._nb_lignes)] )
 
-    def creer_plateau_permutation_initial(self):
+    def creer_plateau_permutation_initial(self) -> None:
         """"Cree un plateau en ligne initial pour la permutation.
         Ce plateau est le premier plateau valide produit à partir
         du plateau retourné par le methode 'creer_plateau_initial'.
@@ -223,7 +231,7 @@ class Plateau:
             self.plateau_ligne = tuple(plateau)
             self._logger.info(f"Plateau de permutation initial = '{self.plateau_ligne_texte_universel}'")
 
-    def rendre_valide(self):
+    def rendre_valide(self) -> None:
         case_vide = ' '
         if not self.est_valide:
             plateau_valide_ligne_texte = ''
@@ -241,10 +249,10 @@ class Plateau:
                 self._logger.debug(f"Plateau rendu valide = '{self.plateau_ligne_texte}'")
             else:
                 self._logger.error(f"Le plateau rendu valide n'est pas valide : '{plateau_valide.plateau_ligne_texte}'")
-                raise ValueError("Le plateau rendu valide n'est pas valide")
+                raise PlateauInvalidable("Le plateau rendu valide n'est pas valide")
 
     @property
-    def est_valide(self):
+    def est_valide(self) -> bool:
         """"Verifie si le plateau en parametre est valide"""
         if self._plateau_ligne and self._est_valide is None:
             # Vérifier la validité du plateau
@@ -284,7 +292,7 @@ class Plateau:
         return self._est_valide
 
     @property
-    def est_interessant(self):
+    def est_interessant(self) -> bool:
         """"Verifie si le plateau en parametre est interessant"""
         if self._plateau_ligne and self._est_interessant is None:
             self._est_interessant = True
@@ -294,36 +302,36 @@ class Plateau:
                 self._est_interessant = False
         return self._est_interessant
 
-    def la_colonne_est_vide(self, colonne):
+    def la_colonne_est_vide(self, colonne) -> bool:
         if colonne >= self.nb_colonnes:
             raise IndexError(f"Le numero de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         return self.plateau_rectangle_texte[colonne].isspace()
 
-    def la_colonne_est_pleine(self, colonne):
+    def la_colonne_est_pleine(self, colonne) -> bool:
         if colonne >= self.nb_colonnes:
             raise IndexError(f"Le numero de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         return self.plateau_rectangle_texte[colonne].count(' ') == 0
 
-    def la_colonne_est_pleine_et_monocouleur(self, colonne):
+    def la_colonne_est_pleine_et_monocouleur(self, colonne) -> bool:
         est_pleine = self.la_colonne_est_pleine(colonne)
         colonne_texte = self.plateau_rectangle_texte[colonne]
         premiere_case = colonne_texte[0]
         return est_pleine and colonne_texte.count(premiere_case) == self.nb_lignes
 
-    def une_colonne_est_pleine_et_monocouleur(self):
+    def une_colonne_est_pleine_et_monocouleur(self) -> bool:
         for colonne in range(self.nb_colonnes):
             if self.la_colonne_est_pleine_et_monocouleur(colonne):
                 return True
         return False
 
-    def la_couleur_au_sommet_de_la_colonne(self, colonne):
+    def la_couleur_au_sommet_de_la_colonne(self, colonne) -> str:
         if colonne >= self.nb_colonnes:
             raise IndexError(f"Le numero de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         colonne_texte = self.plateau_rectangle_texte[colonne]
         derniere_case_non_vide = colonne_texte.strip()[-1]
         return derniere_case_non_vide
 
-    def _compter_les_couleurs_identiques_au_sommet(self, colonne_texte, couleur):
+    def _compter_les_couleurs_identiques_au_sommet(self, colonne_texte, couleur) -> int:
         nb = 0
         colonne_inversee = list(colonne_texte.rstrip())
         colonne_inversee.reverse()
@@ -334,23 +342,23 @@ class Plateau:
                 break
         return nb
 
-    def nombre_de_case_vide_de_la_colonne(self, colonne):
+    def nombre_de_case_vide_de_la_colonne(self, colonne) -> int:
         if colonne >= self.nb_colonnes:
             raise IndexError(f"Le numero de colonne est hors du plateau ({colonne}>={self.nb_colonnes}).")
         colonne_texte = self.plateau_rectangle_texte[colonne]
         return len(colonne_texte) - len(colonne_texte.rstrip())
 
-    def nombre_de_cases_monocouleur_au_sommet_de_la_colonne(self, colonne):
+    def nombre_de_cases_monocouleur_au_sommet_de_la_colonne(self, colonne) -> int:
         couleur = self.la_couleur_au_sommet_de_la_colonne(colonne)
         colonne_texte = self.plateau_rectangle_texte[colonne]
         return self._compter_les_couleurs_identiques_au_sommet(colonne_texte, couleur)
 
-    def deplacer_blocs(self, colonne_depart, colonne_arrivee, nombre_blocs = 1):
+    def deplacer_blocs(self, colonne_depart, colonne_arrivee, nombre_blocs = 1) -> None:
         if nombre_blocs != self.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(colonne_depart):
             raise ValueError("Le nombre de bloc a deplacer est different a celui du plateau")
         self.annuler_le_deplacer_blocs(colonne_arrivee, colonne_depart, nombre_blocs)
 
-    def annuler_le_deplacer_blocs(self, colonne_depart_a_annuler, colonne_arrivee_a_annuler, nombre_blocs = 1):
+    def annuler_le_deplacer_blocs(self, colonne_depart_a_annuler, colonne_arrivee_a_annuler, nombre_blocs = 1) -> None:
         if nombre_blocs > self.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(colonne_arrivee_a_annuler):
             raise ValueError("Le nombre de bloc a deplacer est superieur a celui du plateau")
         if nombre_blocs > self.nombre_de_case_vide_de_la_colonne(colonne_depart_a_annuler):
