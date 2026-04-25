@@ -20,3 +20,27 @@ def test_resoudre_plateau_export(tmp_path):
 
     data = json.loads(f.read_text())
     assert "plateau" in data
+
+def test_resoudre_plateau_avec_plateau_valide(tmp_path):
+    p = Plateau(3, 3)
+    p.plateau_ligne_texte_universel = "AA .BB .CC "  # Plateau valide
+    r = ResoudrePlateau(p, tmp_path)
+    assert len(r) == 0
+
+def test_resoudre_plateau_avec_plateau_invalide(tmp_path):
+    p = Plateau(3, 3)
+    p.plateau_ligne_texte_universel = "AAA.BBB.CCC"  # Plateau invalide
+    r = ResoudrePlateau(p, tmp_path)
+    assert len(r) == 0
+
+def test_resoudre_plateau_export_json(tmp_path):
+    p = Plateau(3, 3)
+    p.plateau_ligne_texte_universel = "AA .BB .CC .ABC"
+    r = ResoudrePlateau(p, tmp_path)
+
+    f = tmp_path / "solution.json"
+    r.exporter_fichier_json(f)
+
+    data = json.loads(f.read_text())
+    assert "plateau" in data
+    assert data["plateau"] == "AA .BB .CC "
