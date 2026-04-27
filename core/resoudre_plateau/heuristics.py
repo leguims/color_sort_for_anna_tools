@@ -2,7 +2,7 @@ import copy
 
 from .model import ResoudrePlateau
 from .choix import ensemble_des_choix_possibles, ajouter_choix
-from .validation import est_valide
+from .validation import choix_est_valide
 
 def difficulte(resoudre_plateau: ResoudrePlateau) -> int | None:
     """Retourne la difficulte de la solution
@@ -25,7 +25,7 @@ def difficulte(resoudre_plateau: ResoudrePlateau) -> int | None:
         for coup in resoudre_plateau._solution:
             nb_choix_courant = 0
             for choix_possible in ensemble_des_choix_possibles(resoudre_plateau):
-                if est_valide(plateau, choix_possible):
+                if choix_est_valide(plateau, choix_possible):
                     nb_choix_courant += 1
             # Multiplier les niveaux de choix
             nb_choix_total *= nb_choix_courant

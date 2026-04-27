@@ -13,7 +13,7 @@ from core.lot_de_plateaux import LotDePlateaux
 from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.export_json import ExportJSON
 
-class ClasserLesSolutions:
+class FiltrerLesSolutions:
     """Parcourt les plateaux resolus et les rassemble dans le fichier
     'Solutions_classees.json' par difficulte avec une ecriture universelle"""
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides,
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    classer_solutions = ClasserLesSolutions(
+    classer_solutions = FiltrerLesSolutions(
         nb_colonnes=[3], # range(3, 14) # [2]
         nb_lignes=[3], # range(3, 14) # [2]
         nb_colonnes_vides=1,

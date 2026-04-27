@@ -1,3 +1,32 @@
+"""Formate le JSON pour l'exportation et l'importation des données du plateau
+ - plateau: "A  .BAA.BB ",
+ - recherche terminee: true/false,
+ - dico des longueurs: {
+        longueur solution: nombre de solutions de cette longueur
+        ...
+    },
+ - difficulte: entier représentant la difficulté du plateau
+ - solution: Liste des coups d'une solution la plus courte
+"""
+
+# TODO : Changer le format de l'export
+"""
+ - plateau: "A  .BAA.BB ",
+ - recherche terminee: true/false,
+ - nombre de solutions: nombre total de solutions trouvées,
+ - nombre de blocages: nombre de fois où la recherche de solution a été bloquée,
+ [OPTIONNEL] - dico des longueurs de solutions: {
+ [OPTIONNEL]        longueur solution: nombre de solutions de cette longueur
+ [OPTIONNEL]        ...
+ [OPTIONNEL]    },
+ [OPTIONNEL] - dico des longueurs de blocages: {
+ [OPTIONNEL]        longueur blocage: nombre de blocages de cette longueur
+ [OPTIONNEL]        ...
+ [OPTIONNEL]    },
+ - difficulte": 32,
+ - solution: Liste des coups d'une solution la plus courte
+"""
+
 from .model import ResoudrePlateau
 
 def exporter_fichier_json(resoudre_plateau: ResoudrePlateau) -> None:

@@ -3,7 +3,7 @@ from itertools import permutations
 from .model import ResoudrePlateau
 from core.plateau import Plateau
 
-def est_valide(plateau: Plateau, choix) -> bool:
+def choix_est_valide(plateau: Plateau, choix) -> bool:
     "Verifie la validite du choix"
     c_depart, c_arrivee = choix
     # INVALIDE Si les colonnes de depart et d'arrivee sont identiques
@@ -46,7 +46,7 @@ def ensemble_des_plateaux_gagnants(resoudre_plateau: ResoudrePlateau) -> list:
 
 def solution_complete(resoudre_plateau: ResoudrePlateau, plateau: Plateau) -> bool:
     "Evalue si le plateau est termine (gagne ou bloque)"
-    if plateau.plateau_ligne_texte in resoudre_plateau.ensemble_des_plateaux_gagnants():
+    if plateau.plateau_ligne_texte in ensemble_des_plateaux_gagnants(resoudre_plateau):
         return True
     # TODO : Evaluer si le plateau est "bloque" => a observer, mais verification inutile jusque la.
     return False

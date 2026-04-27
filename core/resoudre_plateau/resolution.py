@@ -3,8 +3,8 @@ import copy
 from .model import ResoudrePlateau
 from core.plateau import Plateau
 from .choix import ensemble_des_choix_possibles, ajouter_choix, retirer_choix
-from .validation import est_valide
-
+from .validation import choix_est_valide, solution_complete
+from .io import exporter_fichier_json
 
 def enregistrer_solution(resoudre_plateau: ResoudrePlateau, liste_des_choix_courants) -> None:
     "Enregistre le parcours de la solution pour la restituer"
@@ -40,13 +40,13 @@ def backtracking(resoudre_plateau: ResoudrePlateau, plateau: Plateau = None, lis
     if profondeur_recursion > 50:
         raise RuntimeError("Appels recursifs infinis !")
     
-    if resoudre_plateau.solution_complete(plateau):   # Condition d'arret
+    if solution_complete(resoudre_plateau, plateau):   # Condition d'arret
         enregistrer_solution(resoudre_plateau, liste_des_choix_courants)
         profondeur_recursion -= 1
         return
 
     for choix in ensemble_des_choix_possibles(resoudre_plateau):
-        if est_valide(plateau, choix):  # Verifier si le choix est valide
+        if choix_est_valide(plateau, choix):  # Verifier si le choix est valide
             # Enrichir le choix du nombre de cases a deplacer (pour pouvoir retablir)
             nb_cases_deplacees = plateau.nombre_de_cases_monocouleur_au_sommet_de_la_colonne(choix[0])
             choix += tuple([nb_cases_deplacees])
@@ -57,7 +57,7 @@ def backtracking(resoudre_plateau: ResoudrePlateau, plateau: Plateau = None, lis
     if profondeur_recursion == 0:
         # fin de toutes les recherches
         resoudre_plateau._recherche_terminee = True
-        resoudre_plateau.exporter_fichier_json()
+        exporter_fichier_json(resoudre_plateau)
         print("Resolution" \
                 + f" '{resoudre_plateau._plateau_initial.plateau_ligne_texte.replace(' ', '-')}'" \
                 + " : resolution achevee")

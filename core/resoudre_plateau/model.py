@@ -58,13 +58,13 @@ class ResoudrePlateau:
         return difficulte(self)
 
     # API io
-    def exporter_fichier_json(self) -> None:
-        from .io import exporter_fichier_json
-        exporter_fichier_json(self)
+    # def exporter_fichier_json(self) -> None:
+    #     from .io import exporter_fichier_json
+    #     exporter_fichier_json(self)
 
-    def importer_fichier_json(self) -> None:
-        from .io import importer_fichier_json
-        importer_fichier_json(self)
+    # def importer_fichier_json(self) -> None:
+    #     from .io import importer_fichier_json
+    #     importer_fichier_json(self)
 
     # API choix
     # def ensemble_des_choix_possibles(self) -> list:
@@ -80,17 +80,17 @@ class ResoudrePlateau:
     #     retirer_choix(plateau, liste_des_choix_courants, choix)
 
     # API validation
-    def est_valide(self, plateau: Plateau, choix) -> bool:
-        from .validation import est_valide
-        return est_valide(plateau, choix)
+    # def choix_est_valide(self, plateau: Plateau, choix) -> bool:
+    #     from .validation import choix_est_valide
+    #     return choix_est_valide(plateau, choix)
 
-    def ensemble_des_plateaux_gagnants(self) -> list:
-        from .validation import ensemble_des_plateaux_gagnants
-        return ensemble_des_plateaux_gagnants(self)
+    # def ensemble_des_plateaux_gagnants(self) -> list:
+    #     from .validation import ensemble_des_plateaux_gagnants
+    #     return ensemble_des_plateaux_gagnants(self)
 
-    def solution_complete(self, plateau: Plateau) -> bool:
-        from .validation import solution_complete
-        return solution_complete(self, plateau)
+    # def solution_complete(self, plateau: Plateau) -> bool:
+    #     from .validation import solution_complete
+    #     return solution_complete(self, plateau)
 
     # API resolution
     def backtracking(self, plateau: Plateau = None, liste_des_choix_courants = None, profondeur_recursion = None) -> None:
