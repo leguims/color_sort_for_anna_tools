@@ -29,7 +29,7 @@ def ajouter_le_plateau(lot_de_plateaux: LotDePlateaux, plateau: Plateau) -> None
     "Memorise un plateau deja traite"
     # La recherche de doublons et de permutations est réalisée lors de la phase de 'revalidation'
     # afin d'accelerer la recherche de plateaux valides.
-    # Voir la méthode 'mettre_a_jour_les_plateaux_valides()'
+    # Voir la méthode 'filtrer_totalement()'
 
     lot_de_plateaux._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
     lot_de_plateaux._a_change = True
@@ -65,7 +65,7 @@ def reduire_memoire(lot_de_plateaux: LotDePlateaux) -> None:
 
 def effacer_plateaux_valides(lot_de_plateaux: LotDePlateaux, set_plateaux_a_effacer: set, prefixe_log: str, plateau_courant: Plateau) -> None:
     if set_plateaux_a_effacer:
-        plateau = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+        plateau = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes, lot_de_plateaux._plateau_courant.nb_lignes, lot_de_plateaux._plateau_courant.nb_colonnes_vides)
         for iter_plateau_a_effacer in set_plateaux_a_effacer:
             if iter_plateau_a_effacer in lot_de_plateaux.plateaux_valides:
                 lot_de_plateaux.plateaux_valides.remove(iter_plateau_a_effacer)
@@ -75,33 +75,33 @@ def effacer_plateaux_valides(lot_de_plateaux: LotDePlateaux, set_plateaux_a_effa
                 # Reduire la liste des plateaux valides enregistrés
                 lot_de_plateaux._export_json.exporter(lot_de_plateaux)
 
-def mettre_a_jour_les_plateaux_valides(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
+def filtrer_totalement(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     "Verifie la liste des plateaux valides car les regles ont change ou des regles de lots de plateaux sont a appliquer."
     #if not self._recherche_terminee:
-    #    self._logger.error("mettre_a_jour_les_plateaux_valides() : la recherche de plateaux n'est pas terminee")
+    #    self._logger.error("filtrer_totalement() : la recherche de plateaux n'est pas terminee")
     #    return
 
-    if lot_de_plateaux._revalidation_phase_1_terminee \
-        and lot_de_plateaux._revalidation_phase_2_terminee \
-        and lot_de_plateaux._revalidation_phase_3_terminee \
-        and lot_de_plateaux._revalidation_phase_4_terminee:
-        lot_de_plateaux.logger.info("mettre_a_jour_les_plateaux_valides() : deja terminee")
+    if lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants \
+        and lot_de_plateaux._filtrer_doublons_permutation_jetons \
+        and lot_de_plateaux._filtrer_doublons_permutation_piles \
+        and lot_de_plateaux._filtrer_doublons_permutation_jetons_piles:
+        lot_de_plateaux.logger.info("filtrer_totalement() : deja terminee")
         return
 
-    mettre_a_jour_les_plateaux_valides_phase_1(lot_de_plateaux, periode_affichage)
-    mettre_a_jour_les_plateaux_valides_phase_2(lot_de_plateaux, periode_affichage)
-    mettre_a_jour_les_plateaux_valides_phase_3(lot_de_plateaux, periode_affichage)
-    mettre_a_jour_les_plateaux_valides_phase_4(lot_de_plateaux, periode_affichage)
+    filtrer_plateaux_invalides_ou_initeressants(lot_de_plateaux, periode_affichage)
+    filtrer_doublons_permutation_jetons(lot_de_plateaux, periode_affichage)
+    filtrer_doublons_permutation_piles(lot_de_plateaux, periode_affichage)
+    filtrer_doublons_permutation_jetons_piles(lot_de_plateaux, periode_affichage)
 
-def mettre_a_jour_les_plateaux_valides_phase_1(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
+def filtrer_plateaux_invalides_ou_initeressants(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 1 : Valider les plateaux au sens de la classe 'Plateau.est_valide'"""
-    prefixe_log = "Phase 1 :"
-    if lot_de_plateaux._revalidation_phase_1_terminee:
+    prefixe_log = "filtrer plateaux invalides ou ininteressants :"
+    if lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants:
         lot_de_plateaux.logger.info(f"{prefixe_log} deja terminee")
         return
 
     lot_de_plateaux.logger.info(f"{prefixe_log} debut")
-    reprendre_au_dernier_plateau = lot_de_plateaux._revalidation_dernier_plateau is not None
+    reprendre_au_dernier_plateau = lot_de_plateaux._filtrer_dernier_plateau_traite is not None
     if reprendre_au_dernier_plateau:
         lot_de_plateaux.logger.info(f"{prefixe_log} Reprendre au dernier plateau")
 
@@ -111,13 +111,15 @@ def mettre_a_jour_les_plateaux_valides_phase_1(lot_de_plateaux: LotDePlateaux, p
     # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
     copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
 
-    plateau_courant = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+    plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
+                              lot_de_plateaux._plateau_courant.nb_lignes,
+                              lot_de_plateaux._plateau_courant.nb_colonnes_vides)
     for iter_plateau_ligne_texte in copie_plateaux_valides:
         plateau_courant.clear()
         plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
 
         if reprendre_au_dernier_plateau:
-            if plateau_courant.plateau_ligne_texte_universel == lot_de_plateaux._revalidation_dernier_plateau:
+            if plateau_courant.plateau_ligne_texte_universel == lot_de_plateaux._filtrer_dernier_plateau_traite:
                 reprendre_au_dernier_plateau = False
                 lot_de_plateaux.logger.info(f"{prefixe_log} Fin de reprise")
             nb_plateaux_a_valider -= 1
@@ -126,7 +128,7 @@ def mettre_a_jour_les_plateaux_valides_phase_1(lot_de_plateaux: LotDePlateaux, p
         # Traiter les doublons si le plateau courant est toujours dans la liste des plateaux valides (=non élagué)
         if iter_plateau_ligne_texte in lot_de_plateaux.plateaux_valides:
             # Enregistrement du plateau courant pour une eventuelle reprise.
-            lot_de_plateaux._revalidation_dernier_plateau = plateau_courant.plateau_ligne_texte_universel
+            lot_de_plateaux._filtrer_dernier_plateau_traite = plateau_courant.plateau_ligne_texte_universel
 
             if not plateau_courant.est_valide:
                 lot_de_plateaux.logger.debug(f"{prefixe_log} '{plateau_courant.plateau_ligne_texte_universel}' : invalide a supprimer")
@@ -145,24 +147,24 @@ def mettre_a_jour_les_plateaux_valides_phase_1(lot_de_plateaux: LotDePlateaux, p
             lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
             dernier_affichage  = datetime.datetime.now().timestamp()
 
-    lot_de_plateaux._revalidation_dernier_plateau = None
-    lot_de_plateaux._revalidation_phase_1_terminee = True
+    lot_de_plateaux._filtrer_dernier_plateau_traite = None
+    lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants = True
     lot_de_plateaux._export_json.forcer_export(lot_de_plateaux)
     lot_de_plateaux.logger.info(f"{prefixe_log} terminee")
 
-def mettre_a_jour_les_plateaux_valides_phase_2(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
+def filtrer_doublons_permutation_jetons(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 2 : Chercher les doublons (permutations de jetons)"""
-    prefixe_log = "Phase 2 :"
-    if not lot_de_plateaux._revalidation_phase_1_terminee:
+    prefixe_log = "filtrer doublons permutation jetons :"
+    if not lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 1 n'est pas terminee")
         return
 
-    if lot_de_plateaux._revalidation_phase_2_terminee:
+    if lot_de_plateaux._filtrer_doublons_permutation_jetons:
         lot_de_plateaux.logger.info(f"{prefixe_log} deja terminee")
         return
 
     lot_de_plateaux.logger.info(f"{prefixe_log} debut")
-    reprendre_au_dernier_plateau = lot_de_plateaux._revalidation_dernier_plateau is not None
+    reprendre_au_dernier_plateau = lot_de_plateaux._filtrer_dernier_plateau_traite is not None
     if reprendre_au_dernier_plateau:
         lot_de_plateaux.logger.info(f"{prefixe_log} Reprendre au dernier plateau")
 
@@ -172,13 +174,15 @@ def mettre_a_jour_les_plateaux_valides_phase_2(lot_de_plateaux: LotDePlateaux, p
     # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
     copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
 
-    plateau_courant = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+    plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
+                              lot_de_plateaux._plateau_courant.nb_lignes,
+                              lot_de_plateaux._plateau_courant.nb_colonnes_vides)
     for iter_plateau_ligne_texte in copie_plateaux_valides:
         plateau_courant.clear()
         plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
 
         if reprendre_au_dernier_plateau:
-            if plateau_courant.plateau_ligne_texte_universel == lot_de_plateaux._revalidation_dernier_plateau:
+            if plateau_courant.plateau_ligne_texte_universel == lot_de_plateaux._filtrer_dernier_plateau_traite:
                 reprendre_au_dernier_plateau = False
                 lot_de_plateaux.logger.info(f"{prefixe_log} Fin de reprise")
             nb_plateaux_a_valider -= 1
@@ -187,7 +191,7 @@ def mettre_a_jour_les_plateaux_valides_phase_2(lot_de_plateaux: LotDePlateaux, p
         # Traiter les doublons si le plateau courant est toujours dans la liste des plateaux valides (=non élagué)
         if iter_plateau_ligne_texte in lot_de_plateaux.plateaux_valides:
             # Enregistrement du plateau courant pour une eventuelle reprise.
-            lot_de_plateaux._revalidation_dernier_plateau = plateau_courant.plateau_ligne_texte_universel
+            lot_de_plateaux._filtrer_dernier_plateau_traite = plateau_courant.plateau_ligne_texte_universel
 
             # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
             # Construire les permutations de jetons, rationnaliser et parcourir
@@ -207,28 +211,28 @@ def mettre_a_jour_les_plateaux_valides_phase_2(lot_de_plateaux: LotDePlateaux, p
                 lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
                 dernier_affichage  = datetime.datetime.now().timestamp()
 
-    lot_de_plateaux._revalidation_dernier_plateau = None
-    lot_de_plateaux._revalidation_phase_2_terminee = True
+    lot_de_plateaux._filtrer_dernier_plateau_traite = None
+    lot_de_plateaux._filtrer_doublons_permutation_jetons = True
     lot_de_plateaux._export_json.forcer_export(lot_de_plateaux)
     lot_de_plateaux.logger.info(f"{prefixe_log} terminee")
 
-def mettre_a_jour_les_plateaux_valides_phase_3(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
+def filtrer_doublons_permutation_piles(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 3 : Chercher les doublons (permutations de piles)"""
-    prefixe_log = "Phase 3 :"
-    if not lot_de_plateaux._revalidation_phase_1_terminee:
+    prefixe_log = "Filtrer doublons permutations piles :"
+    if not lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 1 n'est pas terminee")
         return
 
-    if not lot_de_plateaux._revalidation_phase_2_terminee:
+    if not lot_de_plateaux._filtrer_doublons_permutation_jetons:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 2 n'est pas terminee")
         return
 
-    if lot_de_plateaux._revalidation_phase_3_terminee:
+    if lot_de_plateaux._filtrer_doublons_permutation_piles:
         lot_de_plateaux.logger.info(f"{prefixe_log} deja terminee")
         return
 
     lot_de_plateaux.logger.info(f"{prefixe_log} debut")
-    reprendre_au_dernier_plateau = lot_de_plateaux._revalidation_dernier_plateau is not None
+    reprendre_au_dernier_plateau = lot_de_plateaux._filtrer_dernier_plateau_traite is not None
     if reprendre_au_dernier_plateau:
         lot_de_plateaux.logger.info(f"{prefixe_log} Reprendre au dernier plateau")
 
@@ -238,13 +242,15 @@ def mettre_a_jour_les_plateaux_valides_phase_3(lot_de_plateaux: LotDePlateaux, p
     # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
     copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
 
-    plateau_courant = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+    plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
+                              lot_de_plateaux._plateau_courant.nb_lignes,
+                              lot_de_plateaux._plateau_courant.nb_colonnes_vides)
     for iter_plateau_ligne_texte in copie_plateaux_valides:
         plateau_courant.clear()
         plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
 
         if reprendre_au_dernier_plateau:
-            if plateau_courant.plateau_ligne_texte_universel == lot_de_plateaux._revalidation_dernier_plateau:
+            if plateau_courant.plateau_ligne_texte_universel == lot_de_plateaux._filtrer_dernier_plateau_traite:
                 reprendre_au_dernier_plateau = False
                 lot_de_plateaux.logger.info(f"{prefixe_log} Fin de reprise")
             nb_plateaux_a_valider -= 1
@@ -252,7 +258,7 @@ def mettre_a_jour_les_plateaux_valides_phase_3(lot_de_plateaux: LotDePlateaux, p
 
         if iter_plateau_ligne_texte in lot_de_plateaux.plateaux_valides:
             # Enregistrement du plateau courant pour une eventuelle reprise.
-            lot_de_plateaux._revalidation_dernier_plateau = plateau_courant.plateau_ligne_texte_universel
+            lot_de_plateaux._filtrer_dernier_plateau_traite = plateau_courant.plateau_ligne_texte_universel
 
             # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
             # Construire les permutations de colonnes, rationnaliser et parcourir
@@ -272,32 +278,32 @@ def mettre_a_jour_les_plateaux_valides_phase_3(lot_de_plateaux: LotDePlateaux, p
                 lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
                 dernier_affichage  = datetime.datetime.now().timestamp()
 
-    lot_de_plateaux._revalidation_dernier_plateau = None
-    lot_de_plateaux._revalidation_phase_3_terminee = True
+    lot_de_plateaux._filtrer_dernier_plateau_traite = None
+    lot_de_plateaux._filtrer_doublons_permutation_piles = True
     lot_de_plateaux._export_json.forcer_export(lot_de_plateaux)
     lot_de_plateaux.logger.info(f"{prefixe_log} terminee")
 
-def mettre_a_jour_les_plateaux_valides_phase_4(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
+def filtrer_doublons_permutation_jetons_piles(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 4 : Chercher les doublons (permutations de jetons des permutations de piles)"""
-    prefixe_log = "Phase 4 :"
-    if not lot_de_plateaux._revalidation_phase_1_terminee:
+    prefixe_log = "Filtrer doublons permutations jetons et piles :"
+    if not lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 1 n'est pas terminee")
         return
 
-    if not lot_de_plateaux._revalidation_phase_2_terminee:
+    if not lot_de_plateaux._filtrer_doublons_permutation_jetons:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 2 n'est pas terminee")
         return
 
-    if not lot_de_plateaux._revalidation_phase_3_terminee:
+    if not lot_de_plateaux._filtrer_doublons_permutation_piles:
         lot_de_plateaux ._logger.error(f"{prefixe_log} la phase 3 n'est pas terminee")
         return
 
-    if lot_de_plateaux._revalidation_phase_4_terminee:
+    if lot_de_plateaux._filtrer_doublons_permutation_jetons_piles:
         lot_de_plateaux.logger.info(f"{prefixe_log} deja terminee")
         return
 
     lot_de_plateaux.logger.info(f"{prefixe_log} debut")
-    reprendre_au_dernier_plateau = lot_de_plateaux._revalidation_dernier_plateau is not None
+    reprendre_au_dernier_plateau = lot_de_plateaux._filtrer_dernier_plateau_traite is not None
     if reprendre_au_dernier_plateau:
         lot_de_plateaux.logger.info(f"{prefixe_log} Reprendre au dernier plateau")
 
@@ -307,13 +313,15 @@ def mettre_a_jour_les_plateaux_valides_phase_4(lot_de_plateaux: LotDePlateaux, p
     # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
     copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
 
-    plateau_courant = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+    plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
+                              lot_de_plateaux._plateau_courant.nb_lignes,
+                              lot_de_plateaux._plateau_courant.nb_colonnes_vides)
     for iter_plateau_ligne_texte in copie_plateaux_valides:
         plateau_courant.clear()
         plateau_courant.plateau_ligne_texte = iter_plateau_ligne_texte
 
         if reprendre_au_dernier_plateau:
-            if plateau_courant.plateau_ligne_texte_universel == lot_de_plateaux._revalidation_dernier_plateau:
+            if plateau_courant.plateau_ligne_texte_universel == lot_de_plateaux._filtrer_dernier_plateau_traite:
                 reprendre_au_dernier_plateau = False
                 lot_de_plateaux.logger.info(f"{prefixe_log} Fin de reprise")
             nb_plateaux_a_valider -= 1
@@ -321,7 +329,7 @@ def mettre_a_jour_les_plateaux_valides_phase_4(lot_de_plateaux: LotDePlateaux, p
 
         if iter_plateau_ligne_texte in lot_de_plateaux.plateaux_valides:
             # Enregistrement du plateau courant pour une eventuelle reprise.
-            lot_de_plateaux._revalidation_dernier_plateau = plateau_courant.plateau_ligne_texte_universel
+            lot_de_plateaux._filtrer_dernier_plateau_traite = plateau_courant.plateau_ligne_texte_universel
 
             # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
             # Pour chaque permutation de colonne, realiser la permutation de jeton correspondante
@@ -347,8 +355,8 @@ def mettre_a_jour_les_plateaux_valides_phase_4(lot_de_plateaux: LotDePlateaux, p
                 lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
                 dernier_affichage  = datetime.datetime.now().timestamp()
 
-    lot_de_plateaux._revalidation_dernier_plateau = None
-    lot_de_plateaux._revalidation_phase_4_terminee = True
+    lot_de_plateaux._filtrer_dernier_plateau_traite = None
+    lot_de_plateaux._filtrer_doublons_permutation_jetons_piles = True
     lot_de_plateaux._export_json.forcer_export(lot_de_plateaux)
     lot_de_plateaux.logger.info(f"{prefixe_log} terminee")
 

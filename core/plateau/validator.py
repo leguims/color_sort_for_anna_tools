@@ -1,4 +1,5 @@
 from .model import Plateau
+from .ops import une_colonne_est_pleine_et_monocouleur
 
 def plateau_est_valide(plateau: Plateau) -> bool:
     """"Verifie si le plateau en parametre est valide"""
@@ -35,5 +36,13 @@ def plateau_est_valide(plateau: Plateau) -> bool:
                         return plateau._est_valide
         plateau._est_valide = True
         plateau._dico_validite_index_vide[index_vide] = plateau._est_valide
-
     return plateau._est_valide
+
+def plateau_est_interessant(plateau: Plateau) -> bool:
+    """"Verifie si le plateau en parametre est interessant"""
+    if plateau.plateau_ligne and plateau._est_interessant is None:
+        plateau._est_interessant = True
+        # Est-ce que le plateau est interessant ?
+        # Une colonne achevee est sans interet.
+        plateau._est_interessant =  not une_colonne_est_pleine_et_monocouleur(plateau)
+    return plateau._est_interessant

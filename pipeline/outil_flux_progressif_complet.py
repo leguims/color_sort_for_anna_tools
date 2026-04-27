@@ -21,10 +21,14 @@ from core.lot_de_plateaux import LotDePlateaux
 from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.creer_les_taches import CreerLesTaches
 
-from pipeline.outil_etape_2_revalider_les_plateaux import RevaliderLesPlateaux
-from pipeline.outil_etape_3_chercheur_de_solutions import ChercherDesSolutions
-from pipeline.outil_etape_4_classer_les_solutions import ClasserLesSolutions
-from pipeline.outil_etape_5_classer_les_solutions_tronquer import TronquerLesSolutions
+from pipeline.outil_etape_2_filtrer_plateaux_invalides_ou_initeressants import FiltrerLesPlateaux as FiltrerLesPlateauxInvalidesOuIniteressants
+from pipeline.outil_etape_3_filtrer_doublons_permutation_jetons import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetons
+from pipeline.outil_etape_4_filtrer_doublons_permutation_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationPiles
+from pipeline.outil_etape_5_filtrer_doublons_permutation_jetons_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetonsPiles
+from pipeline.outil_etape_6_chercheur_de_solutions import ChercherDesSolutions
+from pipeline.outil_etape_7_classer_les_solutions import ClasserLesSolutions
+from pipeline.outil_etape_8_classer_les_solutions_tronquer import TronquerLesSolutions
+from pipeline.outil_etape_9_exporter_pour_godot import ExporterLesSolutionsPourGodot
 
 # TODO : Appliquer le filtre par similarité basse sur l'ensemble des plateaux avec solutions (Après étape 3)
 # TODO : Prévoir une étape pour le faire en essayant d'atteindre un nombre de plateau X par difficulté (Après étape 3)
@@ -89,8 +93,8 @@ class FluxProgressif:
                 return False
         return True
 
-    def revalider_les_plateaux(self):
-        revalider = RevaliderLesPlateaux(
+    def filtrer_les_plateaux_invalides_ou_initeressants(self):
+        filtrer = FiltrerLesPlateauxInvalidesOuIniteressants(
             nb_colonnes=[self._nb_colonnes],
             nb_lignes=[self._nb_lignes],
             nb_colonnes_vides=self._nb_colonnes_vides,
@@ -98,7 +102,49 @@ class FluxProgressif:
             nom_tache=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
-        revalider.revalider_les_plateaux(self._nb_colonnes, self._nb_lignes)
+        filtrer.filtrer_les_plateaux(self._nb_colonnes, self._nb_lignes)
+        # Mettre à jour le lot de plateaux
+        self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
+                                                repertoire_export_json=self._repertoire_analyse)
+
+    def filtrer_les_plateaux_permutation_jetons(self):
+        filtrer = FiltrerLesPlateauxPermutationJetons(
+            nb_colonnes=[self._nb_colonnes],
+            nb_lignes=[self._nb_lignes],
+            nb_colonnes_vides=self._nb_colonnes_vides,
+            repertoire_analyse=self._repertoire_analyse,
+            nom_tache=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        filtrer.filtrer_les_plateaux(self._nb_colonnes, self._nb_lignes)
+        # Mettre à jour le lot de plateaux
+        self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
+                                                repertoire_export_json=self._repertoire_analyse)
+
+    def filtrer_les_plateaux_permutation_piles(self):
+        filtrer = FiltrerLesPlateauxPermutationPiles(
+            nb_colonnes=[self._nb_colonnes],
+            nb_lignes=[self._nb_lignes],
+            nb_colonnes_vides=self._nb_colonnes_vides,
+            repertoire_analyse=self._repertoire_analyse,
+            nom_tache=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        filtrer.filtrer_les_plateaux(self._nb_colonnes, self._nb_lignes)
+        # Mettre à jour le lot de plateaux
+        self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
+                                                repertoire_export_json=self._repertoire_analyse)
+
+    def filtrer_les_plateaux_permutation_jetons_piles(self):
+        filtrer = FiltrerLesPlateauxPermutationJetonsPiles(
+            nb_colonnes=[self._nb_colonnes],
+            nb_lignes=[self._nb_lignes],
+            nb_colonnes_vides=self._nb_colonnes_vides,
+            repertoire_analyse=self._repertoire_analyse,
+            nom_tache=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        filtrer.filtrer_les_plateaux(self._nb_colonnes, self._nb_lignes)
         # Mettre à jour le lot de plateaux
         self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
                                                 repertoire_export_json=self._repertoire_analyse)
@@ -140,6 +186,10 @@ class FluxProgressif:
         tronqueur.tronquer_les_solutions(taille_tronquee, decallage)
         tronqueur.afficher_synthese(decallage)
 
+    def exporter_pour_godot(self):
+        # TODO
+        pass
+
     def __len__(self):
         return len(self._lot_de_plateaux)
 
@@ -179,8 +229,15 @@ if __name__ == "__main__":
                 print(f"{entete}Nb plateaux dans le flux progressif : {len(flux_progressif)}")
                 if len(flux_progressif):
                     if len(flux_progressif) > 1:
-                        flux_progressif.revalider_les_plateaux()
-                        print(f"{' ' * len(entete)}Nb plateaux revalides : {len(flux_progressif)}")
+                        flux_progressif.filtrer_les_plateaux_invalides_ou_initeressants()
+                        print(f"{' ' * len(entete)}Nb plateaux restants (invalides ou initeressants) : {len(flux_progressif)}")
+                        flux_progressif.filtrer_les_plateaux_permutation_jetons()
+                        print(f"{' ' * len(entete)}Nb plateaux restants (permutations jetons) : {len(flux_progressif)}")
+                        flux_progressif.filtrer_les_plateaux_permutation_piles()
+                        print(f"{' ' * len(entete)}Nb plateaux restants (permutations piles) : {len(flux_progressif)}")
+                        flux_progressif.filtrer_les_plateaux_permutation_jetons_piles()
+                        print(f"{' ' * len(entete)}Nb plateaux restants (permutations jetons et piles) : {len(flux_progressif)}")
                     flux_progressif.chercher_des_solutions()
                     flux_progressif.classer_les_solutions(nb_coups_min=3)
     flux_progressif.tronquer_les_solutions(taille_tronquee=10, decallage=0)
+    flux_progressif.exporter_pour_godot() # TODO

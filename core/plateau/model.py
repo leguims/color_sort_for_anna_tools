@@ -171,14 +171,6 @@ class Plateau:
         return self.plateau_ligne
 
 
-    @property
-    def est_interessant(self) -> bool:
-        """"Verifie si le plateau en parametre est interessant"""
-        if self._est_interessant is None:
-            from .heuristics import est_interessant
-            est_interessant(self)
-        return self._est_interessant
-
     # API Ops
     def la_colonne_est_vide(self, colonne) -> bool:
         from .ops import la_colonne_est_vide
@@ -236,9 +228,8 @@ class Plateau:
         from .validator import plateau_est_valide
         return plateau_est_valide(self)
 
-    # API Heuristics
     @property
     def est_interessant(self) -> bool:
-        from .heuristics import est_interessant
-        return est_interessant(self)
-
+        """"Verifie si le plateau en parametre est interessant"""
+        from .validator import plateau_est_interessant
+        return plateau_est_interessant(self)

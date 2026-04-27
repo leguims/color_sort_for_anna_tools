@@ -34,8 +34,8 @@ class ResoudrePlateau:
         self._liste_des_choix_possibles = None
         self._liste_plateaux_gagnants = None
 
-        nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}"
-        nom_solution = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial._nb_lignes}_Resolution_{self._plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
+        nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial.nb_lignes}"
+        nom_solution = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial.nb_lignes}_Resolution_{self._plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
         self._export_json_solutions = ExportJSON(delai=60, longueur=100,
                                                  nom_plateau=nom_plateau,
                                                  nom_export=nom_solution,

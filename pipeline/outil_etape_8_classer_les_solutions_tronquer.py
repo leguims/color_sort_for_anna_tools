@@ -111,7 +111,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     tronquer_solutions = TronquerLesSolutions(
-        repertoire_solution='Solutions_nouvelle_architecture',
+        repertoire_solution='pipeline_solutions',
         fichier_solution='Solutions_classees',
         taille_tronquee=10,
         nom_tache=NOM_TACHE,

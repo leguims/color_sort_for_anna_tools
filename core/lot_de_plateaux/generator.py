@@ -28,7 +28,7 @@ Le plateau lui-meme n'est pas dans les permutations."""
     liste_permutations_de_colonnes = []
     # 'set()' est utilise pour eliminer les permutations identiques
     for permutation_courante in set(permutations(plateau.plateau_rectangle_texte)):
-        plateau_a_ignorer = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+        plateau_a_ignorer = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes, lot_de_plateaux._plateau_courant.nb_lignes, lot_de_plateaux._plateau_courant.nb_colonnes_vides)
         plateau_a_ignorer.plateau_rectangle_texte = permutation_courante
 
         # Ignorer toutes les permutations
@@ -60,7 +60,7 @@ Le plateau lui-meme n'est pas dans les permutations."""
             # Creation de la transposition jeton apres jeton
             permutation_jeton_courante.append(nouveau_jeton)
         # Le plateau transpose est le plateau a ingorer
-        plateau_a_ignorer = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+        plateau_a_ignorer = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes, lot_de_plateaux._plateau_courant.nb_lignes, lot_de_plateaux._plateau_courant.nb_colonnes_vides)
         plateau_a_ignorer.plateau_ligne = permutation_jeton_courante
         if plateau_a_ignorer.plateau_ligne_texte != plateau.plateau_ligne_texte:
             liste_permutations_de_jetons.append(plateau_a_ignorer)

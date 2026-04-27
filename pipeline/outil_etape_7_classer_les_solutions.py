@@ -170,10 +170,10 @@ if __name__ == "__main__":
 
     classer_solutions = ClasserLesSolutions(
         nb_colonnes=[3], # range(3, 14) # [2]
-        nb_lignes=[4], # range(3, 14) # [2]
+        nb_lignes=[3], # range(3, 14) # [2]
         nb_colonnes_vides=1,
-        repertoire_analyse='Analyse_nouvelle_architecture',
-        repertoire_solution='Solutions_nouvelle_architecture',
+        repertoire_analyse='pipeline_filtre_4',
+        repertoire_solution='pipeline_solutions',
         fichier_solution='Solutions_classees',
         nb_coups_min=3,
         nom_tache=NOM_TACHE,

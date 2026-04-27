@@ -7,7 +7,7 @@ DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 30*60
 TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000
 
 def init_export_json(lot_de_plateaux: LotDePlateaux) -> None:
-    nom = f"Plateaux_{lot_de_plateaux._nb_colonnes}x{lot_de_plateaux._nb_lignes}"
+    nom = f"Plateaux_{lot_de_plateaux._plateau_courant.nb_colonnes}x{lot_de_plateaux._plateau_courant.nb_lignes}"
     lot_de_plateaux._export_json = ExportJSON(delai=DELAI_ENREGISTRER_LOT_DE_PLATEAUX,
                                     longueur=TAILLE_ENREGISTRER_LOT_DE_PLATEAUX,
                                     nom_plateau=nom, nom_export=nom,
@@ -30,42 +30,46 @@ def exporter_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
 def importer_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
     """Lit l'enregistrement JSON s'il existe"""
     data_json = lot_de_plateaux._export_json.importer()
+    nb_colonnes = nb_lignes = 0
+    nb_colonnes_vides = 1
     if "colonnes" in data_json:
-        lot_de_plateaux._nb_colonnes = data_json["colonnes"]
+        nb_colonnes = data_json["colonnes"]
     if "lignes" in data_json:
-        lot_de_plateaux._nb_lignes = data_json["lignes"]
+        nb_lignes = data_json["lignes"]
     if "colonnes vides" in data_json:
-        lot_de_plateaux._nb_colonnes_vides = data_json["colonnes vides"]
+        nb_colonnes_vides = data_json["colonnes vides"]
+    if "colonnes" in data_json or "lignes" in data_json or "colonnes vides" in data_json:
+        lot_de_plateaux._plateau_courant = Plateau(nb_colonnes, nb_lignes, nb_colonnes_vides)
 
     if "recherche terminee" in data_json:
         lot_de_plateaux._recherche_terminee = data_json["recherche terminee"]
     if lot_de_plateaux._recherche_terminee:
         lot_de_plateaux._recherche_dernier_plateau = None
-        if "revalidation phase 1 terminee" in data_json:
-            lot_de_plateaux._revalidation_phase_1_terminee = data_json["revalidation phase 1 terminee"]
-        if "revalidation phase 2 terminee" in data_json:
-            lot_de_plateaux._revalidation_phase_2_terminee = data_json["revalidation phase 2 terminee"]
-        if "revalidation phase 3 terminee" in data_json:
-            lot_de_plateaux._revalidation_phase_3_terminee = data_json["revalidation phase 3 terminee"]
-        if "revalidation phase 4 terminee" in data_json:
-            lot_de_plateaux._revalidation_phase_4_terminee = data_json["revalidation phase 4 terminee"]
-        if "dernier plateau revalide" in data_json:
-            lot_de_plateaux._revalidation_dernier_plateau = data_json["dernier plateau revalide"]
+        if "filtrer plateaux invalides ou ininteressants" in data_json:
+            lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants = data_json["filtrer plateaux invalides ou ininteressants"]
+        if "filtrer doublons permutation jetons" in data_json:
+            lot_de_plateaux._filtrer_doublons_permutation_jetons = data_json["filtrer doublons permutation jetons"]
+        if "filtrer doublons permutation piles" in data_json:
+            lot_de_plateaux._filtrer_doublons_permutation_piles = data_json["filtrer doublons permutation piles"]
+        if "filtrer doublons permutation jetons piles" in data_json:
+            lot_de_plateaux._filtrer_doublons_permutation_jetons_piles = data_json["filtrer doublons permutation jetons piles"]
+        if "dernier plateau filtre" in data_json:
+            lot_de_plateaux._filtrer_dernier_plateau_traite = data_json["dernier plateau filtre"]
     else:
         if "dernier plateau recherche" in data_json:
             lot_de_plateaux._recherche_dernier_plateau = data_json["dernier plateau recherche"]
-        lot_de_plateaux._revalidation_phase_1_terminee = False
-        lot_de_plateaux._revalidation_phase_2_terminee = False
-        lot_de_plateaux._revalidation_phase_3_terminee = False
-        lot_de_plateaux._revalidation_phase_4_terminee = False
-        lot_de_plateaux._revalidation_dernier_plateau = None
+        lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants = False
+        lot_de_plateaux._filtrer_doublons_permutation_jetons = False
+        lot_de_plateaux._filtrer_doublons_permutation_piles = False
+        lot_de_plateaux._filtrer_doublons_permutation_jetons_piles = False
+        lot_de_plateaux._filtrer_dernier_plateau_traite = None
 
     # Rejouer les plateaux deja trouves
     if 'nombre plateaux' in data_json \
         and data_json['nombre plateaux'] > 0:
         # Recuperation des plateaux valides que la recherche soit terminee ou non
         # pas d'optilmisation identifiee pour accelerer la poursuite de la recherche
-        plateau = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+        plateau = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes, lot_de_plateaux._plateau_courant.nb_lignes, lot_de_plateaux._plateau_courant.nb_colonnes_vides)
         for plateau_valide in data_json['liste plateaux']:
             # 'self.est_ignore()' n'est pas utilise, car il va modifier le fichier
             #  d'export quand des plateaux valides sont ajoutes. Dans notre cas, il
@@ -78,7 +82,7 @@ def importer_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
     # Solutions
     if 'liste difficulte des plateaux' in data_json and data_json['liste difficulte des plateaux']:
         # Convertir 'difficulte' et 'nb_coups' en entiers
-        plateau = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+        plateau = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes, lot_de_plateaux._plateau_courant.nb_lignes, lot_de_plateaux._plateau_courant.nb_colonnes_vides)
         for difficulte_str, dico_nb_coups in data_json['liste difficulte des plateaux'].items():
             if difficulte_str == 'null':
                 difficulte = None
@@ -102,24 +106,24 @@ def to_dict(lot_de_plateaux: LotDePlateaux) -> dict:
     dict_lot_de_plateaux = {}
     
     # Ajouter les informations de colonnes et lignes si disponibles
-    if lot_de_plateaux._nb_colonnes is not None:
-        dict_lot_de_plateaux['colonnes'] = lot_de_plateaux._nb_colonnes
-        dict_lot_de_plateaux['lignes'] = lot_de_plateaux._nb_lignes
-        dict_lot_de_plateaux['colonnes vides'] = lot_de_plateaux._nb_colonnes_vides
+    if lot_de_plateaux._plateau_courant.nb_colonnes is not None:
+        dict_lot_de_plateaux['colonnes'] = lot_de_plateaux._plateau_courant.nb_colonnes
+        dict_lot_de_plateaux['lignes'] = lot_de_plateaux._plateau_courant.nb_lignes
+        dict_lot_de_plateaux['colonnes vides'] = lot_de_plateaux._plateau_courant.nb_colonnes_vides
 
     # Indiquer si la recherche est terminee
     dict_lot_de_plateaux['recherche terminee'] = lot_de_plateaux._recherche_terminee
     dict_lot_de_plateaux['dernier plateau recherche'] = lot_de_plateaux._recherche_dernier_plateau
-    dict_lot_de_plateaux['revalidation phase 1 terminee'] = lot_de_plateaux._revalidation_phase_1_terminee
-    dict_lot_de_plateaux['revalidation phase 2 terminee'] = lot_de_plateaux._revalidation_phase_2_terminee
-    dict_lot_de_plateaux['revalidation phase 3 terminee'] = lot_de_plateaux._revalidation_phase_3_terminee
-    dict_lot_de_plateaux['revalidation phase 4 terminee'] = lot_de_plateaux._revalidation_phase_4_terminee
-    dict_lot_de_plateaux['dernier plateau revalide'] = lot_de_plateaux._revalidation_dernier_plateau
+    dict_lot_de_plateaux['filtrer plateaux invalides ou ininteressants'] = lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants
+    dict_lot_de_plateaux['filtrer doublons permutation jetons'] = lot_de_plateaux._filtrer_doublons_permutation_jetons
+    dict_lot_de_plateaux['filtrer doublons permutation piles'] = lot_de_plateaux._filtrer_doublons_permutation_piles
+    dict_lot_de_plateaux['filtrer doublons permutation jetons piles'] = lot_de_plateaux._filtrer_doublons_permutation_jetons_piles
+    dict_lot_de_plateaux['dernier plateau filtre'] = lot_de_plateaux._filtrer_dernier_plateau_traite
 
     # Ajouter le nombre de plateaux et la liste des plateaux valides
     dict_lot_de_plateaux['nombre plateaux'] = len(lot_de_plateaux.plateaux_valides)
     liste_plateaux_universelle = []
-    plateau = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+    plateau = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes, lot_de_plateaux._plateau_courant.nb_lignes, lot_de_plateaux._plateau_courant.nb_colonnes_vides)
     for plateau_txt in lot_de_plateaux.plateaux_valides:
         plateau.clear()
         plateau.plateau_ligne_texte = plateau_txt
@@ -129,7 +133,7 @@ def to_dict(lot_de_plateaux: LotDePlateaux) -> dict:
 
     # La difficulte est un entier, mais est enregistree comme une chaine de caracteres dans le JSON. Surement car c'est une cle.
     liste_difficultes_universelles = {}
-    plateau = Plateau(lot_de_plateaux._nb_colonnes, lot_de_plateaux._nb_lignes, lot_de_plateaux._nb_colonnes_vides)
+    plateau = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes, lot_de_plateaux._plateau_courant.nb_lignes, lot_de_plateaux._plateau_courant.nb_colonnes_vides)
     for difficulte, dico_nb_coups in lot_de_plateaux._ensemble_des_difficultes_de_plateaux.items():
         liste_difficultes_universelles[difficulte] = {}
         for nb_coups, liste_plateaux in dico_nb_coups.items():

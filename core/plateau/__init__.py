@@ -10,7 +10,6 @@ from . import ops
 from . import generator
 from . import validator
 from . import normalize
-from . import heuristics
 from . import exceptions
 
 # Maintenant que tout est chargé, on peut exposer Plateau

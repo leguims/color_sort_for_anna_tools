@@ -12,6 +12,10 @@ class ExportJSON:
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         self._longueur_dernier_enregistrement = 0
 
+    @property
+    def chemin_enregistrement(self) -> Path:
+        return self._chemin_enregistrement
+
     def exporter(self, contenu):
         """Enregistre un fichier JSON selon des criteres de nombres et de temps.
 Retourne True si l'export a ete realise"""

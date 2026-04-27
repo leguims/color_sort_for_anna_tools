@@ -17,10 +17,7 @@ class LotDePlateaux:
 Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherche."""
     def __init__(self, dim_plateau, repertoire_export_json, nb_plateaux_max = 1_000_000):
         # Plateau de base
-        self._nb_colonnes = dim_plateau[0]
-        self._nb_lignes = dim_plateau[1]
-        self._nb_colonnes_vides = dim_plateau[2]
-        self._plateau_courant = Plateau(self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
+        self._plateau_courant = Plateau(dim_plateau[0], dim_plateau[1], dim_plateau[2])
 
         # Gestion du lot de plateau
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
@@ -31,14 +28,14 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._export_json = None
         self._ensemble_des_difficultes_de_plateaux = {} # Ensemble des plateaux classés par difficulté et profondeur
         self._a_change = False # Indique si les données de la classe ont changé.
-        self._logger = logging.getLogger(f"{self._nb_colonnes}.{self._nb_lignes}.{LotDePlateaux.__name__}")
+        self._logger = logging.getLogger(f"{self._plateau_courant.nb_colonnes}.{self._plateau_courant.nb_lignes}.{LotDePlateaux.__name__}")
         self._recherche_terminee = False # Indique si la recherche de plateaux valides est terminee (exhaustive)
         self._recherche_dernier_plateau = None # Dernier plateau traité en recherche pour reprise
-        self._revalidation_phase_1_terminee = False # Indique si la phase 1 de revalidation est terminee
-        self._revalidation_phase_2_terminee = False # Indique si la phase 2 de revalidation est terminee
-        self._revalidation_phase_3_terminee = False # Indique si la phase 3 de revalidation est terminee
-        self._revalidation_phase_4_terminee = False # Indique si la phase 4 de revalidation est terminee
-        self._revalidation_dernier_plateau = None # Dernier plateau traité en revalidation pour reprise
+        self._filtrer_plateaux_invalides_ou_ininteressants = False # Indique si la phase 1 de revalidation est terminee
+        self._filtrer_doublons_permutation_jetons = False # Indique si la phase 2 de revalidation est terminee
+        self._filtrer_doublons_permutation_piles = False # Indique si la phase 3 de revalidation est terminee
+        self._filtrer_doublons_permutation_jetons_piles = False # Indique si la phase 4 de revalidation est terminee
+        self._filtrer_dernier_plateau_traite = None # Dernier plateau traité en revalidation pour reprise
 
         # Reprise de la recherche
         self._repertoire_export_json = repertoire_export_json
@@ -83,16 +80,16 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 derniere_iter = self._iter_permutation
                 # Ultime optimisation :
                 #  - Si la colonne 1 n'a pas de 'A' => FIN des permutations.
-                nb_A_sur_colonne_1 = self._iter_permutation[0:self._nb_lignes].count('A')
+                nb_A_sur_colonne_1 = self._iter_permutation[0:self._plateau_courant.nb_lignes].count('A')
                 if nb_A_sur_colonne_1 == 0:
                     break
                 # Astuce d'optimisation : ignorer la permutation ...
                 #  - Si la colonne 1 est remplie de 'A'.
-                if nb_A_sur_colonne_1 == self._nb_lignes:
+                if nb_A_sur_colonne_1 == self._plateau_courant.nb_lignes:
                     continue
                 # Astuce identique avec la dernière colonne et la case vide ' '
                 #  - Si la colonne N n'a pas de ' '.
-                nb_VIDE_sur_colonne_N = self._iter_permutation[-self._nb_lignes:].count(' ')
+                nb_VIDE_sur_colonne_N = self._iter_permutation[-self._plateau_courant.nb_lignes:].count(' ')
                 if nb_VIDE_sur_colonne_N == 0:
                     continue
                 est_ignore = self.plateau_est_ignore(''.join(self._iter_permutation))
@@ -129,6 +126,10 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     def logger(self) -> set:
         "Logger"
         return self._logger
+
+    @property
+    def chemin_enregistrement(self):
+        return self._export_json.chemin_enregistrement
 
     @property
     def plateaux_valides(self) -> set:
@@ -214,25 +215,25 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         from .filter import effacer_plateaux_valides
         effacer_plateaux_valides(self, set_plateaux_a_effacer, prefixe_log, plateau_courant)
 
-    def mettre_a_jour_les_plateaux_valides(self, periode_affichage) -> None:
-        from .filter import mettre_a_jour_les_plateaux_valides
-        mettre_a_jour_les_plateaux_valides(self, periode_affichage)
+    def filtrer_totalement(self, periode_affichage) -> None:
+        from .filter import filtrer_totalement
+        filtrer_totalement(self, periode_affichage)
 
-    def mettre_a_jour_les_plateaux_valides_phase_1(self, periode_affichage) -> None:
-        from .filter import mettre_a_jour_les_plateaux_valides_phase_1
-        mettre_a_jour_les_plateaux_valides_phase_1(self, periode_affichage)
+    def filtrer_plateaux_invalides_ou_initeressants(self, periode_affichage) -> None:
+        from .filter import filtrer_plateaux_invalides_ou_initeressants
+        filtrer_plateaux_invalides_ou_initeressants(self, periode_affichage)
 
-    def mettre_a_jour_les_plateaux_valides_phase_2(self, periode_affichage) -> None:
-        from .filter import mettre_a_jour_les_plateaux_valides_phase_2
-        mettre_a_jour_les_plateaux_valides_phase_2(self, periode_affichage)
+    def filtrer_doublons_permutation_jetons(self, periode_affichage) -> None:
+        from .filter import filtrer_doublons_permutation_jetons
+        filtrer_doublons_permutation_jetons(self, periode_affichage)
 
-    def mettre_a_jour_les_plateaux_valides_phase_3(self, periode_affichage) -> None:
-        from .filter import mettre_a_jour_les_plateaux_valides_phase_3
-        mettre_a_jour_les_plateaux_valides_phase_3(self, periode_affichage)
+    def filtrer_doublons_permutation_piles(self, periode_affichage) -> None:
+        from .filter import filtrer_doublons_permutation_piles
+        filtrer_doublons_permutation_piles(self, periode_affichage)
 
-    def mettre_a_jour_les_plateaux_valides_phase_4(self, periode_affichage) -> None:
-        from .filter import mettre_a_jour_les_plateaux_valides_phase_4
-        mettre_a_jour_les_plateaux_valides_phase_4(self, periode_affichage)
+    def filtrer_doublons_permutation_jetons_piles(self, periode_affichage) -> None:
+        from .filter import filtrer_doublons_permutation_jetons_piles
+        filtrer_doublons_permutation_jetons_piles(self, periode_affichage)
 
 
     # API generator
