@@ -114,7 +114,7 @@ class FiltrerLesSolutions:
     def afficher_synthese(self):
         logger = logging.getLogger(f"chercher.afficher_synthese")
         logger.info(f"*** Synthese des Solutions:")
-        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export='Solutions_classees', repertoire=self._repertoire_solution)
+        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
         solutions_classees = solutions_classees_json.importer()
 
         somme_plateaux = 0
@@ -148,7 +148,7 @@ class FiltrerLesSolutions:
         profil.start()
 
         # Effacer l'existant
-        solutions_classees_json = ExportJSON(0, 0, '', nom_export='Solutions_classees', repertoire=self._repertoire_solution)
+        solutions_classees_json = ExportJSON(0, 0, '', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
         solutions_classees_json.effacer()
         
         # Configurer le logger
@@ -172,9 +172,9 @@ if __name__ == "__main__":
         nb_colonnes=[3], # range(3, 14) # [2]
         nb_lignes=[3], # range(3, 14) # [2]
         nb_colonnes_vides=1,
-        repertoire_analyse='pipeline_filtre_4',
-        repertoire_solution='pipeline_solutions',
-        fichier_solution='Solutions_classees',
+        repertoire_analyse='pipeline_5_filtre_doublons_permutation_jetons_piles',
+        repertoire_solution='pipeline_6_solutions',
+        fichier_solution='7_filtrer_les_solutions_pour_godot',
         nb_coups_min=3,
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL

@@ -56,7 +56,7 @@ class FiltrerLesPlateaux:
                                         repertoire_export_json=self._repertoire_filtre,
                                         nb_plateaux_max = self._memoire_max)
         # Parcourir les plateaux et supprimer les plateaux "invalides"
-        lot_de_plateaux.filtrer_doublons_permutation_piles(self._periode_affichage)
+        lot_de_plateaux.filtrer_doublons_permutation_jetons_piles(self._periode_affichage)
 
     def chercher_en_sequence(self):
         # Configurer le logger
@@ -85,7 +85,7 @@ class FiltrerLesPlateaux:
         profil.stop()
 
 if __name__ == "__main__":
-    NOM_TACHE = 'filtrer_plateaux_invalides_ou_initeressants'
+    NOM_TACHE = 'filtrer_doublons_permutation_jetons_piles'
     FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
 
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -94,8 +94,8 @@ if __name__ == "__main__":
         nb_colonnes=[3], #range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
         nb_lignes=[3], #range(2,6) #[5] #range(2,6) #range(2, 14) #[3] # [2,3] #4
         nb_colonnes_vides=1,
-        repertoire_analyse='pipeline_filtre_3', # 'Analyse_nouvelle_architecture',
-        repertoire_filtre='pipeline_filtre_4', # 'Analyse_nouvelle_architecture_filtre_1',
+        repertoire_analyse='pipeline_4_filtre_doublons_permutation_piles',
+        repertoire_filtre='pipeline_5_filtre_doublons_permutation_jetons_piles',
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL
     )

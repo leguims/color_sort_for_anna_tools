@@ -111,8 +111,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     tronquer_solutions = TronquerLesSolutions(
-        repertoire_solution='pipeline_solutions',
-        fichier_solution='Solutions_classees',
+        repertoire_solution='pipeline_6_solutions',
+        fichier_solution='7_filtrer_les_solutions_pour_godot',
         taille_tronquee=10,
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL,
