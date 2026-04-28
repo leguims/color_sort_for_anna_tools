@@ -10,23 +10,9 @@ class ResoudrePlateau:
                  plateau_initial: Plateau,
                  repertoire_solution):
         self._plateau_initial = copy.deepcopy(plateau_initial)
-        # Statistiques des solutions:
-        #    {
-        #        "plateau": "AAAB.BB  .AB  ",
-        #        # key = longueur de la solution
-        #        # value = nombre de solutions de cette longueur
-        #        "dico des longueurs": {3: 12, 4: 24},
-        #        # Produit des choix à chaque étape de la solution la plus courte / rapporté à la taille du plateau
-        #        # coup 1 = 3 choix, coup 2 = 2 choix et coup 3 = 1 choix
-        #        # difficulté = 3x2x1 * (12x12) / (3 x 4)
-        #        "difficulte": 72,
-        #        "solution": []
-        #    }
-        # Les longueurs sont toutes egales (courtes et longues).
-        # La difficulté dépend de :
-        #   - Le nombre de choix
-        #   - La taille du plateau.
-        self._dico_des_longueurs = {}
+        # Statistiques des solutions: voir io.py
+        self._dico_des_longueurs_de_solutions = {}
+        self._dico_des_longueurs_de_blocages = {}
         self._recherche_terminee = False
         self._difficulte = None
         self._solution = None

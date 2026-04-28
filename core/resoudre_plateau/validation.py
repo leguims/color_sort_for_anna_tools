@@ -44,10 +44,6 @@ def ensemble_des_plateaux_gagnants(resoudre_plateau: ResoudrePlateau) -> list:
             resoudre_plateau._liste_plateaux_gagnants.append(plateau_gagnant_courant.plateau_ligne_texte)
     return resoudre_plateau._liste_plateaux_gagnants
 
-def solution_complete(resoudre_plateau: ResoudrePlateau, plateau: Plateau) -> bool:
-    "Evalue si le plateau est termine (gagne ou bloque)"
-    if plateau.plateau_ligne_texte in ensemble_des_plateaux_gagnants(resoudre_plateau):
-        return True
-    # TODO : Evaluer si le plateau est "bloque" => a observer, mais verification inutile jusque la.
-    return False
-
+def le_plateau_est_gagnant(resoudre_plateau: ResoudrePlateau, plateau: Plateau) -> bool:
+    "Evalue si le plateau est gagne"
+    return plateau.plateau_ligne_texte in ensemble_des_plateaux_gagnants(resoudre_plateau)
