@@ -27,7 +27,7 @@ class FiltrerLesPlateaux:
         self._repertoire_analyse = repertoire_analyse
         self._repertoire_filtre = repertoire_filtre
         self._nom_tache = nom_tache
-        self._nom_etape = 'revalider_les_plateaux'
+        self._nom_etape = 'filtrer_doublons_permutation_jetons'
         self._fichier_journal = fichier_journal
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
@@ -50,6 +50,9 @@ class FiltrerLesPlateaux:
             lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
                                             repertoire_export_json=self._repertoire_analyse,
                                             nb_plateaux_max = self._memoire_max)
+            if lot_de_plateaux.est_filtre_plateaux_invalides_ou_initeressants():
+                logger.info(f"Le filtrage des plateaux invalides ou ininteressants n'est pas achevé.")
+                return
             self.copier_les_plateaux(lot_de_plateaux.chemin_enregistrement)
 
         lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
