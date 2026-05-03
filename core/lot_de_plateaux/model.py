@@ -219,6 +219,22 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         from .filter import filtrer_totalement
         filtrer_totalement(self, periode_affichage)
 
+    @property
+    def est_filtre_plateaux_invalides_ou_initeressants(self) -> bool:
+        return self._filtrer_plateaux_invalides_ou_ininteressants
+
+    @property
+    def est_filtre_doublons_permutation_jetons(self) -> bool:
+        return self._filtrer_doublons_permutation_jetons
+
+    @property
+    def est_filtre_doublons_permutation_piles(self) -> bool:
+        return self._filtrer_doublons_permutation_piles
+
+    @property
+    def est_filtre_doublons_permutation_jetons_piles(self) -> bool:
+        return self._filtrer_doublons_permutation_jetons_piles
+
     def filtrer_plateaux_invalides_ou_initeressants(self, periode_affichage) -> None:
         from .filter import filtrer_plateaux_invalides_ou_initeressants
         filtrer_plateaux_invalides_ou_initeressants(self, periode_affichage)
