@@ -34,8 +34,9 @@ class Plateau:
 
     def __str__(self) -> str:
         if not self._str_format:
-            for ligne in self.plateau_rectangle:
-                self._str_format += f"{ligne}\n"
+            if self.plateau_rectangle:
+                for ligne in self.plateau_rectangle:
+                    self._str_format += f"{ligne}\n"
         return self._str_format
 
     def __eq__(self, autre) -> bool:

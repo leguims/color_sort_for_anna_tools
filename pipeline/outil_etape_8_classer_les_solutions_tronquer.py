@@ -103,6 +103,7 @@ class TronquerLesSolutions:
             profil.stop()
 
             self.afficher_synthese()
+        logger.info('-'*10 + " FIN " + '-'*10)
 
 if __name__ == "__main__":
     NOM_TACHE = 'tronquer_les_solutions'

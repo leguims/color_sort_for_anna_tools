@@ -27,7 +27,7 @@ class FiltrerLesPlateaux:
         self._repertoire_analyse = repertoire_analyse
         self._repertoire_filtre = repertoire_filtre
         self._nom_tache = nom_tache
-        self._nom_etape = 'revalider_les_plateaux'
+        self._nom_etape = 'filtrer_plateaux_invalides_ou_initeressants'
         self._fichier_journal = fichier_journal
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
@@ -35,9 +35,10 @@ class FiltrerLesPlateaux:
 
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
-        destination = Path(self._repertoire_filtre)
-        destination.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(source.parent.parent, destination, dirs_exist_ok=True) # Copier les fichiers d'analyse dans le repertoire de filtre pour les modifier
+        destination = Path(self._repertoire_filtre) / source.parent.name
+        if source.exists() and not destination.exists():
+            destination.mkdir(parents=True, exist_ok=True)
+            shutil.copy(source, destination)
 
     def filtrer_les_plateaux(self, nb_colonnes, nb_lignes):
         # Configurer le logger en doublon pour la paralelisation
@@ -51,6 +52,7 @@ class FiltrerLesPlateaux:
                                             repertoire_export_json=self._repertoire_analyse,
                                             nb_plateaux_max = self._memoire_max)
             self.copier_les_plateaux(lot_de_plateaux.chemin_enregistrement)
+            lot_de_plateaux = None
 
         lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_filtre,
@@ -86,18 +88,20 @@ class FiltrerLesPlateaux:
 
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_plateaux_invalides_ou_initeressants'
-    FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
+    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
+    FICHIER_ANALYSE = Path('..') / 'pipeline_1_chercher_des_plateaux'
+    FICHIER_FILTRE = Path('..') / 'pipeline_2_filtre_plateaux_invalides_ou_initeressants'
 
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    revalider = FiltrerLesPlateaux(
-        nb_colonnes=[3], #range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
-        nb_lignes=[3], #range(2,6) #[5] #range(2,6) #range(2, 14) #[3] # [2,3] #4
+    filtrer = FiltrerLesPlateaux(
+        nb_colonnes=range(2, 12),
+        nb_lignes=range(2,14),
         nb_colonnes_vides=1,
-        repertoire_analyse='pipeline_1_chercher_des_plateaux', # Meme repertoire, car les fichiers sont tous deja valides.
-        repertoire_filtre='pipeline_1_chercher_des_plateaux', # C'est une opération presque inutile.
+        repertoire_analyse=str(FICHIER_ANALYSE),
+        repertoire_filtre=str(FICHIER_FILTRE),
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL
     )
-    # revalider.chercher_en_parallele()
-    revalider.chercher_en_sequence()
+    # filtrer.chercher_en_parallele()
+    filtrer.chercher_en_sequence()

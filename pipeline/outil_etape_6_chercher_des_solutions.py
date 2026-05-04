@@ -2,7 +2,8 @@
 import datetime
 import time
 import logging
-import pathlib
+from pathlib import Path
+import shutil
 
 import sys
 import os
@@ -17,6 +18,7 @@ class ChercherDesSolutions:
     "Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoodSort'"
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides,
                 repertoire_analyse,
+                repertoire_difficulte,
                 repertoire_solution,
                 nom_tache,
                 fichier_journal,
@@ -28,6 +30,7 @@ class ChercherDesSolutions:
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
         self._repertoire_analyse = repertoire_analyse
+        self._repertoire_difficulte = repertoire_difficulte
         self._repertoire_solution = repertoire_solution
         self._nom_tache = nom_tache
         self._nom_etape = 'chercher_des_solutions'
@@ -37,6 +40,13 @@ class ChercherDesSolutions:
         self._periode_scrutation_secondes = periode_scrutation_secondes
         self._periode_affichage = periode_affichage
 
+    def copier_les_plateaux(self, source: Path):
+        # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
+        destination = Path(self._repertoire_difficulte) / source.parent.name
+        if source.exists() and not destination.exists():
+            destination.mkdir(parents=True, exist_ok=True)
+            shutil.copy(source, destination)
+
     def chercher_des_solutions(self, colonnes, lignes, taciturne=False):
         # Configurer le logger
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -44,11 +54,19 @@ class ChercherDesSolutions:
         if not taciturne:
             logger.info(f"DEBUT {self._nom_etape}")
 
+        # Copie des fichiers
+        if self._repertoire_analyse != self._repertoire_difficulte:
+            lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
+                                            repertoire_export_json=self._repertoire_analyse,
+                                            nb_plateaux_max = self._memoire_max)
+            self.copier_les_plateaux(lot_de_plateaux.chemin_enregistrement)
+            lot_de_plateaux = None
+
         plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
-                                        repertoire_export_json=self._repertoire_analyse,
+                                        repertoire_export_json=self._repertoire_difficulte,
                                         nb_plateaux_max = self._memoire_max)
-        if lot_de_plateaux.est_deja_termine: # or True: # True = Chercher toutes les solutions a l'heure actuel.
+        if lot_de_plateaux.est_deja_termine or True: # True = Chercher toutes les solutions a l'heure actuel.
             if not taciturne:
                 logger.info("Ce lot de plateaux est termine")
 
@@ -112,21 +130,26 @@ class ChercherDesSolutions:
         for iter_lignes in self._nb_lignes:
             for iter_colonnes in self._nb_colonnes:
                 self.chercher_des_solutions(iter_colonnes, iter_lignes)
+        logger.info('-'*10 + " FIN " + '-'*10)
         profil.stop()
 
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_solutions'
-    FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
+    FICHIER_ANALYSE = Path('..') / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
+    FICHIER_DIFFICULTE = Path('..') / 'pipeline_6_plateaux_avec_difficulte'
+    FICHIER_SOLUTION = Path('..') / 'pipeline_6_solutions'
 
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     chercher_solutions = ChercherDesSolutions(
-        nb_colonnes=[3], #range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
-        nb_lignes=[3], #range(2,6) #[5] #range(2,6) #range(2, 14) #[3] # [2,3] #4
+        nb_colonnes=range(2, 12),
+        nb_lignes=[2], #range(2,14),
         nb_colonnes_vides=1,
-        repertoire_analyse='pipeline_5_filtre_doublons_permutation_jetons_piles',
-        repertoire_solution='pipeline_6_solutions',
+        repertoire_analyse=str(FICHIER_ANALYSE),
+        repertoire_difficulte=str(FICHIER_DIFFICULTE),
+        repertoire_solution=str(FICHIER_SOLUTION),
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL
     )

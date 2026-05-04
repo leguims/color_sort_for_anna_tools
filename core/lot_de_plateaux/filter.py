@@ -96,7 +96,7 @@ def filtrer_totalement(lot_de_plateaux: LotDePlateaux, periode_affichage: float)
 def filtrer_plateaux_invalides_ou_initeressants(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 1 : Valider les plateaux au sens de la classe 'Plateau.est_valide'"""
     prefixe_log = "filtrer plateaux invalides ou ininteressants :"
-    if lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants:
+    if lot_de_plateaux.est_filtre_plateaux_invalides_ou_initeressants:
         lot_de_plateaux.logger.info(f"{prefixe_log} deja terminee")
         return
 
@@ -155,11 +155,11 @@ def filtrer_plateaux_invalides_ou_initeressants(lot_de_plateaux: LotDePlateaux, 
 def filtrer_doublons_permutation_jetons(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 2 : Chercher les doublons (permutations de jetons)"""
     prefixe_log = "filtrer doublons permutation jetons :"
-    if not lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants:
+    if not lot_de_plateaux.est_filtre_plateaux_invalides_ou_ininteressants:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 1 n'est pas terminee")
         return
 
-    if lot_de_plateaux._filtrer_doublons_permutation_jetons:
+    if lot_de_plateaux.est_filtre_doublons_permutation_jetons:
         lot_de_plateaux.logger.info(f"{prefixe_log} deja terminee")
         return
 
@@ -219,15 +219,15 @@ def filtrer_doublons_permutation_jetons(lot_de_plateaux: LotDePlateaux, periode_
 def filtrer_doublons_permutation_piles(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 3 : Chercher les doublons (permutations de piles)"""
     prefixe_log = "Filtrer doublons permutations piles :"
-    if not lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants:
+    if not lot_de_plateaux.est_filtre_plateaux_invalides_ou_ininteressants:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 1 n'est pas terminee")
         return
 
-    if not lot_de_plateaux._filtrer_doublons_permutation_jetons:
+    if not lot_de_plateaux.est_filtre_doublons_permutation_jetons:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 2 n'est pas terminee")
         return
 
-    if lot_de_plateaux._filtrer_doublons_permutation_piles:
+    if lot_de_plateaux.est_filtre_doublons_permutation_piles:
         lot_de_plateaux.logger.info(f"{prefixe_log} deja terminee")
         return
 
@@ -286,19 +286,19 @@ def filtrer_doublons_permutation_piles(lot_de_plateaux: LotDePlateaux, periode_a
 def filtrer_doublons_permutation_jetons_piles(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 4 : Chercher les doublons (permutations de jetons des permutations de piles)"""
     prefixe_log = "Filtrer doublons permutations jetons et piles :"
-    if not lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants:
+    if not lot_de_plateaux.est_filtre_plateaux_invalides_ou_ininteressants:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 1 n'est pas terminee")
         return
 
-    if not lot_de_plateaux._filtrer_doublons_permutation_jetons:
+    if not lot_de_plateaux.est_filtre_doublons_permutation_jetons:
         lot_de_plateaux.logger.error(f"{prefixe_log} la phase 2 n'est pas terminee")
         return
 
-    if not lot_de_plateaux._filtrer_doublons_permutation_piles:
+    if not lot_de_plateaux.est_filtre_doublons_permutation_piles:
         lot_de_plateaux ._logger.error(f"{prefixe_log} la phase 3 n'est pas terminee")
         return
 
-    if lot_de_plateaux._filtrer_doublons_permutation_jetons_piles:
+    if lot_de_plateaux.est_filtre_doublons_permutation_jetons_piles:
         lot_de_plateaux.logger.info(f"{prefixe_log} deja terminee")
         return
 

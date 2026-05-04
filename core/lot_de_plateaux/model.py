@@ -220,7 +220,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         filtrer_totalement(self, periode_affichage)
 
     @property
-    def est_filtre_plateaux_invalides_ou_initeressants(self) -> bool:
+    def est_filtre_plateaux_invalides_ou_ininteressants(self) -> bool:
         return self._filtrer_plateaux_invalides_ou_ininteressants
 
     @property

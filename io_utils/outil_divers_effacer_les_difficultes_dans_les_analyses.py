@@ -2,17 +2,21 @@
 import logging
 import pathlib
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+
 from core.lot_de_plateaux import LotDePlateaux
 from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.creer_les_taches import CreerLesTaches
 
-COLONNES = [3] # range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
-LIGNES = [3] # range(2, 14) #[3] # [2,3] #4
+COLONNES = range(2, 12)
+LIGNES = range(2, 14)
 COLONNES_VIDES_MAX = 1
 PROFILER_LE_CODE = False
 NOM_TACHE = 'effacer_les_difficulte_dans_les_analyse'
-FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
-REPERTOIRE_EXPORT_JSON = 'Analyse_nouvelle_architecture'
+FICHIER_JOURNAL = pathlib.Path('..') / 'logs' / f'{NOM_TACHE}.log'
+REPERTOIRE_EXPORT_JSON = str(pathlib.Path('..') / 'Analyses')
 
 def effacer_les_difficulte_dans_les_analyse(colonnes, lignes):
     # Configurer le logger

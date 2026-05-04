@@ -160,6 +160,7 @@ class FiltrerLesSolutions:
         profil.stop()
 
         self.afficher_synthese()
+        logger.info('-'*10 + " FIN " + '-'*10)
 
 if __name__ == "__main__":
     NOM_TACHE = 'classer_les_solutions'
