@@ -145,13 +145,15 @@ if __name__ == "__main__":
 
     chercher_solutions = ChercherDesSolutions(
         nb_colonnes=range(2, 12),
-        nb_lignes=[2], #range(2,14),
+        nb_lignes=range(2,14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_difficulte=str(FICHIER_DIFFICULTE),
         repertoire_solution=str(FICHIER_SOLUTION),
         nom_tache=NOM_TACHE,
-        fichier_journal=FICHIER_JOURNAL
+        fichier_journal=FICHIER_JOURNAL,
+        periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )
     # chercher_solutions.chercher_en_parallele()
-    chercher_solutions.chercher_en_sequence()
+    # chercher_solutions.chercher_en_sequence()
+    chercher_solutions.chercher_en_boucle()

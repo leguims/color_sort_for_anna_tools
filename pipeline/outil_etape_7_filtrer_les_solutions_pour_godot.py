@@ -2,7 +2,7 @@
 import datetime
 import time
 import logging
-import pathlib
+from pathlib import Path
 
 import sys
 import os
@@ -164,21 +164,25 @@ class FiltrerLesSolutions:
 
 if __name__ == "__main__":
     NOM_TACHE = 'classer_les_solutions'
-    FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
+    FICHIER_ANALYSE = Path('..') / 'pipeline_6_plateaux_avec_difficulte'
+    FICHIER_SOLUTION = Path('..') / 'pipeline_6_solutions'
 
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     classer_solutions = FiltrerLesSolutions(
-        nb_colonnes=[3], # range(3, 14) # [2]
-        nb_lignes=[3], # range(3, 14) # [2]
+        nb_colonnes=range(2, 12),
+        nb_lignes=range(2,14),
         nb_colonnes_vides=1,
-        repertoire_analyse='pipeline_5_filtre_doublons_permutation_jetons_piles',
-        repertoire_solution='pipeline_6_solutions',
+        repertoire_analyse=str(FICHIER_ANALYSE),
+        repertoire_solution=str(FICHIER_SOLUTION),
         fichier_solution='7_filtrer_les_solutions_pour_godot',
         nb_coups_min=3,
         nom_tache=NOM_TACHE,
-        fichier_journal=FICHIER_JOURNAL
+        fichier_journal=FICHIER_JOURNAL,
+        periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )
     # classer_solutions.chercher_en_parallele()
-    classer_solutions.chercher_en_sequence()
+    # classer_solutions.chercher_en_sequence()
+    classer_solutions.chercher_en_boucle()

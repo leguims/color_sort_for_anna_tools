@@ -1,4 +1,6 @@
 "Parcourt les plateaux et pratique un elagage des doublons et de similarite"
+import datetime
+import time
 import logging
 from pathlib import Path
 import shutil
@@ -20,6 +22,7 @@ class FiltrerLesPlateaux:
                 fichier_journal,
                 memoire_max = 5_000_000,
                 profiler_le_code = False,
+                periode_scrutation_secondes = 30*60, # en secondes
                 periode_affichage = 1*60): # en secondes
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
@@ -31,6 +34,7 @@ class FiltrerLesPlateaux:
         self._fichier_journal = fichier_journal
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
+        self._periode_scrutation_secondes = periode_scrutation_secondes
         self._periode_affichage = periode_affichage
 
     def copier_les_plateaux(self, source: Path):
@@ -63,6 +67,18 @@ class FiltrerLesPlateaux:
                                         nb_plateaux_max = self._memoire_max)
         # Parcourir les plateaux et supprimer les plateaux "invalides"
         lot_de_plateaux.filtrer_doublons_permutation_jetons_piles(self._periode_affichage)
+
+    def chercher_en_boucle(self):
+        logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
+        while(True):
+            logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+            for iter_lignes in self._nb_lignes:
+                for iter_colonnes in self._nb_colonnes:
+                    self.filtrer_les_plateaux(iter_colonnes, iter_lignes)
+            logger.info('-'*10 + " FIN " + '-'*10)
+            current_time = datetime.datetime.now().strftime("%H:%M:%S")
+            logger.info(f"{current_time} - Attente entre 2 iterations de {self._periode_scrutation_secondes}s...")
+            time.sleep(self._periode_scrutation_secondes)
 
     def chercher_en_sequence(self):
         # Configurer le logger
@@ -99,13 +115,15 @@ if __name__ == "__main__":
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     filtrer = FiltrerLesPlateaux(
-        nb_colonnes=range(2, 7), #range(2, 12),
-        nb_lignes=[3], # range(2,14),
+        nb_colonnes=range(2, 12),
+        nb_lignes=range(2,14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_filtre=str(FICHIER_FILTRE),
         nom_tache=NOM_TACHE,
-        fichier_journal=FICHIER_JOURNAL
+        fichier_journal=FICHIER_JOURNAL,
+        periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )
     # filtrer.chercher_en_parallele()
-    filtrer.chercher_en_sequence()
+    # filtrer.chercher_en_sequence()
+    filtrer.chercher_en_boucle()
