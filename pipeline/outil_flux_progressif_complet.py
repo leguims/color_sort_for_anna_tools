@@ -27,8 +27,8 @@ from pipeline.outil_etape_4_filtrer_doublons_permutation_piles import FiltrerLes
 from pipeline.outil_etape_5_filtrer_doublons_permutation_jetons_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetonsPiles
 from pipeline.outil_etape_6_chercher_des_solutions import ChercherDesSolutions
 from pipeline.outil_etape_7_filtrer_les_solutions_pour_godot import FiltrerLesSolutions
-from pipeline.outil_etape_8_classer_les_solutions_tronquer import TronquerLesSolutions
-from pipeline.outil_etape_9_exporter_pour_godot import ExporterLesSolutionsPourGodot
+from pipeline.outil_etape_8_exporter_pour_godot import ExporterLesSolutionsPourGodot
+from pipeline.outil_etape_9_tronquer_les_solutions_godot import TronquerLesSolutions
 
 # TODO : Appliquer le filtre par similarité basse sur l'ensemble des plateaux avec solutions (Après étape 3)
 # TODO : Prévoir une étape pour le faire en essayant d'atteindre un nombre de plateau X par difficulté (Après étape 3)
@@ -43,6 +43,7 @@ class FluxProgressif:
                  repertoire_analyse,
                  repertoire_solution,
                  fichier_solution,
+                 fichier_godot,
                  nom_tache,
                  fichier_journal):
         self._nb_colonnes = nb_colonnes
@@ -52,6 +53,7 @@ class FluxProgressif:
         self._repertoire_analyse = repertoire_analyse
         self._repertoire_solution = repertoire_solution
         self._fichier_solution = fichier_solution
+        self._fichier_godot = fichier_godot
         self._spec_plateau = (self._nb_colonnes, self._nb_lignes, self._nb_colonnes_vides)
         self._lot_de_plateaux = LotDePlateaux(self._spec_plateau,
                                                 repertoire_export_json=self._repertoire_analyse)
@@ -170,10 +172,20 @@ class FluxProgressif:
             repertoire_solution=self._repertoire_solution,
             fichier_solution=self._fichier_solution,
             nb_coups_min=nb_coups_min,
-            nom_tache=self._nom_tache,
+            nom_etape=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
         classeur.classer_les_solutions(self._nb_colonnes, self._nb_lignes)
+
+    def export_godot(self):
+        export = ExporterLesSolutionsPourGodot(
+            repertoire_solution=self._repertoire_solution,
+            fichier_solution=self._fichier_solution,
+            fichier_godot=self._fichier_godot,
+            nom_etape=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        export.exporter_vers_godot()
 
     def tronquer_les_solutions(self, taille_tronquee, decallage=0):
         tronqueur = TronquerLesSolutions(
@@ -220,6 +232,7 @@ if __name__ == "__main__":
                     repertoire_analyse='Analyse_flux_progressif_'+str(similarite),
                     repertoire_solution='Solutions_flux_progressif_NEW_RESOLUTION',
                     fichier_solution='Solutions_classees_'+str(similarite),
+                    fichier_godot='Solutions_godot_'+str(similarite),
                     nom_tache='flux_progressif_complet',
                     fichier_journal=pathlib.Path('logs') / f'{NOM_TACHE}.log'
                 )
@@ -239,5 +252,6 @@ if __name__ == "__main__":
                         print(f"{' ' * len(entete)}Nb plateaux restants (permutations jetons et piles) : {len(flux_progressif)}")
                     flux_progressif.chercher_des_solutions()
                     flux_progressif.classer_les_solutions(nb_coups_min=3)
+    flux_progressif.export_godot()
     flux_progressif.tronquer_les_solutions(taille_tronquee=10, decallage=0)
     flux_progressif.exporter_pour_godot() # TODO
