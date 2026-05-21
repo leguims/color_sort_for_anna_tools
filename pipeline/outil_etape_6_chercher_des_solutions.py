@@ -136,16 +136,16 @@ class ChercherDesSolutions:
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_solutions'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
-    FICHIER_DIFFICULTE = Path('..') / 'pipeline_6_plateaux_avec_difficulte'
-    FICHIER_SOLUTION = Path('..') / 'pipeline_6_solutions'
+    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
+    FICHIER_DIFFICULTE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_plateaux_avec_difficulte'
+    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
 
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     chercher_solutions = ChercherDesSolutions(
-        nb_colonnes=range(2, 12),
-        nb_lignes=range(2,14),
+        nb_colonnes=range(3, 12),
+        nb_lignes=range(3,14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_difficulte=str(FICHIER_DIFFICULTE),

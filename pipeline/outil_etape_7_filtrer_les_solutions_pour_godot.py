@@ -21,8 +21,7 @@ class FiltrerLesSolutions:
                 repertoire_solution,
                 fichier_solution,
                 nb_coups_min,
-                difficulte_min,
-                nom_etape,
+                nom_tache,
                 fichier_journal,
                 profiler_le_code = False,
                 periode_scrutation_secondes = 30*60): # en secondes
@@ -33,8 +32,7 @@ class FiltrerLesSolutions:
         self._repertoire_solution = repertoire_solution
         self._fichier_solution = fichier_solution
         self._nb_coups_min = nb_coups_min
-        self._difficulte_min = difficulte_min
-        self._nom_etape = nom_etape
+        self._nom_tache = nom_tache
         self._fichier_journal = fichier_journal
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
@@ -42,8 +40,8 @@ class FiltrerLesSolutions:
     def classer_les_solutions(self, colonnes, lignes):
         # Configurer le logger
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
-        logger.info(f"DEBUT {self._nom_etape}")
+        logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_tache}")
+        logger.info(f"DEBUT {self._nom_tache}")
         # logger.info(plateau.plateau_ligne_texte_universel)
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse)
@@ -53,6 +51,7 @@ class FiltrerLesSolutions:
             logger.info("Importer les solutions")
             solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
             solutions_classees = solutions_classees_json.importer()
+            plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
 
             liste_plateaux_avec_solutions = lot_de_plateaux.to_dict().get('liste difficulte des plateaux')
             if "liste difficulte des plateaux" not in solutions_classees:
@@ -63,16 +62,18 @@ class FiltrerLesSolutions:
             for difficulte, dico_nb_coups in liste_plateaux_avec_solutions.items():
                 for nb_coups, liste_plateaux in dico_nb_coups.items():
                     logger.info(f"\n\r - Difficulte : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{self.pluriel(liste_plateaux, 'x')}")
-                    if difficulte is not None and nb_coups is not None and int(nb_coups) >= self._nb_coups_min and int(difficulte) >= self._difficulte_min:
+                    if difficulte is not None and nb_coups is not None and int(nb_coups) >= self._nb_coups_min :
                         if str(difficulte) not in dict_difficulte:
                             dict_difficulte[str(difficulte)] = {}
                         if str(nb_coups) not in dict_difficulte[str(difficulte)]:
                             dict_difficulte[str(difficulte)][str(nb_coups)] = []
                         difficulte_courante = dict_difficulte[str(difficulte)][str(nb_coups)]
                         for plateau_ligne_texte_universel in liste_plateaux:
+                            plateau.clear()
+                            plateau.plateau_ligne_texte_universel = plateau_ligne_texte_universel
                             # Eviter les doublons
-                            if plateau_ligne_texte_universel not in difficulte_courante:
-                                difficulte_courante.append(plateau_ligne_texte_universel)
+                            if plateau.plateau_ligne_texte_universel not in difficulte_courante:
+                                difficulte_courante.append(plateau.plateau_ligne_texte_universel)
             logger.info("Export des solutions")
             self.ordonner_difficulte_nombre_coups(solutions_classees["liste difficulte des plateaux"])
             solutions_classees_json.forcer_export(solutions_classees)
@@ -156,24 +157,23 @@ class FiltrerLesSolutions:
         logger.info('-'*10 + " FIN " + '-'*10)
 
 if __name__ == "__main__":
-    NOM_ETAPE = 'classer_les_solutions'
-    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
-    FICHIER_ANALYSE = Path('..') / 'pipeline_6_plateaux_avec_difficulte'
-    FICHIER_SOLUTION = Path('..') / 'pipeline_6_solutions'
+    NOM_TACHE = 'classer_les_solutions'
+    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
+    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_plateaux_avec_difficulte'
+    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
 
     # Configurer le logger
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     classer_solutions = FiltrerLesSolutions(
-        nb_colonnes=range(2, 12),
-        nb_lignes=range(2,14),
+        nb_colonnes=range(3, 12),
+        nb_lignes=range(3,14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_solution=str(FICHIER_SOLUTION),
         fichier_solution='7_filtrer_les_solutions_pour_godot',
         nb_coups_min=3,
-        difficulte_min=10,
-        nom_etape=NOM_ETAPE,
+        nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL,
         periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )

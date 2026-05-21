@@ -1,6 +1,6 @@
 "Module pour creer des plateaux de 'ColorWoodSort'"
 import logging
-import pathlib
+from pathlib import Path
 import datetime
 
 import sys
@@ -77,15 +77,16 @@ class ChercherDesPlateaux:
 
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_plateaux'
-    FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
+    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
 
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     chercher_plateaux = ChercherDesPlateaux(
-        nb_colonnes=[3], #range(2, 12) #[2] # range(2, 5) # range(2, 5) #11
-        nb_lignes=[3], #range(2,6) #[5] #range(2,6) #range(2, 14) #[3] # [2,3] #4
+        nb_colonnes=range(3, 12),
+        nb_lignes=range(2, 14),
         nb_colonnes_vides=1,
-        repertoire_analyse='pipeline_1_chercher_des_plateaux',
+        repertoire_analyse=str(FICHIER_ANALYSE),
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL
     )

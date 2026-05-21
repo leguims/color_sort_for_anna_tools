@@ -89,8 +89,8 @@ class FiltrerLesPlateaux:
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_plateaux_invalides_ou_initeressants'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / 'pipeline_1_chercher_des_plateaux'
-    FICHIER_FILTRE = Path('..') / 'pipeline_2_filtre_plateaux_invalides_ou_initeressants'
+    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
+    FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_initeressants'
 
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 

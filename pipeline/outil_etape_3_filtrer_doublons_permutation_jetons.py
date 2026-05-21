@@ -92,8 +92,8 @@ class FiltrerLesPlateaux:
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_doublons_permutation_jetons'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / 'pipeline_2_filtre_plateaux_invalides_ou_initeressants'
-    FICHIER_FILTRE = Path('..') / 'pipeline_3_filtre_doublons_permutation_jetons'
+    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_initeressants'
+    FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_3_filtre_doublons_permutation_jetons'
 
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 

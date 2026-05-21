@@ -108,14 +108,14 @@ class FiltrerLesPlateaux:
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_doublons_permutation_piles'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / 'pipeline_3_filtre_doublons_permutation_jetons'
-    FICHIER_FILTRE = Path('..') / 'pipeline_4_filtre_doublons_permutation_piles'
+    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_3_filtre_doublons_permutation_jetons'
+    FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_4_filtre_doublons_permutation_piles'
 
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     filtrer = FiltrerLesPlateaux(
-        nb_colonnes=range(2, 12),
-        nb_lignes=range(2,14),
+        nb_colonnes=range(3, 12),
+        nb_lignes=range(3,14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_filtre=str(FICHIER_FILTRE),
