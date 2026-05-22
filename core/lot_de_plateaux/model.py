@@ -1,13 +1,12 @@
 "Module pour creer, resoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
-from itertools import permutations
 import datetime
 import logging
+from copy import deepcopy
 
 from core.plateau import Plateau
 from io_utils.export_json import ExportJSON
 
 DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 30*60
-TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000
 DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 5*60
 
 # TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
@@ -17,20 +16,23 @@ class LotDePlateaux:
 Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherche."""
     def __init__(self, dim_plateau, repertoire_export_json, nb_plateaux_max = 1_000_000):
         # Plateau de base
+        self._dim_plateau = dim_plateau
         self._plateau_courant = Plateau(dim_plateau[0], dim_plateau[1], dim_plateau[2])
 
         # Gestion du lot de plateau
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
-        self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
-        self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons
         self._iter_index = 0  # Initialisation de l'index de l'itérateur
+        self._iter_index_max = 0
+        self._recherche_terminee = False # Indique si la recherche de plateaux valides est terminee (exhaustive)
+        self._recherche_dernier_plateau = None # Dernier plateau traité en recherche pour reprise
+
+
+        self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons
         self._nb_plateaux_max = nb_plateaux_max # Limite memoire pour la recherche (plateaux à ignorer)
         self._export_json = None
         self._ensemble_des_difficultes_de_plateaux = {} # Ensemble des plateaux classés par difficulté et profondeur
         self._a_change = False # Indique si les données de la classe ont changé.
         self._logger = logging.getLogger(f"{self._plateau_courant.nb_colonnes}.{self._plateau_courant.nb_lignes}.{LotDePlateaux.__name__}")
-        self._recherche_terminee = False # Indique si la recherche de plateaux valides est terminee (exhaustive)
-        self._recherche_dernier_plateau = None # Dernier plateau traité en recherche pour reprise
         self._filtrer_plateaux_invalides_ou_ininteressants = False # Indique si la phase 1 de revalidation est terminee
         self._filtrer_doublons_permutation_jetons = False # Indique si la phase 2 de revalidation est terminee
         self._filtrer_doublons_permutation_piles = False # Indique si la phase 3 de revalidation est terminee
@@ -54,9 +56,10 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         else:
             self.logger.debug(f"__iter__ : NOT est_deja_termine.")
             # Poursuivre la recherche de plateaux valides
-            self._iter_permutation_optimisee = self.creer_plateau_initial_optimisation_permutation()
-            # Initialisation : commencer les permutations avec le dernier plateau valide
-            self._iter_iterateur = permutations(self._iter_permutation_optimisee)
+            # TODO : Lire le dernier plateau traité pour reprendre la recherche à partir de ce plateau.
+            from .iterator import IterPlateau
+            self._iter_iterateur = IterPlateau(self._dim_plateau)
+            self._dernier_affichage  = datetime.datetime.now().timestamp() - DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX
         return self
 
     def __next__(self):
@@ -70,60 +73,28 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 return self._plateau_courant.plateau_ligne_texte_universel
         else:
             self.logger.debug(f"__next__ : NOT est_deja_termine.")
-            dernier_affichage  = datetime.datetime.now().timestamp() - DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX
-            derniere_iter = []
-            while True:
-                # Itérer avec les permutations
-                self._iter_permutation = next(self._iter_iterateur)
-                if derniere_iter == self._iter_permutation:
-                    continue
-                derniere_iter = self._iter_permutation
-                # Ultime optimisation :
-                #  - Si la colonne 1 n'a pas de 'A' => FIN des permutations.
-                nb_A_sur_colonne_1 = self._iter_permutation[0:self._plateau_courant.nb_lignes].count('A')
-                if nb_A_sur_colonne_1 == 0:
-                    break
-                # Astuce d'optimisation : ignorer la permutation ...
-                #  - Si la colonne 1 est remplie de 'A'.
-                if nb_A_sur_colonne_1 == self._plateau_courant.nb_lignes:
-                    continue
-                # Astuce identique avec la dernière colonne et la case vide ' '
-                #  - Si la colonne N n'a pas de ' '.
-                nb_VIDE_sur_colonne_N = self._iter_permutation[-self._plateau_courant.nb_lignes:].count(' ')
-                if nb_VIDE_sur_colonne_N == 0:
-                    continue
-                est_ignore = self.plateau_est_ignore(''.join(self._iter_permutation))
-                if est_ignore and not self._plateau_courant.est_valide:
-                    self._plateau_courant.rendre_valide()
-                    # 'self.est_ignore' ajusté
-                    if self._plateau_courant.est_interessant:
-                        self.ajouter_le_plateau(self._plateau_courant)
-                        est_ignore = False
-                        # Ne pas poursuivre l'itération à ce plateau valide
-                    else:
-                        self.ignorer_le_plateau(self._plateau_courant)
+            # Itérer avec les permutations
+            try:
+                self._plateau_courant = next(self._iter_iterateur)
 
                 # Enregistrement du plateau courant pour une eventuelle reprise.
                 self._recherche_dernier_plateau = self._plateau_courant.plateau_ligne_texte_universel
                 self._export_json.exporter(self)
                 # Log pour suivre l'avancement.
-                if datetime.datetime.now().timestamp() - dernier_affichage > DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX:
+                if datetime.datetime.now().timestamp() - self._dernier_affichage > DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX:
                     self.logger.info(f"self._recherche_dernier_plateau='{self._recherche_dernier_plateau}'")
-                    dernier_affichage  = datetime.datetime.now().timestamp()
-                if est_ignore:
-                    self.logger.debug(f"__next__ : Plateau ignore. '{self._plateau_courant.plateau_ligne_texte_universel}'")
-                else:
-                    # Retourner le plateau valide
-                    self.logger.debug(f"__next__ : Plateau valide. '{self._plateau_courant.plateau_ligne_texte_universel}'")
-                    return self._plateau_courant.plateau_ligne_texte_universel
-        self.arret_des_enregistrements()
+                    self._dernier_affichage  = datetime.datetime.now().timestamp()
+                return self._plateau_courant.plateau_ligne_texte_universel
+            except StopIteration:
+                self._ensemble_des_plateaux_valides = deepcopy(self._iter_iterateur.plateaux_valides)
+                self.arret_des_enregistrements()
         raise StopIteration
 
     def __len__(self) -> int:
         return self.nb_plateaux_valides
 
     @property
-    def logger(self) -> set:
+    def logger(self) -> logging.Logger:
         "Logger"
         return self._logger
 
@@ -147,11 +118,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     def nb_plateaux_valides(self) -> int:
         "Nombre de plateaux valides"
         return len(self._ensemble_des_plateaux_valides)
-
-    @property
-    def nb_plateaux_ignores(self) -> int:
-        "Nombre de plateaux ignores"
-        return len(self._ensemble_des_plateaux_a_ignorer)
 
     @property
     def difficulte_plateaux(self) -> dict:
@@ -191,34 +157,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
 
 
     # API filter
-    def plateau_est_ignore(self, permutation_plateau) -> bool:
-        from .filter import plateau_est_ignore
-        return plateau_est_ignore(self, permutation_plateau)
-
-    def ajouter_le_plateau(self, plateau: Plateau) -> None:
-        from .filter import ajouter_le_plateau
-        ajouter_le_plateau(self, plateau)
-
-    def ignorer_le_plateau(self, plateau_a_ignorer: Plateau) -> None:
-        from .filter import ignorer_le_plateau
-        ignorer_le_plateau(self, plateau_a_ignorer)
-
-    def fixer_taille_memoire_max(self, nb_plateaux_max) -> None:
-        from .filter import fixer_taille_memoire_max
-        fixer_taille_memoire_max(self, nb_plateaux_max)
-
-    def reduire_memoire(self) -> None:
-        from .filter import reduire_memoire
-        reduire_memoire(self)
-
-    def effacer_plateaux_valides(self, set_plateaux_a_effacer, prefixe_log, plateau_courant) -> None:
-        from .filter import effacer_plateaux_valides
-        effacer_plateaux_valides(self, set_plateaux_a_effacer, prefixe_log, plateau_courant)
-
-    def filtrer_totalement(self, periode_affichage) -> None:
-        from .filter import filtrer_totalement
-        filtrer_totalement(self, periode_affichage)
-
     @property
     def est_filtre_plateaux_invalides_ou_ininteressants(self) -> bool:
         return self._filtrer_plateaux_invalides_ou_ininteressants

@@ -9,6 +9,15 @@ def plateau_est_valide(plateau: Plateau) -> bool:
 
         # Construction de la position des cases vides
         count = plateau.plateau_ligne.count(plateau.case_vide)
+        if count != (plateau.nb_colonnes_vides * plateau.nb_lignes):
+            plateau._est_valide = False
+            return plateau._est_valide
+        # Verifier le nombre de membres de chaque famille
+        for jeton in plateau.liste_familles:
+            if plateau.plateau_ligne.count(jeton) != plateau.nb_lignes:
+                plateau._est_valide = False
+                return plateau._est_valide
+
         index_vide = []
         index_courant = -1
         for _ in range(count):
@@ -41,7 +50,6 @@ def plateau_est_valide(plateau: Plateau) -> bool:
 def plateau_est_interessant(plateau: Plateau) -> bool:
     """"Verifie si le plateau en parametre est interessant"""
     if plateau.plateau_ligne and plateau._est_interessant is None:
-        plateau._est_interessant = True
         # Est-ce que le plateau est interessant ?
         # Une colonne achevee est sans interet.
         plateau._est_interessant =  not une_colonne_est_pleine_et_monocouleur(plateau)

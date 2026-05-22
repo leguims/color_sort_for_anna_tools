@@ -8,61 +8,6 @@ from .generator import (
 )
 from core.plateau import Plateau
 
-def plateau_est_ignore(lot_de_plateaux: LotDePlateaux, permutation_plateau: str) -> bool:
-    "Retourne 'True' si le plateau est deja connu"
-    if permutation_plateau not in lot_de_plateaux._ensemble_des_plateaux_valides \
-        and permutation_plateau not in lot_de_plateaux._ensemble_des_plateaux_a_ignorer:
-        lot_de_plateaux._plateau_courant.clear()
-        lot_de_plateaux._plateau_courant.plateau_ligne_texte = permutation_plateau
-        # lot_de_plateaux.logger.info(plateau)
-        # Verifier que la plateau est valide
-        if lot_de_plateaux._plateau_courant.est_valide and lot_de_plateaux._plateau_courant.est_interessant:
-            # Enregistrer la permutation courante qui est un nouveau plateau valide
-            ajouter_le_plateau(lot_de_plateaux, lot_de_plateaux._plateau_courant)
-            return False
-        else:
-            # Nouveau Plateau invalide ou initeressant, on l'ignore
-            ignorer_le_plateau(lot_de_plateaux, lot_de_plateaux._plateau_courant)
-    return True
-
-def ajouter_le_plateau(lot_de_plateaux: LotDePlateaux, plateau: Plateau) -> None:
-    "Memorise un plateau deja traite"
-    # La recherche de doublons et de permutations est réalisée lors de la phase de 'revalidation'
-    # afin d'accelerer la recherche de plateaux valides.
-    # Voir la méthode 'filtrer_totalement()'
-
-    lot_de_plateaux._ensemble_des_plateaux_valides.add(plateau.plateau_ligne_texte)
-    lot_de_plateaux._a_change = True
-    # Si l'export n'est pas réalisé, conserver le changement à appliquer
-    # _a_change | exporter() || _a_change
-    # ===================================
-    #   False   |   False    ||  False
-    #   False   |   True     ||  False
-    #   True    |   False    ||  True
-    #   True    |   True     ||  False
-    lot_de_plateaux._a_change = lot_de_plateaux._a_change \
-        and not lot_de_plateaux._export_json.exporter(lot_de_plateaux)
-
-def ignorer_le_plateau(lot_de_plateaux: LotDePlateaux, plateau_a_ignorer: Plateau) -> None:
-    "Ignore un plateau et met a jour les ensembles et compteurs"
-    # Ignorer le plateau
-    lot_de_plateaux._ensemble_des_plateaux_a_ignorer.add(plateau_a_ignorer.plateau_ligne_texte)
-    # Optimiser la memoire
-    reduire_memoire(lot_de_plateaux)
-
-def fixer_taille_memoire_max(lot_de_plateaux: LotDePlateaux, nb_plateaux_max: int) -> None:
-    "Fixe le nombre maximum de plateau a memoriser"
-    if nb_plateaux_max > 0:
-        lot_de_plateaux._nb_plateaux_max = nb_plateaux_max
-    reduire_memoire(lot_de_plateaux)
-
-def reduire_memoire(lot_de_plateaux: LotDePlateaux) -> None:
-    "Optimisation memoire quand la memoire maximum est atteinte"
-    if len(lot_de_plateaux._ensemble_des_plateaux_a_ignorer) > lot_de_plateaux._nb_plateaux_max:
-        lot_de_plateaux.logger.info('Reduction memoire.')
-        # Vider les memoires et compteurs
-        lot_de_plateaux._ensemble_des_plateaux_a_ignorer.clear()
-
 def effacer_plateaux_valides(lot_de_plateaux: LotDePlateaux, set_plateaux_a_effacer: set, prefixe_log: str, plateau_courant: Plateau) -> None:
     if set_plateaux_a_effacer:
         plateau = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes, lot_de_plateaux._plateau_courant.nb_lignes, lot_de_plateaux._plateau_courant.nb_colonnes_vides)
@@ -74,24 +19,6 @@ def effacer_plateaux_valides(lot_de_plateaux: LotDePlateaux, set_plateaux_a_effa
                 lot_de_plateaux.logger.debug(f"{prefixe_log} '{plateau.plateau_ligne_texte_universel}' : en doublon avec '{plateau_courant.plateau_ligne_texte_universel}'")
                 # Reduire la liste des plateaux valides enregistrés
                 lot_de_plateaux._export_json.exporter(lot_de_plateaux)
-
-def filtrer_totalement(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
-    "Verifie la liste des plateaux valides car les regles ont change ou des regles de lots de plateaux sont a appliquer."
-    #if not self._recherche_terminee:
-    #    self._logger.error("filtrer_totalement() : la recherche de plateaux n'est pas terminee")
-    #    return
-
-    if lot_de_plateaux._filtrer_plateaux_invalides_ou_ininteressants \
-        and lot_de_plateaux._filtrer_doublons_permutation_jetons \
-        and lot_de_plateaux._filtrer_doublons_permutation_piles \
-        and lot_de_plateaux._filtrer_doublons_permutation_jetons_piles:
-        lot_de_plateaux.logger.info("filtrer_totalement() : deja terminee")
-        return
-
-    filtrer_plateaux_invalides_ou_initeressants(lot_de_plateaux, periode_affichage)
-    filtrer_doublons_permutation_jetons(lot_de_plateaux, periode_affichage)
-    filtrer_doublons_permutation_piles(lot_de_plateaux, periode_affichage)
-    filtrer_doublons_permutation_jetons_piles(lot_de_plateaux, periode_affichage)
 
 def filtrer_plateaux_invalides_ou_initeressants(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 1 : Valider les plateaux au sens de la classe 'Plateau.est_valide'"""

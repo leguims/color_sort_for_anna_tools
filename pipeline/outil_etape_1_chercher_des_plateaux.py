@@ -44,7 +44,6 @@ class ChercherDesPlateaux:
                     dernier_affichage  = datetime.datetime.now().timestamp()
                 pass
             logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-            logger.info(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
         else:
             logger.info(f"Ce lot de plateaux est deja termine")
 
