@@ -11,6 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) 
 
 from io_utils.export_json import ExportJSON
 from io_utils.profiler_le_code import ProfilerLeCode
+from io_utils.chrono import Chrono
 
 # TODO : Classer par difficulté dans le fichier de solutions
 
@@ -48,6 +49,8 @@ class TronquerLesSolutions:
             dict_difficulte = solutions_classees["liste difficulte des plateaux"]
             dict_difficulte_tronque = {}
             # Gommer la notion de 'nb_coups' pour le jeu
+            chrono = Chrono()
+            chrono.start()
             for difficulte, dico_nb_coups in dict_difficulte.items():
                 for nb_coups, liste_plateaux in dico_nb_coups.items():
                     if difficulte not in dict_difficulte_tronque:
@@ -56,6 +59,8 @@ class TronquerLesSolutions:
             # Tronquer les solutions
             for difficulte, liste_plateaux in dict_difficulte_tronque.items():
                 liste_plateaux = liste_plateaux[0:taille]
+            chrono.pause()
+            logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
             solutions_classees["liste difficulte des plateaux"] = dict_difficulte_tronque
             solutions_classees_tronquees_json.forcer_export(solutions_classees)
 

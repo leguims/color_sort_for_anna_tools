@@ -12,6 +12,7 @@ from core.plateau import Plateau
 from core.lot_de_plateaux import LotDePlateaux
 from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.export_json import ExportJSON
+from io_utils.chrono import Chrono
 
 class FiltrerLesSolutions:
     """Parcourt les plateaux resolus et les rassemble dans le fichier
@@ -59,6 +60,7 @@ class FiltrerLesSolutions:
             dict_difficulte = solutions_classees["liste difficulte des plateaux"]
             # Filtrer les plateaux sans solutions ou trop triviaux
             logger.info("Filtrer les plateaux sans solutions ou trop triviaux")
+            chrono = Chrono()
             for difficulte, dico_nb_coups in liste_plateaux_avec_solutions.items():
                 for nb_coups, liste_plateaux in dico_nb_coups.items():
                     logger.info(f"\n\r - Difficulte : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{self.pluriel(liste_plateaux, 'x')}")
@@ -68,12 +70,15 @@ class FiltrerLesSolutions:
                         if str(nb_coups) not in dict_difficulte[str(difficulte)]:
                             dict_difficulte[str(difficulte)][str(nb_coups)] = []
                         difficulte_courante = dict_difficulte[str(difficulte)][str(nb_coups)]
+                        chrono.start()
                         for plateau_ligne_texte_universel in liste_plateaux:
                             plateau.clear()
                             plateau.plateau_ligne_texte_universel = plateau_ligne_texte_universel
                             # Eviter les doublons
                             if plateau.plateau_ligne_texte_universel not in difficulte_courante:
                                 difficulte_courante.append(plateau.plateau_ligne_texte_universel)
+                        chrono.pause()
+            logger.info(f"Traitement {self._nom_tache} en {chrono} secondes")
             logger.info("Export des solutions")
             self.ordonner_difficulte_nombre_coups(solutions_classees["liste difficulte des plateaux"])
             solutions_classees_json.forcer_export(solutions_classees)
@@ -166,8 +171,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     classer_solutions = FiltrerLesSolutions(
-        nb_colonnes=range(3, 12),
-        nb_lignes=range(3,14),
+        nb_colonnes=[3], #range(2, 12),
+        nb_lignes=[3], #range(2, 14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_solution=str(FICHIER_SOLUTION),

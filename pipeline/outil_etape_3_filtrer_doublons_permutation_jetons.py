@@ -10,6 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) 
 from core.lot_de_plateaux import LotDePlateaux
 from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.creer_les_taches import CreerLesTaches
+from io_utils.chrono import Chrono
 
 class FiltrerLesPlateaux:
     "Parcourt les plateaux et pratique un elagage des doublons et de similarite"
@@ -61,7 +62,11 @@ class FiltrerLesPlateaux:
                                         repertoire_export_json=self._repertoire_filtre,
                                         nb_plateaux_max = self._memoire_max)
         # Parcourir les plateaux et supprimer les plateaux "invalides"
+        chrono = Chrono()
+        chrono.start()
         lot_de_plateaux.filtrer_doublons_permutation_jetons(self._periode_affichage)
+        chrono.pause()
+        logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
 
     def chercher_en_sequence(self):
         # Configurer le logger
@@ -98,8 +103,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     filtrer = FiltrerLesPlateaux(
-        nb_colonnes=range(2, 12),
-        nb_lignes=range(2,14),
+        nb_colonnes=[3], #range(2, 12),
+        nb_lignes=[3], #range(2, 14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_filtre=str(FICHIER_FILTRE),

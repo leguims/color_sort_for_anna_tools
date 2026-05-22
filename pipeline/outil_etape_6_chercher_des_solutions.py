@@ -7,12 +7,14 @@ import shutil
 
 import sys
 import os
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
 
 from core.plateau import Plateau
 from core.lot_de_plateaux import LotDePlateaux
 from core.resoudre_plateau import ResoudrePlateau
 from io_utils.profiler_le_code import ProfilerLeCode
+from io_utils.chrono import Chrono
 
 class ChercherDesSolutions:
     "Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoodSort'"
@@ -78,13 +80,16 @@ class ChercherDesSolutions:
                 
                 dernier_affichage  = datetime.datetime.now().timestamp() - self._periode_affichage
                 nb_solutions_a_trouver = lot_de_plateaux.nb_plateaux_valides
+                chrono = Chrono()
                 for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
                     plateau.clear()
                     plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
                     if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):
+                        chrono.start()
                         resolution = ResoudrePlateau(plateau,
                                                     repertoire_solution=self._repertoire_solution)
                         resolution.backtracking()
+                        chrono.pause()
                         lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, len(resolution))
                     
                     # Afficher si dernier affichage > 5mins
@@ -92,6 +97,7 @@ class ChercherDesSolutions:
                     if datetime.datetime.now().timestamp() - dernier_affichage > self._periode_affichage:
                         logger.info(f"Il reste {nb_solutions_a_trouver} solutions a resoudre.")
                         dernier_affichage  = datetime.datetime.now().timestamp()
+                logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
 
                 lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
                 for difficulte, dico_nb_coups in lot_de_plateaux.difficulte_plateaux.items():
@@ -144,8 +150,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     chercher_solutions = ChercherDesSolutions(
-        nb_colonnes=range(3, 12),
-        nb_lignes=range(3,14),
+        nb_colonnes=[3], #range(2, 12),
+        nb_lignes=[3], #range(2, 14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_difficulte=str(FICHIER_DIFFICULTE),

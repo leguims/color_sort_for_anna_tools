@@ -8,6 +8,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
 
 from io_utils.export_json import ExportJSON
+from io_utils.chrono import Chrono
 
 class TronquerLesSolutionsGodot:
     """Decoupe l'ensemble des solutions inter-plateaux en des ensembles plus petits de solutions
@@ -43,6 +44,8 @@ class TronquerLesSolutionsGodot:
             solutions_classees_tronques = {"liste difficulte des plateaux": {}}
             dict_difficulte_tronque = solutions_classees_tronques['liste difficulte des plateaux']
 
+            chrono = Chrono()
+            chrono.start()
             while self._nombre_de_plateaux:
                 for difficulte, liste_plateaux in dict_difficulte.items():
                     if difficulte not in dict_difficulte_tronque:
@@ -54,7 +57,8 @@ class TronquerLesSolutionsGodot:
                         self._nombre_de_plateaux -= 1
                     if not self._nombre_de_plateaux:
                         break
-
+            chrono.pause()
+            logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
             solutions_classees_tronquees_json.effacer()
             solutions_classees_tronquees_json.forcer_export(solutions_classees_tronques)
             logger.info(f"Tronquage termine")
