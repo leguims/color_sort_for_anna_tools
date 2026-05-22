@@ -25,6 +25,8 @@ class ChercherDesPlateaux:
         self._nom_tache = nom_tache
         self._nom_etape = 'chercher_des_plateaux'
         self._fichier_journal = fichier_journal
+        if not Path(self._fichier_journal).parent.exists():
+            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._periode_affichage = periode_affichage
 
     def chercher_des_plateaux(self, colonnes, lignes):

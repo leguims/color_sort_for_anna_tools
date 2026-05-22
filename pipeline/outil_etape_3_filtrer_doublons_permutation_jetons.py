@@ -30,6 +30,8 @@ class FiltrerLesPlateaux:
         self._nom_tache = nom_tache
         self._nom_etape = 'filtrer_doublons_permutation_jetons'
         self._fichier_journal = fichier_journal
+        if not Path(self._fichier_journal).parent.exists():
+            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_affichage = periode_affichage

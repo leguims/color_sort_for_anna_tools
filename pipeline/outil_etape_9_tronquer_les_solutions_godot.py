@@ -26,6 +26,8 @@ class TronquerLesSolutionsGodot:
         self._nombre_de_plateaux = nombre_de_plateaux
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
+        if not Path(self._fichier_journal).parent.exists():
+            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
 
     def tronquer(self):
         # Configurer le logger

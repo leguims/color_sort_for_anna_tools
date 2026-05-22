@@ -32,6 +32,8 @@ class TronquerLesSolutions:
         self._nom_tache = nom_tache
         self._nom_etape = 'tronquer_les_solutions'
         self._fichier_journal = fichier_journal
+        if not Path(self._fichier_journal).parent.exists():
+            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
 

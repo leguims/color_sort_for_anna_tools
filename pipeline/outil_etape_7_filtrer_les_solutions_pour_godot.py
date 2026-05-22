@@ -35,6 +35,8 @@ class FiltrerLesSolutions:
         self._nb_coups_min = nb_coups_min
         self._nom_tache = nom_tache
         self._fichier_journal = fichier_journal
+        if not Path(self._fichier_journal).parent.exists():
+            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
 

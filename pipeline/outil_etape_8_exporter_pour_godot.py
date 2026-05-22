@@ -23,6 +23,8 @@ class ExporterLesSolutionsPourGodot:
         self._fichier_godot = fichier_godot
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
+        if not Path(self._fichier_journal).parent.exists():
+            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._periode_scrutation_secondes = periode_scrutation_secondes
 
     def exporter_vers_godot(self):
