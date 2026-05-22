@@ -30,8 +30,6 @@ class FiltrerLesPlateaux:
         self._nom_tache = nom_tache
         self._nom_etape = 'filtrer_doublons_permutation_jetons'
         self._fichier_journal = fichier_journal
-        if not Path(self._fichier_journal).parent.exists():
-            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_affichage = periode_affichage
@@ -99,9 +97,11 @@ class FiltrerLesPlateaux:
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_doublons_permutation_jetons'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_initeressants'
+    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
     FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_3_filtre_doublons_permutation_jetons'
 
+    if not FICHIER_JOURNAL.parent.exists():
+        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     filtrer = FiltrerLesPlateaux(

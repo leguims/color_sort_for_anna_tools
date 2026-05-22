@@ -20,7 +20,7 @@ def effacer_plateaux_valides(lot_de_plateaux: LotDePlateaux, set_plateaux_a_effa
                 # Reduire la liste des plateaux valides enregistrés
                 lot_de_plateaux._export_json.exporter(lot_de_plateaux)
 
-def filtrer_plateaux_invalides_ou_initeressants(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
+def filtrer_plateaux_invalides_ou_ininteressants(lot_de_plateaux: LotDePlateaux, periode_affichage: float) -> None:
     """Phase 1 : Valider les plateaux au sens de la classe 'Plateau.est_valide'"""
     prefixe_log = "filtrer plateaux invalides ou ininteressants :"
     if lot_de_plateaux.est_filtre_plateaux_invalides_ou_ininteressants:

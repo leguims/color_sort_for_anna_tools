@@ -23,8 +23,6 @@ class ExporterLesSolutionsPourGodot:
         self._fichier_godot = fichier_godot
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
-        if not Path(self._fichier_journal).parent.exists():
-            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._periode_scrutation_secondes = periode_scrutation_secondes
 
     def exporter_vers_godot(self):
@@ -55,9 +53,11 @@ class ExporterLesSolutionsPourGodot:
 if __name__ == "__main__":
     NOM_ETAPE = 'exporter_vers_godot'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
-    FICHIER_SOLUTION = Path('..') / 'pipeline_6_solutions'
+    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
 
     # Configurer le logger
+    if not FICHIER_JOURNAL.parent.exists():
+        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     solutions_godot = ExporterLesSolutionsPourGodot(

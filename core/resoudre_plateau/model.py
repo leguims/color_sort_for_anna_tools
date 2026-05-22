@@ -8,7 +8,7 @@ class ResoudrePlateau:
     "Classe de resolution d'un plateau par parcours de toutes les possibilites de choix"
     def __init__(self,
                  plateau_initial: Plateau,
-                 repertoire_solution):
+                 repertoire_solution: str):
         self._plateau_initial = copy.deepcopy(plateau_initial)
         # Statistiques des solutions: voir io.py
         self._dico_des_longueurs_de_solutions = {}
@@ -22,7 +22,7 @@ class ResoudrePlateau:
 
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial.nb_lignes}"
         nom_solution = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial.nb_lignes}_Resolution_{self._plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
-        self._export_json_solutions = ExportJSON(delai=60, longueur=100,
+        self._export_json_solutions: ExportJSON = ExportJSON(delai=60, longueur=100,
                                                  nom_plateau=nom_plateau,
                                                  nom_export=nom_solution,
                                                  repertoire = repertoire_solution)

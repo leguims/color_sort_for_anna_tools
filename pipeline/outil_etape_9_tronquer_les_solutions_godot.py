@@ -17,17 +17,15 @@ class TronquerLesSolutionsGodot:
                 repertoire_solution,
                 fichier_godot,
                 fichier_godot_tronque,
-                nombre_de_plateaux,
+                nombre_de_plateaux: int,
                 nom_etape,
                 fichier_journal):
         self._repertoire_solution = repertoire_solution
         self._fichier_godot = fichier_godot
         self._fichier_godot_tronque = fichier_godot_tronque
-        self._nombre_de_plateaux = nombre_de_plateaux
+        self._nombre_de_plateaux: int = nombre_de_plateaux
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
-        if not Path(self._fichier_journal).parent.exists():
-            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
 
     def tronquer(self):
         # Configurer le logger
@@ -42,7 +40,14 @@ class TronquerLesSolutionsGodot:
                                 nom_export=self._fichier_godot_tronque, repertoire=self._repertoire_solution)
 
         if "liste difficulte des plateaux" in solutions_classees:
-            dict_difficulte = solutions_classees.get("liste difficulte des plateaux")
+            dict_difficulte: dict[str, list] = solutions_classees.get("liste difficulte des plateaux")
+            
+            # Rationnaliser l'objectif de plateaux
+            nb_plateaux_total = 0
+            for v in dict_difficulte.values():
+                nb_plateaux_total += len(v)
+            self._nombre_de_plateaux = min(nb_plateaux_total, self._nombre_de_plateaux)
+
             solutions_classees_tronques = {"liste difficulte des plateaux": {}}
             dict_difficulte_tronque = solutions_classees_tronques['liste difficulte des plateaux']
 
@@ -52,7 +57,8 @@ class TronquerLesSolutionsGodot:
                 for difficulte, liste_plateaux in dict_difficulte.items():
                     if difficulte not in dict_difficulte_tronque:
                         dict_difficulte_tronque[difficulte] = []
-                    print(liste_plateaux)
+                    # print(liste_plateaux)
+                    # TODO : Attention s'il n'y a pas assez de plateaux !
                     plateau_aleatoire = random.choice(liste_plateaux)
                     if plateau_aleatoire not in dict_difficulte_tronque[difficulte]:
                         dict_difficulte_tronque[difficulte].append(plateau_aleatoire)
@@ -70,12 +76,14 @@ class TronquerLesSolutionsGodot:
 if __name__ == "__main__":
     NOM_ETAPE = 'tronquer_les_solutions_godot'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
-    REPERTOIRE_SOLUTION = Path('..') / 'pipeline_6_solutions'
+    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
 
+    if not FICHIER_JOURNAL.parent.exists():
+        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     tronquer_godot = TronquerLesSolutionsGodot(
-        repertoire_solution=str(REPERTOIRE_SOLUTION),
+        repertoire_solution=str(FICHIER_SOLUTION),
         fichier_godot='8_exporter_pour_godot_Solutions_classees',
         fichier_godot_tronque='9_tronquer_les_solutions_godot',
         nombre_de_plateaux=200,

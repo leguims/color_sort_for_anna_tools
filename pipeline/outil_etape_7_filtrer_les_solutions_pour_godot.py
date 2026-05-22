@@ -35,8 +35,6 @@ class FiltrerLesSolutions:
         self._nb_coups_min = nb_coups_min
         self._nom_tache = nom_tache
         self._fichier_journal = fichier_journal
-        if not Path(self._fichier_journal).parent.exists():
-            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
 
@@ -170,6 +168,8 @@ if __name__ == "__main__":
     FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
 
     # Configurer le logger
+    if not FICHIER_JOURNAL.parent.exists():
+        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     classer_solutions = FiltrerLesSolutions(

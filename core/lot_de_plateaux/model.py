@@ -29,7 +29,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
 
         self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons
         self._nb_plateaux_max = nb_plateaux_max # Limite memoire pour la recherche (plateaux à ignorer)
-        self._export_json = None
+        self._export_json: ExportJSON
         self._ensemble_des_difficultes_de_plateaux = {} # Ensemble des plateaux classés par difficulté et profondeur
         self._a_change = False # Indique si les données de la classe ont changé.
         self._logger = logging.getLogger(f"{self._plateau_courant.nb_colonnes}.{self._plateau_courant.nb_lignes}.{LotDePlateaux.__name__}")
@@ -174,8 +174,8 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         return self._filtrer_doublons_permutation_jetons_piles
 
     def filtrer_plateaux_invalides_ou_initeressants(self, periode_affichage) -> None:
-        from .filter import filtrer_plateaux_invalides_ou_initeressants
-        filtrer_plateaux_invalides_ou_initeressants(self, periode_affichage)
+        from .filter import filtrer_plateaux_invalides_ou_ininteressants
+        filtrer_plateaux_invalides_ou_ininteressants(self, periode_affichage)
 
     def filtrer_doublons_permutation_jetons(self, periode_affichage) -> None:
         from .filter import filtrer_doublons_permutation_jetons

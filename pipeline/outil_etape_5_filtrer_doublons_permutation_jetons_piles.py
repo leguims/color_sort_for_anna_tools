@@ -33,8 +33,6 @@ class FiltrerLesPlateaux:
         self._nom_tache = nom_tache
         self._nom_etape = 'filtrer_doublons_permutation_jetons_piles'
         self._fichier_journal = fichier_journal
-        if not Path(self._fichier_journal).parent.exists():
-            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
@@ -119,6 +117,8 @@ if __name__ == "__main__":
     FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_4_filtre_doublons_permutation_piles'
     FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
 
+    if not FICHIER_JOURNAL.parent.exists():
+        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     filtrer = FiltrerLesPlateaux(
@@ -132,5 +132,5 @@ if __name__ == "__main__":
         periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )
     # filtrer.chercher_en_parallele()
-    # filtrer.chercher_en_sequence()
-    filtrer.chercher_en_boucle()
+    filtrer.chercher_en_sequence()
+    # filtrer.chercher_en_boucle()

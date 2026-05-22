@@ -7,8 +7,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
 
-from core.plateau import Plateau
-from core.lot_de_plateaux.iterator import IterPlateau
+from core.lot_de_plateaux import LotDePlateaux
 from io_utils.chrono import Chrono
 
 class ChercherDesPlateaux:
@@ -25,8 +24,6 @@ class ChercherDesPlateaux:
         self._nom_tache = nom_tache
         self._nom_etape = 'chercher_des_plateaux'
         self._fichier_journal = fichier_journal
-        if not Path(self._fichier_journal).parent.exists():
-            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._periode_affichage = periode_affichage
 
     def chercher_des_plateaux(self, colonnes, lignes):
@@ -34,7 +31,8 @@ class ChercherDesPlateaux:
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
         logger.info(f"DEBUT {self._nom_etape}")
-        lot_de_plateaux = IterPlateau((colonnes, lignes, self._nb_colonnes_vides))
+        lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
+                                repertoire_export_json=self._repertoire_analyse)
         chrono = Chrono()
         chrono.start()
         for plateau in lot_de_plateaux:
@@ -42,7 +40,6 @@ class ChercherDesPlateaux:
         chrono.pause()
         logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
         logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-        logger.info(f"nb_plateaux_ignores={lot_de_plateaux.nb_plateaux_ignores}")
         # liste_plateaux_valides = []
         # for plateau_ligne_texte in lot_de_plateaux.plateaux_valides:
         #     p = Plateau(colonnes, lignes, self._nb_colonnes_vides)
@@ -65,6 +62,8 @@ if __name__ == "__main__":
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
     FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
 
+    if not FICHIER_JOURNAL.parent.exists():
+        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     chercher_plateaux = ChercherDesPlateaux(

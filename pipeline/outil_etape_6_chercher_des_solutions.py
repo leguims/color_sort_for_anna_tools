@@ -37,8 +37,6 @@ class ChercherDesSolutions:
         self._nom_tache = nom_tache
         self._nom_etape = 'chercher_des_solutions'
         self._fichier_journal = fichier_journal
-        if not Path(self._fichier_journal).parent.exists():
-            Path(self._fichier_journal).parent.mkdir(parents=True, exist_ok=True)
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
@@ -149,6 +147,8 @@ if __name__ == "__main__":
     FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
 
     # Configurer le logger
+    if not FICHIER_JOURNAL.parent.exists():
+        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     chercher_solutions = ChercherDesSolutions(
@@ -163,5 +163,5 @@ if __name__ == "__main__":
         periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )
     # chercher_solutions.chercher_en_parallele()
-    # chercher_solutions.chercher_en_sequence()
-    chercher_solutions.chercher_en_boucle()
+    chercher_solutions.chercher_en_sequence()
+    # chercher_solutions.chercher_en_boucle()
