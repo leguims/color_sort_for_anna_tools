@@ -23,8 +23,14 @@ class ExporterLesSolutionsPourGodot:
         self._fichier_godot = fichier_godot
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
+        if not self._fichier_journal.parent.exists():
+            self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._periode_scrutation_secondes = periode_scrutation_secondes
         self._chrono = Chrono()
+
+    @property
+    def elapsed(self):
+        return self._chrono.elapsed
 
     def exporter_vers_godot(self):
         # Configurer le logger

@@ -24,8 +24,14 @@ class ChercherDesPlateaux:
         self._nom_tache = nom_tache
         self._nom_etape = 'chercher_des_plateaux'
         self._fichier_journal = fichier_journal
+        if not self._fichier_journal.parent.exists():
+            self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._periode_affichage = periode_affichage
         self._chrono = Chrono()
+
+    @property
+    def elapsed(self):
+        return self._chrono.elapsed
 
     def chercher_des_plateaux(self, colonnes, lignes):
         # Configurer le logger en doublon pour la paralelisation

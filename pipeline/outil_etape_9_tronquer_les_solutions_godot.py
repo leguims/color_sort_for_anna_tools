@@ -26,7 +26,13 @@ class TronquerLesSolutionsGodot:
         self._nombre_de_plateaux: int = nombre_de_plateaux
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
+        if not self._fichier_journal.parent.exists():
+            self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._chrono = Chrono()
+
+    @property
+    def elapsed(self):
+        return self._chrono.elapsed
 
     def tronquer(self):
         # Configurer le logger

@@ -59,6 +59,8 @@ class FluxProgressif:
                                                 repertoire_export_json=self._repertoire_analyse)
         self._nom_tache = nom_tache
         self._fichier_journal = fichier_journal
+        if not self._fichier_journal.parent.exists():
+            self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
 
     def copie_plateaux_base(self, seuil_similarite_max):
         """Créer une copie des plateaux de base vers le repertoire d'analyse courant"""

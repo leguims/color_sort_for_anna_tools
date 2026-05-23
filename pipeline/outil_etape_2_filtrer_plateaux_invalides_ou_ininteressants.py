@@ -30,10 +30,16 @@ class FiltrerLesPlateaux:
         self._nom_tache = nom_tache
         self._nom_etape = 'filtrer_plateaux_invalides_ou_ininteressants'
         self._fichier_journal = fichier_journal
+        if not self._fichier_journal.parent.exists():
+            self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_affichage = periode_affichage
         self._chrono = Chrono()
+
+    @property
+    def elapsed(self):
+        return self._chrono.elapsed
 
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON

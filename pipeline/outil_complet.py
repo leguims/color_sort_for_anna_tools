@@ -1,4 +1,5 @@
 "Module pour créer, résoudre et qualifier les solutions des plateaux de 'ColorWoodSort'"
+import logging
 from pathlib import Path
 
 import sys
@@ -30,6 +31,16 @@ class OutilComplet:
         self._repertoire_pipeline = repertoire_pipeline
         self._nom_tache = nom_tache
         self._fichier_journal = fichier_journal
+        if not self._fichier_journal.parent.exists():
+            self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
+        self._elapsed_time = 0.
+
+    def __str__(self) -> str:
+        return f"Duree du traitement complet : {self._elapsed_time:.4f} secondes"
+
+    @property
+    def elapsed(self):
+        return self._elapsed_time
 
     def chercher_des_plateaux(self):
         chercher = ChercherDesPlateaux(
@@ -41,6 +52,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         chercher.chercher_en_sequence()
+        self._elapsed_time += chercher.elapsed
 
     def filtrer_les_plateaux_invalides_ou_initeressants(self):
         filtrer = FiltrerLesPlateauxInvalidesOuIniteressants(
@@ -53,6 +65,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         filtrer.chercher_en_sequence()
+        self._elapsed_time += filtrer.elapsed
 
     def filtrer_les_plateaux_permutation_jetons(self):
         filtrer = FiltrerLesPlateauxPermutationJetons(
@@ -65,6 +78,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         filtrer.chercher_en_sequence()
+        self._elapsed_time += filtrer.elapsed
 
     def filtrer_les_plateaux_permutation_piles(self):
         filtrer = FiltrerLesPlateauxPermutationPiles(
@@ -77,6 +91,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         filtrer.chercher_en_sequence()
+        self._elapsed_time += filtrer.elapsed
 
     def filtrer_les_plateaux_permutation_jetons_piles(self):
         filtrer = FiltrerLesPlateauxPermutationJetonsPiles(
@@ -89,6 +104,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         filtrer.chercher_en_sequence()
+        self._elapsed_time += filtrer.elapsed
 
     def chercher_des_solutions(self):
         chercheur = ChercherDesSolutions(
@@ -102,6 +118,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         chercheur.chercher_en_sequence()
+        self._elapsed_time += chercheur.elapsed
 
     def classer_les_solutions(self, nb_coups_min=3):
         classeur = FiltrerLesSolutions(
@@ -116,6 +133,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         classeur.chercher_en_sequence()
+        self._elapsed_time += classeur.elapsed
 
     def exporter_pour_godot(self):
         export = ExporterLesSolutionsPourGodot(
@@ -126,6 +144,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         export.exporter_vers_godot()
+        self._elapsed_time += export.elapsed
 
     def tronquer_les_solutions(self, taille_tronquee, decallage=0):
         tronqueur = TronquerLesSolutionsGodot(
@@ -137,6 +156,7 @@ class OutilComplet:
             fichier_journal=self._fichier_journal
         )
         tronqueur.tronquer()
+        self._elapsed_time += tronqueur.elapsed
 
     def chercher_en_sequence(self):
         for colonne in self._liste_nb_colonnes:
@@ -150,9 +170,12 @@ class OutilComplet:
                 self.classer_les_solutions()
         self.exporter_pour_godot()
         self.tronquer_les_solutions(taille_tronquee=200, decallage=0)
+        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        logger = logging.getLogger(self._nom_tache)
+        logger.info(self)
 
 if __name__ == "__main__":
-    NOM_TACHE = 'flux_progressif_complet'
+    NOM_TACHE = 'outil_complet'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
     REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines'
 
