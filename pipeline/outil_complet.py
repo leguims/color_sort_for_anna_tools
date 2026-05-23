@@ -36,7 +36,7 @@ class OutilComplet:
         self._elapsed_time = 0.
 
     def __str__(self) -> str:
-        return f"Duree du traitement complet : {self._elapsed_time:.4f} secondes"
+        return f"Duree du traitement complet : {self._elapsed_time:.4f} secondes".replace('.', ',')
 
     @property
     def elapsed(self):
@@ -159,15 +159,13 @@ class OutilComplet:
         self._elapsed_time += tronqueur.elapsed
 
     def chercher_en_sequence(self):
-        for colonne in self._liste_nb_colonnes:
-            for ligne in self._liste_nb_lignes:
-                self.chercher_des_plateaux()
-                self.filtrer_les_plateaux_invalides_ou_initeressants()
-                self.filtrer_les_plateaux_permutation_jetons()
-                self.filtrer_les_plateaux_permutation_piles()
-                self.filtrer_les_plateaux_permutation_jetons_piles()
-                self.chercher_des_solutions()
-                self.classer_les_solutions()
+        self.chercher_des_plateaux()
+        self.filtrer_les_plateaux_invalides_ou_initeressants()
+        self.filtrer_les_plateaux_permutation_jetons()
+        self.filtrer_les_plateaux_permutation_piles()
+        self.filtrer_les_plateaux_permutation_jetons_piles()
+        self.chercher_des_solutions()
+        self.classer_les_solutions()
         self.exporter_pour_godot()
         self.tronquer_les_solutions(taille_tronquee=200, decallage=0)
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -175,18 +173,21 @@ class OutilComplet:
         logger.info(self)
 
 if __name__ == "__main__":
-    NOM_TACHE = 'outil_complet'
+    NOM_TACHE = 'outil_complet_product'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines'
+    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_product'
 
     PROFILER_LE_CODE = False
 
-    outil_complet = OutilComplet(
-        liste_nb_colonnes=[3],
-        liste_nb_lignes=[3],
-        nb_colonnes_vides=1,
-        repertoire_pipeline=REPERTOIRE_PIPELINE,
-        nom_tache=NOM_TACHE,
-        fichier_journal=FICHIER_JOURNAL
-    )
-    outil_complet.chercher_en_sequence()
+    # Pour avoir une sequence complete sur un type de plateau
+    for colonne in range(2,4):
+        for ligne in range(3,6):
+            outil_complet = OutilComplet(
+                liste_nb_colonnes=[colonne],
+                liste_nb_lignes=[ligne],
+                nb_colonnes_vides=1,
+                repertoire_pipeline=REPERTOIRE_PIPELINE,
+                nom_tache=NOM_TACHE,
+                fichier_journal=FICHIER_JOURNAL
+            )
+            outil_complet.chercher_en_sequence()
