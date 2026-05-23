@@ -37,6 +37,7 @@ class FiltrerLesPlateaux:
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
         self._periode_affichage = periode_affichage
+        self._chrono = Chrono()
 
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
@@ -66,11 +67,10 @@ class FiltrerLesPlateaux:
                                         repertoire_export_json=self._repertoire_filtre,
                                         nb_plateaux_max = self._memoire_max)
         # Parcourir les plateaux et supprimer les plateaux "invalides"
-        chrono = Chrono()
-        chrono.start()
+        self._chrono.start()
         lot_de_plateaux.filtrer_doublons_permutation_piles(self._periode_affichage)
-        chrono.pause()
-        logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
+        self._chrono.pause()
+        logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
 
     def chercher_en_boucle(self):
         logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")

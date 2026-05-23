@@ -37,6 +37,7 @@ class FiltrerLesSolutions:
         self._fichier_journal = fichier_journal
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
+        self._chrono = Chrono()
 
     def classer_les_solutions(self, colonnes, lignes):
         # Configurer le logger
@@ -60,7 +61,6 @@ class FiltrerLesSolutions:
             dict_difficulte = solutions_classees["liste difficulte des plateaux"]
             # Filtrer les plateaux sans solutions ou trop triviaux
             logger.info("Filtrer les plateaux sans solutions ou trop triviaux")
-            chrono = Chrono()
             for difficulte, dico_nb_coups in liste_plateaux_avec_solutions.items():
                 for nb_coups, liste_plateaux in dico_nb_coups.items():
                     logger.info(f"\n\r - Difficulte : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{self.pluriel(liste_plateaux, 'x')}")
@@ -70,15 +70,15 @@ class FiltrerLesSolutions:
                         if str(nb_coups) not in dict_difficulte[str(difficulte)]:
                             dict_difficulte[str(difficulte)][str(nb_coups)] = []
                         difficulte_courante = dict_difficulte[str(difficulte)][str(nb_coups)]
-                        chrono.start()
+                        self._chrono.start()
                         for plateau_ligne_texte_universel in liste_plateaux:
                             plateau.clear()
                             plateau.plateau_ligne_texte_universel = plateau_ligne_texte_universel
                             # Eviter les doublons
                             if plateau.plateau_ligne_texte_universel not in difficulte_courante:
                                 difficulte_courante.append(plateau.plateau_ligne_texte_universel)
-                        chrono.pause()
-            logger.info(f"Traitement {self._nom_tache} en {chrono} secondes")
+                        self._chrono.pause()
+            logger.info(f"Traitement {self._nom_tache} en {self._chrono} secondes")
             logger.info("Export des solutions")
             self.ordonner_difficulte_nombre_coups(solutions_classees["liste difficulte des plateaux"])
             solutions_classees_json.forcer_export(solutions_classees)

@@ -24,6 +24,7 @@ class ExporterLesSolutionsPourGodot:
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
         self._periode_scrutation_secondes = periode_scrutation_secondes
+        self._chrono = Chrono()
 
     def exporter_vers_godot(self):
         # Configurer le logger
@@ -35,15 +36,14 @@ class ExporterLesSolutionsPourGodot:
 
         # Creation du fichier de solution pour Godot
         solution_godot = {"liste difficulte des plateaux": {}}
-        chrono = Chrono()
-        chrono.start()
+        self._chrono.start()
         for difficulte, dico_nb_coups in solutions_classees.get('liste difficulte des plateaux').items():
             for nb_coups, liste_plateaux in dico_nb_coups.items():
                 if str(difficulte) not in solution_godot["liste difficulte des plateaux"]:
                     solution_godot["liste difficulte des plateaux"][str(difficulte)] = []
                 solution_godot["liste difficulte des plateaux"][str(difficulte)] += liste_plateaux
-        chrono.pause()
-        logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
+        self._chrono.pause()
+        logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
         export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_godot, repertoire=self._repertoire_solution)
         export_godot_json.effacer()
         export_godot_json.forcer_export(solution_godot)

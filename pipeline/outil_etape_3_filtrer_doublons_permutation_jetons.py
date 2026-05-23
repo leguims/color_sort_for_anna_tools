@@ -33,6 +33,7 @@ class FiltrerLesPlateaux:
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_affichage = periode_affichage
+        self._chrono = Chrono()
 
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
@@ -62,11 +63,10 @@ class FiltrerLesPlateaux:
                                         repertoire_export_json=self._repertoire_filtre,
                                         nb_plateaux_max = self._memoire_max)
         # Parcourir les plateaux et supprimer les plateaux "invalides"
-        chrono = Chrono()
-        chrono.start()
+        self._chrono.start()
         lot_de_plateaux.filtrer_doublons_permutation_jetons(self._periode_affichage)
-        chrono.pause()
-        logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
+        self._chrono.pause()
+        logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
 
     def chercher_en_sequence(self):
         # Configurer le logger
@@ -99,6 +99,11 @@ if __name__ == "__main__":
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
     FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
     FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_3_filtre_doublons_permutation_jetons'
+
+    # # DEBUG
+    # FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
+    # FICHIER_ANALYSE = Path('..') / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
+    # FICHIER_FILTRE = Path('..') / 'Pipelines' / 'pipeline_3_filtre_doublons_permutation_jetons'
 
     if not FICHIER_JOURNAL.parent.exists():
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)

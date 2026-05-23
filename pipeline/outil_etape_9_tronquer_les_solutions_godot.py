@@ -26,6 +26,7 @@ class TronquerLesSolutionsGodot:
         self._nombre_de_plateaux: int = nombre_de_plateaux
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
+        self._chrono = Chrono()
 
     def tronquer(self):
         # Configurer le logger
@@ -51,8 +52,7 @@ class TronquerLesSolutionsGodot:
             solutions_classees_tronques = {"liste difficulte des plateaux": {}}
             dict_difficulte_tronque = solutions_classees_tronques['liste difficulte des plateaux']
 
-            chrono = Chrono()
-            chrono.start()
+            self._chrono.start()
             while self._nombre_de_plateaux:
                 for difficulte, liste_plateaux in dict_difficulte.items():
                     if difficulte not in dict_difficulte_tronque:
@@ -65,8 +65,8 @@ class TronquerLesSolutionsGodot:
                         self._nombre_de_plateaux -= 1
                     if not self._nombre_de_plateaux:
                         break
-            chrono.pause()
-            logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
+            self._chrono.pause()
+            logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
             solutions_classees_tronquees_json.effacer()
             solutions_classees_tronquees_json.forcer_export(solutions_classees_tronques)
             logger.info(f"Tronquage termine")

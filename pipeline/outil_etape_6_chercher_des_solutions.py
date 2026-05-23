@@ -41,6 +41,7 @@ class ChercherDesSolutions:
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
         self._periode_affichage = periode_affichage
+        self._chrono = Chrono()
 
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
@@ -80,16 +81,15 @@ class ChercherDesSolutions:
                 
                 dernier_affichage  = datetime.datetime.now().timestamp() - self._periode_affichage
                 nb_solutions_a_trouver = lot_de_plateaux.nb_plateaux_valides
-                chrono = Chrono()
                 for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
                     plateau.clear()
                     plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
                     if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):
-                        chrono.start()
+                        self._chrono.start()
                         resolution = ResoudrePlateau(plateau,
                                                     repertoire_solution=self._repertoire_solution)
                         resolution.backtracking()
-                        chrono.pause()
+                        self._chrono.pause()
                         lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte, len(resolution))
                     
                     # Afficher si dernier affichage > 5mins
@@ -97,7 +97,7 @@ class ChercherDesSolutions:
                     if datetime.datetime.now().timestamp() - dernier_affichage > self._periode_affichage:
                         logger.info(f"Il reste {nb_solutions_a_trouver} solutions a resoudre.")
                         dernier_affichage  = datetime.datetime.now().timestamp()
-                logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
+                logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
 
                 lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
                 for difficulte, dico_nb_coups in lot_de_plateaux.difficulte_plateaux.items():

@@ -25,6 +25,7 @@ class ChercherDesPlateaux:
         self._nom_etape = 'chercher_des_plateaux'
         self._fichier_journal = fichier_journal
         self._periode_affichage = periode_affichage
+        self._chrono = Chrono()
 
     def chercher_des_plateaux(self, colonnes, lignes):
         # Configurer le logger en doublon pour la paralelisation
@@ -33,12 +34,11 @@ class ChercherDesPlateaux:
         logger.info(f"DEBUT {self._nom_etape}")
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                 repertoire_export_json=self._repertoire_analyse)
-        chrono = Chrono()
-        chrono.start()
+        self._chrono.start()
         for plateau in lot_de_plateaux:
             pass
-        chrono.pause()
-        logger.info(f"Traitement {self._nom_etape} en {chrono} secondes")
+        self._chrono.pause()
+        logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
         logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
         # liste_plateaux_valides = []
         # for plateau_ligne_texte in lot_de_plateaux.plateaux_valides:
