@@ -1,13 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
 
 # Perso
-Plateaux_*/
-V*/
-/*.7z
-/Analyses/
-/Solutions/
-/Archives/
 /logs/
