@@ -174,7 +174,7 @@ class OutilComplet:
 
 if __name__ == "__main__":
     NOM_TACHE = 'outil_complet_product'
-    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
+    FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
     REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_product'
 
     PROFILER_LE_CODE = False
