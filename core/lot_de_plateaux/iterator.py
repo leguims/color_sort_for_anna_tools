@@ -33,21 +33,26 @@ class IterPlateau:
 
     def __next__(self):
         self.logger.debug(f"__next__ : Itération dans les permutations.")
-        # Itérer avec les 'product'
-        self._iter_courante = next(self._iter_iterateur)
-        self.logger.debug(f"__next__ : {self._iter_courante}.")
+        valide_et_interessant = False
+        while not valide_et_interessant:
+            # Itérer avec les 'product'
+            self._iter_courante = next(self._iter_iterateur)
+            self.logger.debug(f"__next__ : {self._iter_courante}.")
+            if self.plateau_est_connu(''.join(self._iter_courante)):
+                raise StopIteration
+            valide_et_interessant = self.plateau_est_valide_et_interessant(''.join(self._iter_courante))
+        return self._plateau
 
-        est_connu = self.plateau_connu(''.join(self._iter_courante))
-        if not est_connu:
-            return self._plateau
-        raise StopIteration
-
-    def plateau_connu(self, permutation_plateau: str) -> bool:
-        "Retourne 'True' si le plateau est deja connu"
+    def plateau_est_connu(self, permutation_plateau: str) -> bool:
+        "Retourne 'True' si le plateau est deja connu (répétition)"
+        return permutation_plateau in self._ensemble_des_plateaux_valides
+    
+    def plateau_est_valide_et_interessant(self, permutation_plateau: str) -> bool:
+        "Retourne 'True' si le plateau est valide"
         if permutation_plateau in self._ensemble_des_plateaux_a_ignorer:
             # Ignorer et oublier ce plateau
             self._ensemble_des_plateaux_a_ignorer.discard(permutation_plateau)
-            return True
+            return False
 
         if permutation_plateau not in self._ensemble_des_plateaux_valides:
             self._plateau.clear()
@@ -60,8 +65,8 @@ class IterPlateau:
                 for permutation_plateau_a_ignorer in construire_les_permutations_de_colonnes(self._lot_de_plateau, self._plateau):
                     # Filtrer permutations piles
                     self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
-            return False
-        return True
+            return True
+        return False
 
     def __len__(self) -> int:
         return self.nb_plateaux_valides
