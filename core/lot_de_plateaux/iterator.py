@@ -48,9 +48,6 @@ class IterPlateau:
             if self._plateau.est_valide and self._plateau.est_interessant:
                 # Enregistrer la permutation courante qui est un nouveau plateau valide
                 self._ensemble_des_plateaux_valides.add(permutation_plateau)
-            else:
-                # Nouveau Plateau invalide à ignorer
-                self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau)
             return False
         return True
 

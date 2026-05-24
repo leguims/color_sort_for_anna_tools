@@ -173,9 +173,9 @@ class OutilComplet:
         logger.info(self)
 
 if __name__ == "__main__":
-    NOM_TACHE = 'outil_complet_product'
+    NOM_TACHE = 'outil_complet_product_sans_ignore'
     FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
-    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_product'
+    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_product_sans_ignore'
 
     PROFILER_LE_CODE = False
 
