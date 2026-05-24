@@ -8,7 +8,6 @@ from . import model
 from . import io
 from . import filter
 from . import generator
-from . import iterator
 from . import level
 
 # Phase 2 : exposer uniquement la classe publique

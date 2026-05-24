@@ -15,6 +15,7 @@ def init_export_json(lot_de_plateaux: LotDePlateaux) -> None:
 
 def arret_des_enregistrements(lot_de_plateaux: LotDePlateaux) -> None:
     "Methode qui finalise la recherche de plateaux"
+    lot_de_plateaux._ensemble_des_plateaux_a_ignorer.clear()
     lot_de_plateaux._recherche_terminee = True
     lot_de_plateaux._recherche_dernier_plateau = None
     # Forcer l'enregistrement, car c'est l'arret et il n'y aura plus d'enregistrements.

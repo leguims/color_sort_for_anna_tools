@@ -7,7 +7,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
 
 from pipeline.outil_etape_1_chercher_des_plateaux import ChercherDesPlateaux
-from pipeline.outil_etape_2_filtrer_plateaux_invalides_ou_ininteressants import FiltrerLesPlateaux as FiltrerLesPlateauxInvalidesOuIniteressants
+from pipeline.outil_etape_2_filtrer_plateaux_invalides_ou_ininteressants import FiltrerLesPlateaux as FiltrerLesPlateauxInvalidesOuininteressants
 from pipeline.outil_etape_3_filtrer_doublons_permutation_jetons import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetons
 from pipeline.outil_etape_4_filtrer_doublons_permutation_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationPiles
 from pipeline.outil_etape_5_filtrer_doublons_permutation_jetons_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetonsPiles
@@ -54,8 +54,8 @@ class OutilComplet:
         chercher.chercher_en_sequence()
         self._elapsed_time += chercher.elapsed
 
-    def filtrer_les_plateaux_invalides_ou_initeressants(self):
-        filtrer = FiltrerLesPlateauxInvalidesOuIniteressants(
+    def filtrer_les_plateaux_invalides_ou_ininteressants(self):
+        filtrer = FiltrerLesPlateauxInvalidesOuininteressants(
             nb_colonnes=self._liste_nb_colonnes,
             nb_lignes=self._liste_nb_lignes,
             nb_colonnes_vides=self._nb_colonnes_vides,
@@ -160,7 +160,7 @@ class OutilComplet:
 
     def chercher_en_sequence(self):
         self.chercher_des_plateaux()
-        self.filtrer_les_plateaux_invalides_ou_initeressants()
+        self.filtrer_les_plateaux_invalides_ou_ininteressants()
         self.filtrer_les_plateaux_permutation_jetons()
         self.filtrer_les_plateaux_permutation_piles()
         self.filtrer_les_plateaux_permutation_jetons_piles()
@@ -173,9 +173,9 @@ class OutilComplet:
         logger.info(self)
 
 if __name__ == "__main__":
-    NOM_TACHE = 'outil_complet_product'
+    NOM_TACHE = 'outil_complet_permutation'
     FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
-    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_product'
+    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_permutation'
 
     PROFILER_LE_CODE = False
 

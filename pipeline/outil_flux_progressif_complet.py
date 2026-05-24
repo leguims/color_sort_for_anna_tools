@@ -21,7 +21,7 @@ from core.lot_de_plateaux import LotDePlateaux
 from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.creer_les_taches import CreerLesTaches
 
-from pipeline.outil_etape_2_filtrer_plateaux_invalides_ou_ininteressants import FiltrerLesPlateaux as FiltrerLesPlateauxInvalidesOuIniteressants
+from pipeline.outil_etape_2_filtrer_plateaux_invalides_ou_ininteressants import FiltrerLesPlateaux as FiltrerLesPlateauxInvalidesOuininteressants
 from pipeline.outil_etape_3_filtrer_doublons_permutation_jetons import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetons
 from pipeline.outil_etape_4_filtrer_doublons_permutation_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationPiles
 from pipeline.outil_etape_5_filtrer_doublons_permutation_jetons_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetonsPiles
@@ -97,8 +97,8 @@ class FluxProgressif:
                 return False
         return True
 
-    def filtrer_les_plateaux_invalides_ou_initeressants(self):
-        filtrer = FiltrerLesPlateauxInvalidesOuIniteressants(
+    def filtrer_les_plateaux_invalides_ou_ininteressants(self):
+        filtrer = FiltrerLesPlateauxInvalidesOuininteressants(
             nb_colonnes=[self._nb_colonnes],
             nb_lignes=[self._nb_lignes],
             nb_colonnes_vides=self._nb_colonnes_vides,
@@ -244,8 +244,8 @@ if __name__ == "__main__":
                 print(f"{entete}Nb plateaux dans le flux progressif : {len(flux_progressif)}")
                 if len(flux_progressif):
                     if len(flux_progressif) > 1:
-                        flux_progressif.filtrer_les_plateaux_invalides_ou_initeressants()
-                        print(f"{' ' * len(entete)}Nb plateaux restants (invalides ou initeressants) : {len(flux_progressif)}")
+                        flux_progressif.filtrer_les_plateaux_invalides_ou_ininteressants()
+                        print(f"{' ' * len(entete)}Nb plateaux restants (invalides ou ininteressants) : {len(flux_progressif)}")
                         flux_progressif.filtrer_les_plateaux_permutation_jetons()
                         print(f"{' ' * len(entete)}Nb plateaux restants (permutations jetons) : {len(flux_progressif)}")
                         flux_progressif.filtrer_les_plateaux_permutation_piles()

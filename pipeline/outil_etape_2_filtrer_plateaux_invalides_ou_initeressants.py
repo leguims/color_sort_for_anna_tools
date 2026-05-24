@@ -10,7 +10,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) 
 from core.lot_de_plateaux import LotDePlateaux
 from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.creer_les_taches import CreerLesTaches
-from io_utils.chrono import Chrono
 
 class FiltrerLesPlateaux:
     "Parcourt les plateaux et pratique un elagage des doublons et de similarite"
@@ -30,16 +29,9 @@ class FiltrerLesPlateaux:
         self._nom_tache = nom_tache
         self._nom_etape = 'filtrer_plateaux_invalides_ou_ininteressants'
         self._fichier_journal = fichier_journal
-        if not self._fichier_journal.parent.exists():
-            self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_affichage = periode_affichage
-        self._chrono = Chrono()
-
-    @property
-    def elapsed(self):
-        return self._chrono.elapsed
 
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
@@ -66,10 +58,7 @@ class FiltrerLesPlateaux:
                                         repertoire_export_json=self._repertoire_filtre,
                                         nb_plateaux_max = self._memoire_max)
         # Parcourir les plateaux et supprimer les plateaux "invalides"
-        self._chrono.start()
         lot_de_plateaux.filtrer_plateaux_invalides_ou_ininteressants(self._periode_affichage)
-        self._chrono.pause()
-        logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
 
     def chercher_en_sequence(self):
         # Configurer le logger
@@ -103,13 +92,11 @@ if __name__ == "__main__":
     FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
     FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
 
-    if not FICHIER_JOURNAL.parent.exists():
-        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     filtrer = FiltrerLesPlateaux(
-        nb_colonnes=[3], #range(2, 12),
-        nb_lignes=[3], #range(2, 14),
+        nb_colonnes=range(2, 12),
+        nb_lignes=range(2,14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_filtre=str(FICHIER_FILTRE),
