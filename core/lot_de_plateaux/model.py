@@ -58,7 +58,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             # Poursuivre la recherche de plateaux valides
             # TODO : Lire le dernier plateau traité pour reprendre la recherche à partir de ce plateau.
             from .iterator import IterPlateau
-            self._iter_iterateur = IterPlateau(self._dim_plateau)
+            self._iter_iterateur = IterPlateau(self._dim_plateau, self)
             self._dernier_affichage  = datetime.datetime.now().timestamp() - DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX
         return self
 

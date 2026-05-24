@@ -173,9 +173,9 @@ class OutilComplet:
         logger.info(self)
 
 if __name__ == "__main__":
-    NOM_TACHE = 'outil_complet_product'
+    NOM_TACHE = 'outil_complet_product_perm_pile_perm_jeton' # pour identifier la tache dans les logs et les repertoires de pipeline
     FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
-    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_product'
+    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_product_perm_pile_perm_jeton'
 
     PROFILER_LE_CODE = False
 
