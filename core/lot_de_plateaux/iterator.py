@@ -1,6 +1,7 @@
 ﻿"Module pour itérer les plateaux"
 from itertools import product
 import logging
+import copy
 
 from core.plateau import Plateau
 from .model import LotDePlateaux
@@ -17,6 +18,7 @@ class IterPlateau:
         self._lot_de_plateau = lot_de_plateaux
 
         # Gestion du lot de plateau
+        self._ensemble_des_plateaux_valides_initiaux = copy.deepcopy(lot_de_plateaux._ensemble_des_plateaux_valides) # Copie des plateaux valides connus
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
         self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
         self._iter_courante = None  # Initialisation de la permutation courante
@@ -32,15 +34,29 @@ class IterPlateau:
         return self
 
     def __next__(self):
-        self.logger.debug(f"__next__ : Itération dans les permutations.")
+        # Avancer dans les iterations de plateaux deja connus
+        if self._ensemble_des_plateaux_valides_initiaux:
+            while self._ensemble_des_plateaux_valides_initiaux:
+                self._iter_courante = next(self._iter_iterateur)
+                plateau_ligne_texte = ''.join(self._iter_courante)
+                try:
+                    self._ensemble_des_plateaux_valides_initiaux.remove(plateau_ligne_texte)
+                    # Pas d'exception = Le plateau valide est trouvé
+                    if self.plateau_valide(plateau_ligne_texte):
+                        self.logger.info(f"__next__ : Epuisement des plateaux connus restants : {len(self._ensemble_des_plateaux_valides_initiaux)}.")
+                        return self._plateau 
+                except KeyError:
+                    pass
+
         valide = False
         while not valide:
             # Itérer avec les 'product'
             self._iter_courante = next(self._iter_iterateur)
             plateau_ligne_texte = ''.join(self._iter_courante)
-            self.logger.debug(f"__next__ : {self._iter_courante}.")
+            self.logger.debug(f"__next__ : {plateau_ligne_texte}.")
 
             if self.plateau_connu(plateau_ligne_texte):
+                self.logger.debug(f"__next__ : StopIteration.")
                 raise StopIteration
             valide = self.plateau_valide(plateau_ligne_texte)
         return self._plateau
@@ -66,7 +82,8 @@ class IterPlateau:
             for permutation_plateau_a_ignorer in construire_les_permutations_de_colonnes(self._lot_de_plateau, self._plateau):
                 # Filtrer permutations piles
                 self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
-        return True
+            return True
+        return False
 
     def __len__(self) -> int:
         return self.nb_plateaux_valides

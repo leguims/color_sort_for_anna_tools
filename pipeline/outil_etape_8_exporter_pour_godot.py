@@ -43,11 +43,13 @@ class ExporterLesSolutionsPourGodot:
         # Creation du fichier de solution pour Godot
         solution_godot = {"liste difficulte des plateaux": {}}
         self._chrono.start()
-        for difficulte, dico_nb_coups in solutions_classees.get('liste difficulte des plateaux').items():
-            for nb_coups, liste_plateaux in dico_nb_coups.items():
-                if str(difficulte) not in solution_godot["liste difficulte des plateaux"]:
-                    solution_godot["liste difficulte des plateaux"][str(difficulte)] = []
-                solution_godot["liste difficulte des plateaux"][str(difficulte)] += liste_plateaux
+        if solutions_classees.get('liste difficulte des plateaux'):
+            for difficulte, dico_nb_coups in solutions_classees.get('liste difficulte des plateaux').items():
+                for nb_coups, liste_plateaux in dico_nb_coups.items():
+                    difficulte_str = f"{int(difficulte):03d}"
+                    if difficulte_str not in solution_godot["liste difficulte des plateaux"]:
+                        solution_godot["liste difficulte des plateaux"][difficulte_str] = []
+                    solution_godot["liste difficulte des plateaux"][difficulte_str] += liste_plateaux
         self._chrono.pause()
         logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
         export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_godot, repertoire=self._repertoire_solution)

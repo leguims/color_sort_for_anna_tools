@@ -61,13 +61,14 @@ class TronquerLesSolutionsGodot:
             self._chrono.start()
             while self._nombre_de_plateaux:
                 for difficulte, liste_plateaux in dict_difficulte.items():
+                    difficulte_str = f"{int(difficulte):03d}"
                     if difficulte not in dict_difficulte_tronque:
-                        dict_difficulte_tronque[difficulte] = []
+                        dict_difficulte_tronque[difficulte_str] = []
                     # print(liste_plateaux)
                     # TODO : Attention s'il n'y a pas assez de plateaux !
                     plateau_aleatoire = random.choice(liste_plateaux)
-                    if plateau_aleatoire not in dict_difficulte_tronque[difficulte]:
-                        dict_difficulte_tronque[difficulte].append(plateau_aleatoire)
+                    if plateau_aleatoire not in dict_difficulte_tronque[difficulte_str]:
+                        dict_difficulte_tronque[difficulte_str].append(plateau_aleatoire)
                         self._nombre_de_plateaux -= 1
                     if not self._nombre_de_plateaux:
                         break

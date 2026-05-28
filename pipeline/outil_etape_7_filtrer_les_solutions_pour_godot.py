@@ -125,12 +125,13 @@ class FiltrerLesSolutions:
         solutions_classees = solutions_classees_json.importer()
 
         somme_plateaux = 0
-        for difficulte, dico_nb_coups in solutions_classees.get('liste difficulte des plateaux').items():
-            for nb_coups, liste_plateaux in dico_nb_coups.items():
-                logger.info(f" - Difficulte : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{self.pluriel(liste_plateaux, 'x')}")
-                if difficulte != 'None':
-                    somme_plateaux += len(liste_plateaux)
-        logger.info(f" - Total : {somme_plateaux} plateau{self.pluriel(range(somme_plateaux), 'x')} valide{self.pluriel(range(somme_plateaux), 's')}")
+        if solutions_classees.get('liste difficulte des plateaux'):
+            for difficulte, dico_nb_coups in solutions_classees.get('liste difficulte des plateaux').items():
+                for nb_coups, liste_plateaux in dico_nb_coups.items():
+                    logger.info(f" - Difficulte : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{self.pluriel(liste_plateaux, 'x')}")
+                    if difficulte != 'None':
+                        somme_plateaux += len(liste_plateaux)
+            logger.info(f" - Total : {somme_plateaux} plateau{self.pluriel(range(somme_plateaux), 'x')} valide{self.pluriel(range(somme_plateaux), 's')}")
 
     def pluriel(self, LIGNES, lettre='s'):
         return lettre if len(LIGNES) > 1 else ""
