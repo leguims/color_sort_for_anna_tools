@@ -196,5 +196,14 @@ if __name__ == "__main__":
                 fichier_journal=FICHIER_JOURNAL
             )
             outil_complet.chercher_en_sequence()
+
     # La synthese des solutions s'applique à tous les plateaux disponibles.
+    outil_complet = OutilComplet(
+        liste_nb_colonnes=[2],
+        liste_nb_lignes=[2],
+        nb_colonnes_vides=1,
+        repertoire_pipeline=REPERTOIRE_PIPELINE,
+        nom_tache=NOM_TACHE,
+        fichier_journal=FICHIER_JOURNAL
+    )
     outil_complet.export_godot()
