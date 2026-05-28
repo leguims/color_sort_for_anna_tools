@@ -1,16 +1,20 @@
-"Module pour itérer les plateaux"
+﻿"Module pour itérer les plateaux"
 from itertools import product
 import logging
 
 from core.plateau import Plateau
+from .model import LotDePlateaux
+from .generator import construire_les_permutations_de_jetons, \
+                    construire_les_permutations_de_colonnes
 
 # TODO : Gerer la memoire si necessaire (self._ensemble_des_plateaux_a_ignorer)
 
 class IterPlateau:
     """Classe qui gere l'itération dans tous les plateaux possibles."""
-    def __init__(self, dim_plateau: tuple[int, int, int]):
+    def __init__(self, dim_plateau: tuple[int, int, int], lot_de_plateaux: LotDePlateaux):
         # Plateau de base
         self._plateau = Plateau(dim_plateau[0], dim_plateau[1], dim_plateau[2])
+        self._lot_de_plateau = lot_de_plateaux
 
         # Gestion du lot de plateau
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
@@ -29,29 +33,39 @@ class IterPlateau:
 
     def __next__(self):
         self.logger.debug(f"__next__ : Itération dans les permutations.")
-        # Itérer avec les 'product'
-        self._iter_courante = next(self._iter_iterateur)
-        self.logger.debug(f"__next__ : {self._iter_courante}.")
+        valide = False
+        while not valide:
+            # Itérer avec les 'product'
+            self._iter_courante = next(self._iter_iterateur)
+            plateau_ligne_texte = ''.join(self._iter_courante)
+            self.logger.debug(f"__next__ : {self._iter_courante}.")
 
-        est_connu = self.plateau_connu(''.join(self._iter_courante))
-        if not est_connu:
-            return self._plateau
-        raise StopIteration
+            if self.plateau_connu(plateau_ligne_texte):
+                raise StopIteration
+            valide = self.plateau_valide(plateau_ligne_texte)
+        return self._plateau
 
     def plateau_connu(self, permutation_plateau: str) -> bool:
-        "Retourne 'True' si le plateau est deja connu"
-        if permutation_plateau not in self._ensemble_des_plateaux_valides \
-            and permutation_plateau not in self._ensemble_des_plateaux_a_ignorer:
-            self._plateau.clear()
-            self._plateau.plateau_ligne_texte = permutation_plateau
-            # Verifier que la plateau est valide
-            if self._plateau.est_valide and self._plateau.est_interessant:
-                # Enregistrer la permutation courante qui est un nouveau plateau valide
-                self._ensemble_des_plateaux_valides.add(permutation_plateau)
-            else:
-                # Nouveau Plateau invalide à ignorer
-                self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau)
+        "Retourne 'True' si le plateau est deja connu (repetition)"
+        return permutation_plateau in self._ensemble_des_plateaux_valides
+
+    def plateau_valide(self, permutation_plateau: str) -> bool:
+        "Retourne 'True' si le plateau est valide (à remonter)"
+        if permutation_plateau in self._ensemble_des_plateaux_a_ignorer:
+            # Ignorer et oublier ce plateau
+            self._ensemble_des_plateaux_a_ignorer.discard(permutation_plateau)
             return False
+
+        self._plateau.clear()
+        self._plateau.plateau_ligne_texte = permutation_plateau
+        # Verifier que la plateau est valide
+        if self._plateau.est_valide and self._plateau.est_interessant:
+            # Enregistrer la permutation courante qui est un nouveau plateau valide
+            self._ensemble_des_plateaux_valides.add(permutation_plateau)
+            # Ajouter toutes les permutations possibles de ce plateau valide à l'ensemble des plateaux à ignorer
+            for permutation_plateau_a_ignorer in construire_les_permutations_de_colonnes(self._lot_de_plateau, self._plateau):
+                # Filtrer permutations piles
+                self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
         return True
 
     def __len__(self) -> int:
