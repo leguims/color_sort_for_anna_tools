@@ -165,6 +165,11 @@ class OutilComplet:
         self.filtrer_les_plateaux_permutation_piles()
         self.filtrer_les_plateaux_permutation_jetons_piles()
         self.chercher_des_solutions()
+
+    def export_godot(self):
+        # La synthese des solutions s'applique à tous les plateaux disponibles.
+        self._liste_nb_colonnes = range(2, 12)
+        self._liste_nb_lignes = range(2, 14)
         self.classer_les_solutions()
         self.exporter_pour_godot()
         self.tronquer_les_solutions(taille_tronquee=200, decallage=0)
@@ -173,9 +178,9 @@ class OutilComplet:
         logger.info(self)
 
 if __name__ == "__main__":
-    NOM_TACHE = 'outil_complet_product'
+    NOM_TACHE = 'outil_complet'
     FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
-    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines_product'
+    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines'
 
     PROFILER_LE_CODE = False
 
@@ -191,3 +196,5 @@ if __name__ == "__main__":
                 fichier_journal=FICHIER_JOURNAL
             )
             outil_complet.chercher_en_sequence()
+    # La synthese des solutions s'applique à tous les plateaux disponibles.
+    outil_complet.export_godot()

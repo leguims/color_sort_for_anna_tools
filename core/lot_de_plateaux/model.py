@@ -1,12 +1,10 @@
 "Module pour creer, resoudre et qualifier les soltuions des plateaux de 'ColorWoordSort'"
-import datetime
 import logging
 from copy import deepcopy
 
 from core.plateau import Plateau
 from io_utils.export_json import ExportJSON
 
-DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 30*60
 DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 5*60
 
 # TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
@@ -58,8 +56,9 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             # Poursuivre la recherche de plateaux valides
             # TODO : Lire le dernier plateau traité pour reprendre la recherche à partir de ce plateau.
             from .iterator import IterPlateau
-            self._iter_iterateur = IterPlateau(self._dim_plateau, self)
-            self._dernier_affichage  = datetime.datetime.now().timestamp() - DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX
+            self._iter_iterateur = IterPlateau(self._dim_plateau,
+                                                DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX,
+                                                self)
         return self
 
     def __next__(self):
@@ -80,10 +79,6 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 # Enregistrement du plateau courant pour une eventuelle reprise.
                 self._recherche_dernier_plateau = self._plateau_courant.plateau_ligne_texte_universel
                 self._export_json.exporter(self)
-                # Log pour suivre l'avancement.
-                if datetime.datetime.now().timestamp() - self._dernier_affichage > DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX:
-                    self.logger.info(f"self._recherche_dernier_plateau='{self._recherche_dernier_plateau}'")
-                    self._dernier_affichage  = datetime.datetime.now().timestamp()
                 return self._plateau_courant.plateau_ligne_texte_universel
             except StopIteration:
                 self._ensemble_des_plateaux_valides = deepcopy(self._iter_iterateur.plateaux_valides)

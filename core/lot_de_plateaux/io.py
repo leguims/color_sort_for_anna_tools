@@ -145,4 +145,3 @@ def to_dict(lot_de_plateaux: LotDePlateaux) -> dict:
     dict_lot_de_plateaux['liste difficulte des plateaux']= liste_difficultes_universelles
 
     return dict_lot_de_plateaux
-
