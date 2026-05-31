@@ -38,7 +38,7 @@ class IterPlateau:
         return self
 
     def __next__(self):
-        # Avancer dans les iterations de plateaux deja connus
+        # Reprise Phase 1 : Avancer dans les iterations de plateaux deja connus
         if self._ensemble_des_plateaux_valides_initiaux:
             while self._ensemble_des_plateaux_valides_initiaux:
                 self._iter_courante = next(self._iter_iterateur)
@@ -53,8 +53,9 @@ class IterPlateau:
                         return self.plateau 
                 except KeyError:
                     pass
-        # Avancer dans les iterations de plateaux deja cherchés
-        elif self._lot_de_plateau._recherche_dernier_plateau:
+
+        # Reprise Phase 2 : Avancer dans les iterations du dernier plateau cherché
+        if self._lot_de_plateau._recherche_dernier_plateau:
             plateau_reprise = self._lot_de_plateau._recherche_dernier_plateau
             # self.logger.info(f"__next__ : Reprise : iteration courante = {plateau_ligne_texte}.")
             while plateau_reprise != self.plateau.plateau_ligne_texte_universel:
@@ -63,6 +64,7 @@ class IterPlateau:
                 self._enregistrer_plateau_courant(plateau_ligne_texte)
 
             # Traiter le plateau de reprise
+            plateau_ligne_texte = self.plateau.plateau_ligne_texte
             if self.plateau_connu(plateau_ligne_texte):
                 self.logger.debug(f"__next__ : StopIteration.")
                 raise StopIteration
