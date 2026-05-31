@@ -23,7 +23,7 @@ Retourne True si l'export a ete realise"""
             return self.forcer_export(contenu)
 
         if (datetime.datetime.now().timestamp() - self._timestamp_dernier_enregistrement >= self._delai_enregistrement) \
-            and (len(contenu) != self._longueur_dernier_enregistrement):
+            and (len(contenu) == 0 or len(contenu) != self._longueur_dernier_enregistrement):
             return self.forcer_export(contenu)
         
         return False
@@ -34,12 +34,11 @@ Retourne True si l'export a ete realise"""
         # Enregistrement des donnees dans un fichier JSON
         if not self._chemin_enregistrement.parent.exists():
             self._chemin_enregistrement.parent.mkdir(parents=True, exist_ok=True)
-        if type(contenu) == dict:
-            with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
+        with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
+            if type(contenu) == dict:
                 json.dump(contenu, fichier, ensure_ascii=False, indent=4)
-        else:
-            # Enregistrement d'une classe
-            with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
+            else:
+                # Enregistrement d'une classe
                 json.dump(contenu.to_dict(), fichier, ensure_ascii=False, indent=4)
         self._longueur_dernier_enregistrement = len(contenu)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
