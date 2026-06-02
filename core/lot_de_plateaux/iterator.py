@@ -65,15 +65,15 @@ class IterPlateau:
             self.logger.debug(f"__next__ : NOT est_deja_termine.")
             # Phase 1 : Avancer dans les iterations de plateaux deja connus
             if self._ensemble_des_plateaux_valides_initiaux:
-                self.__next__phase_1()
+                self.__next__recherche_libre_phase_1()
 
             # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
             if self._lot_de_plateau._recherche_dernier_plateau:
-                self.__next__phase_2()
+                self.__next__recherche_libre_phase_2()
 
-            return self.__next__phase_3()
+            return self.__next__recherche_libre_phase_3()
 
-    def __next__phase_1(self):
+    def __next__recherche_libre_phase_1(self):
         # Phase 1 : Avancer dans les iterations de plateaux deja connus
         if self._ensemble_des_plateaux_valides_initiaux:
             self.logger.info(f"__next__ : Reprise phase 1 debutee.")
@@ -93,7 +93,7 @@ class IterPlateau:
                     pass
             self.logger.info(f"__next__ : Reprise phase 1 terminee.")
 
-    def __next__phase_2(self):
+    def __next__recherche_libre_phase_2(self):
         # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
         if self._lot_de_plateau._recherche_dernier_plateau:
             self.logger.info(f"__next__ : Reprise phase 2 debutee.")
@@ -116,7 +116,7 @@ class IterPlateau:
                 return self.plateau
             self.logger.info(f"__next__ : Reprise phase 2 terminee.")
 
-    def __next__phase_3(self):
+    def __next__recherche_libre_phase_3(self):
         valide = False
         while not valide:
             # Itérer avec les 'product'
