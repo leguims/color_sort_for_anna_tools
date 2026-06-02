@@ -28,50 +28,36 @@ class IterPlateau:
         self._iter_courante = None  # Initialisation de la permutation courante
         self._iter_iterateur = None  # Initialisation de l'itérateur de permutations
 
-        # Recherche terminé
-        self._iter_index = 0        # Initialisation de l'index pour les recherches terminées
-        self._iter_index_max = 0    # Initialisation de l'index max. pour les recherches terminées
-        self._iter_list = []    # Liste des plateaux valides
-
         self._logger = logging.getLogger(f"{self.plateau.nb_colonnes}.{self.plateau.nb_lignes}.{IterPlateau.__name__}")
         self.__iter__()
 
     # Iterateur avec : __iter__ et __next__
     def __iter__(self):
         self.logger.debug(f"__iter__ : Initialisation de l'itérateur.")
-        if self._lot_de_plateau.est_deja_termine:
-            self.logger.debug(f"__iter__ : est_deja_termine.")
-            # Parcourir les plateaux valides
-            self._iter_index = 0  # Réinitialisation de l'index de l'itérateur
-            self._iter_index_max = len(self._lot_de_plateau.plateaux_valides_liste_classee)
-            self._iter_list = self._lot_de_plateau.plateaux_valides_liste_classee
-        else:
-            self.logger.debug(f"__iter__ : NOT est_deja_termine.")
-            self._iter_iterateur = product(self.plateau.liste_familles + [self.plateau.case_vide],
-                                       repeat=self.plateau.nb_colonnes * self.plateau.nb_lignes) 
+        # 2 options :
+        #        - Recherche libre
+        #        - Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
+
+        # Recherche libre
+        self._iter_iterateur = product(self.plateau.liste_familles + [self.plateau.case_vide],
+                                    repeat=self.plateau.nb_colonnes * self.plateau.nb_lignes) 
         return self
 
     def __next__(self):
-        if self._lot_de_plateau.est_deja_termine:
-            self.logger.debug(f"__next__ : est_deja_termine.")
-            # Parcourir les plateaux valides
-            if self._iter_index < self._iter_index_max:
-                self._iter_index += 1
-                self.plateau.clear()
-                self.plateau.plateau_ligne_texte = self._iter_list[self._iter_index - 1]
-                return self.plateau
-            raise StopIteration
-        else:
-            self.logger.debug(f"__next__ : NOT est_deja_termine.")
-            # Phase 1 : Avancer dans les iterations de plateaux deja connus
-            if self._ensemble_des_plateaux_valides_initiaux:
-                self.__next__recherche_libre_phase_1()
+        # 2 options :
+        #        - Recherche libre
+        #        - Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
 
-            # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
-            if self._lot_de_plateau._recherche_dernier_plateau:
-                self.__next__recherche_libre_phase_2()
+        # Recherche libre
+        # Phase 1 : Avancer dans les iterations de plateaux deja connus
+        if self._ensemble_des_plateaux_valides_initiaux:
+            self.__next__recherche_libre_phase_1()
 
-            return self.__next__recherche_libre_phase_3()
+        # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
+        if self._lot_de_plateau._recherche_dernier_plateau:
+            self.__next__recherche_libre_phase_2()
+
+        return self.__next__recherche_libre_phase_3()
 
     def __next__recherche_libre_phase_1(self):
         # Phase 1 : Avancer dans les iterations de plateaux deja connus
