@@ -27,17 +27,53 @@ class IterPlateau:
         self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
         self._iter_courante = None  # Initialisation de la permutation courante
         self._iter_iterateur = None  # Initialisation de l'itérateur de permutations
+
+        # Recherche terminé
+        self._iter_index = 0        # Initialisation de l'index pour les recherches terminées
+        self._iter_index_max = 0    # Initialisation de l'index max. pour les recherches terminées
+        self._iter_list = []    # Liste des plateaux valides
+
         self._logger = logging.getLogger(f"{self.plateau.nb_colonnes}.{self.plateau.nb_lignes}.{IterPlateau.__name__}")
         self.__iter__()
 
     # Iterateur avec : __iter__ et __next__
     def __iter__(self):
         self.logger.debug(f"__iter__ : Initialisation de l'itérateur.")
-        self._iter_iterateur = product(self.plateau.liste_familles + [self.plateau.case_vide],
+        if self._lot_de_plateau.est_deja_termine:
+            self.logger.debug(f"__iter__ : est_deja_termine.")
+            # Parcourir les plateaux valides
+            self._iter_index = 0  # Réinitialisation de l'index de l'itérateur
+            self._iter_index_max = len(self._lot_de_plateau.plateaux_valides_liste_classee)
+            self._iter_list = self._lot_de_plateau.plateaux_valides_liste_classee
+        else:
+            self.logger.debug(f"__iter__ : NOT est_deja_termine.")
+            self._iter_iterateur = product(self.plateau.liste_familles + [self.plateau.case_vide],
                                        repeat=self.plateau.nb_colonnes * self.plateau.nb_lignes) 
         return self
 
     def __next__(self):
+        if self._lot_de_plateau.est_deja_termine:
+            self.logger.debug(f"__next__ : est_deja_termine.")
+            # Parcourir les plateaux valides
+            if self._iter_index < self._iter_index_max:
+                self._iter_index += 1
+                self.plateau.clear()
+                self.plateau.plateau_ligne_texte = self._iter_list[self._iter_index - 1]
+                return self.plateau
+            raise StopIteration
+        else:
+            self.logger.debug(f"__next__ : NOT est_deja_termine.")
+            # Phase 1 : Avancer dans les iterations de plateaux deja connus
+            if self._ensemble_des_plateaux_valides_initiaux:
+                self.__next__phase_1()
+
+            # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
+            if self._lot_de_plateau._recherche_dernier_plateau:
+                self.__next__phase_2()
+
+            return self.__next__phase_3()
+
+    def __next__phase_1(self):
         # Phase 1 : Avancer dans les iterations de plateaux deja connus
         if self._ensemble_des_plateaux_valides_initiaux:
             self.logger.info(f"__next__ : Reprise phase 1 debutee.")
@@ -57,6 +93,7 @@ class IterPlateau:
                     pass
             self.logger.info(f"__next__ : Reprise phase 1 terminee.")
 
+    def __next__phase_2(self):
         # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
         if self._lot_de_plateau._recherche_dernier_plateau:
             self.logger.info(f"__next__ : Reprise phase 2 debutee.")
@@ -79,6 +116,7 @@ class IterPlateau:
                 return self.plateau
             self.logger.info(f"__next__ : Reprise phase 2 terminee.")
 
+    def __next__phase_3(self):
         valide = False
         while not valide:
             # Itérer avec les 'product'
