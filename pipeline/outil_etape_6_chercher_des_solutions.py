@@ -52,7 +52,7 @@ class ChercherDesSolutions:
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
         destination = Path(self._repertoire_difficulte) / source.parent.name
-        if source.exists() and not destination.exists():
+        if source.exists() and not (destination/source.name).exists():
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy(source, destination)
 
