@@ -12,7 +12,7 @@ DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 5*60
 class LotDePlateaux:
     """Classe qui gere les lots de plateaux pour parcourir l'immensite des plateaux existants.
 Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherche."""
-    def __init__(self, dim_plateau, repertoire_export_json, nb_plateaux_max = 1_000_000):
+    def __init__(self, dim_plateau, repertoire_export_json, nb_plateaux_max = 1_000_000, parent_filtre: 'LotDePlateaux' = None):
         # Plateau de base
         self._dim_plateau = dim_plateau
         self._plateau_courant = Plateau(dim_plateau[0], dim_plateau[1], dim_plateau[2])
@@ -23,6 +23,8 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._iter_index_max = 0
         self._recherche_terminee = False # Indique si la recherche de plateaux valides est terminee (exhaustive)
         self._recherche_dernier_plateau = None # Dernier plateau traité en recherche pour reprise
+        self._parent_filtre = parent_filtre # Lot de plateau "Ligne-1" pour accelerer l'iterateur
+        # TODO : Gérer le parent filtré et le fournir à l'itérateur
 
 
         self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons

@@ -48,6 +48,7 @@ class OutilComplet:
             nb_lignes=self._liste_nb_lignes,
             nb_colonnes_vides=self._nb_colonnes_vides,
             repertoire_analyse=str(self._repertoire_pipeline/'pipeline_1_chercher_des_plateaux'),
+            repertoire_filtre=str(self._repertoire_pipeline/'pipeline_5_filtre_doublons_permutation_jetons_piles'),
             nom_tache=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
