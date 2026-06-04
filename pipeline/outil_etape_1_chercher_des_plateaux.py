@@ -14,7 +14,6 @@ class ChercherDesPlateaux:
     "Module pour creer des plateaux de 'ColorWoodSort'"
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides,
                 repertoire_analyse,
-                repertoire_filtre,
                 nom_tache,
                 fichier_journal,
                 periode_affichage = 1*60): # en secondes
@@ -22,7 +21,6 @@ class ChercherDesPlateaux:
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
         self._repertoire_analyse = repertoire_analyse
-        self._repertoire_filtre = repertoire_filtre
         self._nom_tache = nom_tache
         self._nom_etape = 'chercher_des_plateaux'
         self._fichier_journal = fichier_journal
@@ -46,8 +44,12 @@ class ChercherDesPlateaux:
         if not lot_de_plateaux.est_deja_termine and lignes > 2:
             # Le lot actuel n'est pas terminé, s'appuyer sur son parent
             lot_de_plateaux_parent_filtre = LotDePlateaux((colonnes, lignes-1, self._nb_colonnes_vides),
-                                                        repertoire_export_json=self._repertoire_filtre)
-            if lot_de_plateaux_parent_filtre.est_deja_termine and lot_de_plateaux_parent_filtre._filtrer_doublons_permutation_jetons_piles:
+                                                        repertoire_export_json=self._repertoire_analyse)
+            if lot_de_plateaux_parent_filtre.est_deja_termine \
+                and not lot_de_plateaux_parent_filtre._filtrer_plateaux_invalides_ou_ininteressants \
+                and not lot_de_plateaux_parent_filtre._filtrer_doublons_permutation_jetons \
+                and not lot_de_plateaux_parent_filtre._filtrer_doublons_permutation_piles \
+                and not lot_de_plateaux_parent_filtre._filtrer_doublons_permutation_jetons_piles:
                 # Si le parent est termine et filtré, on le donne comme reference pour accelerer l'iterateur
                 lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                     repertoire_export_json=self._repertoire_analyse,
@@ -82,7 +84,6 @@ if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_plateaux'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
     FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
-    FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
 
     if not FICHIER_JOURNAL.parent.exists():
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
@@ -93,7 +94,6 @@ if __name__ == "__main__":
         nb_lignes=[3], #range(2, 14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(FICHIER_ANALYSE),
-        repertoire_filtre=str(FICHIER_FILTRE),
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL
     )

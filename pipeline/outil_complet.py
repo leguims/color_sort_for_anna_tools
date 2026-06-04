@@ -34,6 +34,8 @@ class OutilComplet:
         if not self._fichier_journal.parent.exists():
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._elapsed_time = 0.
+        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self._logger = logging.getLogger(self._nom_tache)
 
     def __str__(self) -> str:
         return f"Duree du traitement complet : {self._elapsed_time:.4f} secondes".replace('.', ',')
@@ -48,7 +50,6 @@ class OutilComplet:
             nb_lignes=self._liste_nb_lignes,
             nb_colonnes_vides=self._nb_colonnes_vides,
             repertoire_analyse=str(self._repertoire_pipeline/'pipeline_1_chercher_des_plateaux'),
-            repertoire_filtre=str(self._repertoire_pipeline/'pipeline_5_filtre_doublons_permutation_jetons_piles'),
             nom_tache=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
@@ -166,6 +167,7 @@ class OutilComplet:
         self.filtrer_les_plateaux_permutation_piles()
         self.filtrer_les_plateaux_permutation_jetons_piles()
         self.chercher_des_solutions()
+        self._logger.info(self)
 
     def export_godot(self):
         # La synthese des solutions s'applique à tous les plateaux disponibles.
@@ -174,9 +176,7 @@ class OutilComplet:
         self.classer_les_solutions()
         self.exporter_pour_godot()
         self.tronquer_les_solutions(taille_tronquee=200, decallage=0)
-        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        logger = logging.getLogger(self._nom_tache)
-        logger.info(self)
+        self._logger.info(self)
 
 if __name__ == "__main__":
     NOM_TACHE = 'outil_complet'

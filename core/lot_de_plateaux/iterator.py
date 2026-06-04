@@ -23,6 +23,7 @@ class IterPlateau:
 
         # Gestion du lot de plateau
         self._ensemble_des_plateaux_valides_initiaux = copy.deepcopy(lot_de_plateaux._ensemble_des_plateaux_valides) # Copie des plateaux valides connus
+        self._recherche_dernier_plateau_initial = copy.deepcopy(lot_de_plateaux._recherche_dernier_plateau)
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
         self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
         self._iter_courante = []  # Initialisation de la permutation courante
@@ -45,10 +46,10 @@ class IterPlateau:
 
         if self._lot_de_plateau._parent_filtre \
             and self._lot_de_plateau._parent_filtre.est_deja_termine \
-            and self._lot_de_plateau._parent_filtre._filtrer_plateaux_invalides_ou_ininteressants \
-            and self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons \
-            and self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_piles \
-            and self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons_piles:
+            and not self._lot_de_plateau._parent_filtre._filtrer_plateaux_invalides_ou_ininteressants \
+            and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons \
+            and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_piles \
+            and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons_piles:
             # Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
             self._iter_iterateur_parent = self._lot_de_plateau._parent_filtre.__iter__() # Reprendre l'iterateur du lot de plateau parent
             self._iter_courante_parent = next(self._iter_iterateur_parent).replace('.','') # universel => ligne
@@ -66,10 +67,10 @@ class IterPlateau:
         #        - Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
         if self._lot_de_plateau._parent_filtre \
             and self._lot_de_plateau._parent_filtre.est_deja_termine \
-            and self._lot_de_plateau._parent_filtre._filtrer_plateaux_invalides_ou_ininteressants \
-            and self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons \
-            and self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_piles \
-            and self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons_piles:
+            and not self._lot_de_plateau._parent_filtre._filtrer_plateaux_invalides_ou_ininteressants \
+            and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons \
+            and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_piles \
+            and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons_piles:
             return self.__next__recherche_parent_phase_3()
         else:
             # Recherche libre
@@ -78,7 +79,7 @@ class IterPlateau:
                 self.__next__recherche_libre_phase_1()
 
             # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
-            if self._lot_de_plateau._recherche_dernier_plateau:
+            if self._recherche_dernier_plateau_initial:
                 self.__next__recherche_libre_phase_2()
 
             return self.__next__recherche_libre_phase_3()
@@ -101,14 +102,15 @@ class IterPlateau:
                         return self.plateau 
                 except KeyError:
                     pass
+            self._ensemble_des_plateaux_valides_initiaux = set() # Epuisement des plateaux connus restants
             self.logger.info(f"__next__ : Reprise phase 1 terminee.")
 
     def __next__recherche_libre_phase_2(self):
         # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
-        if self._lot_de_plateau._recherche_dernier_plateau:
+        if self._recherche_dernier_plateau_initial:
             self.logger.info(f"__next__ : Reprise phase 2 debutee.")
 
-            plateau_reprise_ligne_texte_universel = self._lot_de_plateau._recherche_dernier_plateau
+            plateau_reprise_ligne_texte_universel = self._recherche_dernier_plateau_initial
             plateau_reprise_ligne_texte = plateau_reprise_ligne_texte_universel.replace('.','')
             self.logger.info(f"__next__ : Reprise : derniere iteration = '{plateau_reprise_ligne_texte_universel}'.")
 
@@ -124,6 +126,7 @@ class IterPlateau:
             valide = self.plateau_valide(plateau_reprise_ligne_texte)
             if valide:
                 return self.plateau
+            self._recherche_dernier_plateau_initial = '' # Epuisement de la reprise
             self.logger.info(f"__next__ : Reprise phase 2 terminee.")
 
     def __next__recherche_libre_phase_3(self):
@@ -215,7 +218,7 @@ class IterPlateau:
 
         self._enregistrer_plateau_courant(permutation_plateau)
         # Verifier que la plateau est valide
-        if self.plateau.est_valide and self.plateau.est_interessant:
+        if self.plateau.est_valide:
             # Enregistrer la permutation courante qui est un nouveau plateau valide
             self._ensemble_des_plateaux_valides.add(permutation_plateau)
             # Ajouter toutes les permutations possibles de ce plateau valide à l'ensemble des plateaux à ignorer
