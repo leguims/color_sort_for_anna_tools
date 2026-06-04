@@ -23,6 +23,7 @@ class IterPlateau:
 
         # Gestion du lot de plateau
         self._ensemble_des_plateaux_valides_initiaux = copy.deepcopy(lot_de_plateaux._ensemble_des_plateaux_valides) # Copie des plateaux valides connus
+        self._recherche_dernier_plateau_initial = copy.deepcopy(lot_de_plateaux._recherche_dernier_plateau) # Copie des plateaux valides connus
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
         self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
         self._iter_courante = None  # Initialisation de la permutation courante
@@ -54,7 +55,7 @@ class IterPlateau:
             self.__next__recherche_libre_phase_1()
 
         # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
-        if self._lot_de_plateau._recherche_dernier_plateau:
+        if self._recherche_dernier_plateau_initial:
             self.__next__recherche_libre_phase_2()
 
         return self.__next__recherche_libre_phase_3()
@@ -77,14 +78,15 @@ class IterPlateau:
                         return self.plateau 
                 except KeyError:
                     pass
+            self._ensemble_des_plateaux_valides_initiaux.clear() # Nettoyer pour ne pas refaire cette phase
             self.logger.info(f"__next__ : Reprise phase 1 terminee.")
 
     def __next__recherche_libre_phase_2(self):
         # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
-        if self._lot_de_plateau._recherche_dernier_plateau:
+        if self._recherche_dernier_plateau_initial:
             self.logger.info(f"__next__ : Reprise phase 2 debutee.")
 
-            plateau_reprise_ligne_texte_universel = self._lot_de_plateau._recherche_dernier_plateau
+            plateau_reprise_ligne_texte_universel = self._recherche_dernier_plateau_initial
             plateau_reprise_ligne_texte = plateau_reprise_ligne_texte_universel.replace('.','')
             self.logger.info(f"__next__ : Reprise : derniere iteration = '{plateau_reprise_ligne_texte_universel}'.")
 
@@ -100,6 +102,7 @@ class IterPlateau:
             valide = self.plateau_valide(plateau_reprise_ligne_texte)
             if valide:
                 return self.plateau
+            self._recherche_dernier_plateau_initial = '' # Nettoyer pour ne pas refaire cette phase
             self.logger.info(f"__next__ : Reprise phase 2 terminee.")
 
     def __next__recherche_libre_phase_3(self):
