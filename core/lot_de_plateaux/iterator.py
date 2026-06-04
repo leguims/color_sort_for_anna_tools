@@ -102,7 +102,7 @@ class IterPlateau:
                         return self.plateau 
                 except KeyError:
                     pass
-            self._ensemble_des_plateaux_valides_initiaux = set() # Epuisement des plateaux connus restants
+            self._ensemble_des_plateaux_valides_initiaux.clear() # Epuisement des plateaux connus restants
             self.logger.info(f"__next__ : Reprise phase 1 terminee.")
 
     def __next__recherche_libre_phase_2(self):
@@ -167,21 +167,18 @@ class IterPlateau:
                 except StopIteration:
                     # Les deux iterateurs sont epuisés
                     raise StopIteration
-            print(f"__next__ : self._iter_courante_parent = {self._iter_courante_parent}, self._iter_courante_suffixe = {self._iter_courante_suffixe}")
             # Concatener les ierateurs parent et suffixe pour construire l'iteration courante
             nb_lignes_parent = self._lot_de_plateau._parent_filtre._plateau_courant.nb_lignes
             self._iter_courante = []
             for colonne in range(self.plateau.nb_colonnes):
                 self._iter_courante.extend(self._iter_courante_parent[colonne*nb_lignes_parent:(colonne+1)*nb_lignes_parent])
                 self._iter_courante.append(self._iter_courante_suffixe[colonne])
-            print(f"__next__ : self._iter_courante = {self._iter_courante}")
 
             plateau_ligne_texte = ''.join(self._iter_courante)
             self._enregistrer_plateau_courant(plateau_ligne_texte)
             try:
                 self.plateau.rendre_valide()
                 plateau_ligne_texte = self.plateau.plateau_ligne_texte
-                print(f"__next__ : self.plateau = {plateau_ligne_texte}")
             except PlateauInvalidable:
                 continue # Iteration suivante
             # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
