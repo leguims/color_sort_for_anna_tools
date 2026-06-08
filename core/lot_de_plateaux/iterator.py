@@ -218,7 +218,10 @@ class IterPlateau:
             # Ajouter toutes les permutations possibles de ce plateau valide à l'ensemble des plateaux à ignorer
             for permutation_plateau_a_ignorer in construire_les_permutations_de_colonnes(self._lot_de_plateau, self.plateau):
                 # Filtrer permutations piles
-                self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
+                try:
+                    self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
+                except MemoryError:
+                    self._ensemble_des_plateaux_a_ignorer.clear() # Epuisement de la memoire pour les plateaux à ignorer
             return True
         return False
 
