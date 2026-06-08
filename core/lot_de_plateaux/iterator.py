@@ -6,8 +6,7 @@ import datetime
 
 from core.plateau import Plateau, PlateauInvalidable
 from .model import LotDePlateaux
-from .generator import construire_les_permutations_de_jetons, \
-                    construire_les_permutations_de_colonnes
+from .generator import construire_les_permutations_de_colonnes
 
 # TODO : Gerer la memoire si necessaire (self._ensemble_des_plateaux_a_ignorer)
 
@@ -42,7 +41,7 @@ class IterPlateau:
         self.logger.debug(f"__iter__ : Initialisation de l'itérateur.")
         # 2 options :
         #        - Recherche libre
-        #        - Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
+        #        - Recherche depuis plateau "ligne-1" terminé (outil_etape_1_chercher_des_plateaux)
 
         if self._lot_de_plateau._parent_filtre \
             and self._lot_de_plateau._parent_filtre.est_deja_termine \
@@ -50,7 +49,7 @@ class IterPlateau:
             and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons \
             and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_piles \
             and not self._lot_de_plateau._parent_filtre._filtrer_doublons_permutation_jetons_piles:
-            # Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
+            # Recherche depuis plateau "ligne-1" terminé (outil_etape_1_chercher_des_plateaux)
             self._iter_iterateur_parent = self._lot_de_plateau._parent_filtre.__iter__() # Reprendre l'iterateur du lot de plateau parent
             self._iter_courante_parent = next(self._iter_iterateur_parent).replace('.','') # universel => ligne
             self._iter_iterateur_suffixe = product(self.plateau.liste_familles + [self.plateau.case_vide],
@@ -64,7 +63,7 @@ class IterPlateau:
     def __next__(self):
         # 2 options :
         #        - Recherche libre
-        #        - Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
+        #        - Recherche depuis plateau "ligne-1" terminé (outil_etape_1_chercher_des_plateaux)
         if self._lot_de_plateau._parent_filtre \
             and self._lot_de_plateau._parent_filtre.est_deja_termine \
             and not self._lot_de_plateau._parent_filtre._filtrer_plateaux_invalides_ou_ininteressants \
@@ -166,7 +165,7 @@ class IterPlateau:
                 except StopIteration:
                     # Les deux iterateurs sont epuisés
                     raise StopIteration
-            # Concatener les ierateurs parent et suffixe pour construire l'iteration courante
+            # Concatener les iterateurs parent et suffixe pour construire l'iteration courante
             nb_lignes_parent = self._lot_de_plateau._parent_filtre._plateau_courant.nb_lignes
             self._iter_courante = []
             for colonne in range(self.plateau.nb_colonnes):
@@ -221,7 +220,8 @@ class IterPlateau:
                 try:
                     self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
                 except MemoryError:
-                    self._ensemble_des_plateaux_a_ignorer.clear() # Epuisement de la memoire pour les plateaux à ignorer
+                    # Liberer de la mémoire.
+                    self._ensemble_des_plateaux_a_ignorer.clear()
             return True
         return False
 

@@ -131,6 +131,7 @@ def filtrer_doublons_permutation_jetons(lot_de_plateaux: LotDePlateaux, periode_
             # lot_de_plateaux.logger.debug(f"{prefixe_log} taille des permutations de doublons = {len(liste_permutations_texte)}")
 
             effacer_plateaux_valides(lot_de_plateaux, liste_permutations_texte, prefixe_log, plateau_courant)
+            liste_permutations_texte.clear()
             nb_plateaux_a_valider -= 1
 
             # Log pour l'avancement du traitement
@@ -199,6 +200,7 @@ def filtrer_doublons_permutation_piles(lot_de_plateaux: LotDePlateaux, periode_a
 
             effacer_plateaux_valides(lot_de_plateaux, liste_permutations_texte, prefixe_log, plateau_courant)
 
+            liste_permutations_texte.clear()
             nb_plateaux_a_valider -= 1
 
             if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
@@ -275,7 +277,9 @@ def filtrer_doublons_permutation_jetons_piles(lot_de_plateaux: LotDePlateaux, pe
                     dernier_affichage  = datetime.datetime.now().timestamp()
 
                 effacer_plateaux_valides(lot_de_plateaux, liste_permutations_texte, prefixe_log, plateau_courant)
+                liste_permutations_texte.clear()
 
+            liste_permutations_colonnes.clear()
             nb_plateaux_a_valider -= 1
 
             if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
