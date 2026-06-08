@@ -118,6 +118,7 @@ class IterPlateau:
                 self._iter_courante = next(self._iter_iterateur)
                 plateau_ligne_texte = ''.join(self._iter_courante)
                 self._enregistrer_plateau_courant(plateau_ligne_texte)
+                self._afficher_periodiquement_iterateur()
 
             # Traiter le plateau de reprise
             if self.plateau_connu(plateau_reprise_ligne_texte):
@@ -136,8 +137,6 @@ class IterPlateau:
             self._iter_courante = next(self._iter_iterateur)
             plateau_ligne_texte = ''.join(self._iter_courante)
             self._enregistrer_plateau_courant(plateau_ligne_texte)
-            # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
-
             self._afficher_periodiquement_iterateur()
 
             # Enregistrer l'iteration pour la reprise
@@ -181,8 +180,6 @@ class IterPlateau:
                 plateau_ligne_texte = self.plateau.plateau_ligne_texte
             except PlateauInvalidable:
                 continue # Iteration suivante
-            # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
-
             self._afficher_periodiquement_iterateur()
 
             # Enregistrer l'iteration pour la reprise
