@@ -53,7 +53,7 @@ class FiltrerLesSolutions:
         # logger.info(plateau.plateau_ligne_texte_universel)
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse)
-        if lot_de_plateaux.est_deja_termine: # or True: # True = Classe toutes les solutions a l'heure actuel.
+        if lot_de_plateaux.est_deja_termine:
             logger.info("Ce lot de plateaux est termine")
 
             logger.info("Importer les solutions")
@@ -141,7 +141,7 @@ class FiltrerLesSolutions:
         logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
 
         while(True):
-            logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+            # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
             for iter_lignes in self._nb_lignes:
                 for iter_colonnes in self._nb_colonnes:
                     self.classer_les_solutions(iter_colonnes, iter_lignes)
@@ -159,14 +159,14 @@ class FiltrerLesSolutions:
         
         # Configurer le logger
         logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
-        logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+        # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
         for iter_lignes in self._nb_lignes:
             for iter_colonnes in self._nb_colonnes:
                 self.classer_les_solutions(iter_colonnes, iter_lignes)
         profil.stop()
 
         self.afficher_synthese()
-        logger.info('-'*10 + " FIN " + '-'*10)
+        # logger.info('-'*10 + " FIN " + '-'*10)
 
 if __name__ == "__main__":
     NOM_TACHE = 'classer_les_solutions'

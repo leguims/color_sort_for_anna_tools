@@ -1,4 +1,4 @@
-﻿"Module pour itérer les plateaux"
+"Module pour itérer les plateaux"
 from itertools import product
 import logging
 import copy
@@ -9,6 +9,7 @@ from .model import LotDePlateaux
 from .generator import construire_les_permutations_de_colonnes
 
 # TODO : Gerer la memoire si necessaire (self._ensemble_des_plateaux_a_ignorer)
+MAX_SIZE = 50_000_000
 
 class IterPlateau:
     """Classe qui gere l'itération dans tous les plateaux possibles."""
@@ -31,7 +32,11 @@ class IterPlateau:
         self._iter_courante_parent = []  # Initialisation de la permutation courante
         self._iter_courante_suffixe = []  # Initialisation de la permutation courante
         self._iter_iterateur_parent = []  # Initialisation de l'itérateur parent (pour les plateaux ligne-1)
-        self._iter_iterateur_suffixe = []  # Initialisation de l'itérateur suffixe (pour la derniere ligne
+        self._iter_iterateur_suffixe = []  # Initialisation de l'itérateur suffixe (pour la derniere ligne)
+        self._iter_iterateur_suffixe_len_max = 1
+        self._iter_iterateur_suffixe_len_courante = 0
+        self._iter_iterateur_parent_len_max = 1
+        self._iter_iterateur_parent_len_courante = 0
 
         self._logger = logging.getLogger(f"{self.plateau.nb_colonnes}.{self.plateau.nb_lignes}.{IterPlateau.__name__}")
         self.__iter__()
@@ -54,10 +59,16 @@ class IterPlateau:
             self._iter_courante_parent = next(self._iter_iterateur_parent).replace('.','') # universel => ligne
             self._iter_iterateur_suffixe = product(self.plateau.liste_familles + [self.plateau.case_vide],
                                                     repeat=self.plateau.nb_colonnes)
+            self._iter_iterateur_suffixe_len_max = 1
+            self._iter_iterateur_suffixe_len_courante = 0
+            self._iter_iterateur_parent_len_max = len(self._lot_de_plateau._parent_filtre)
+            self._iter_iterateur_parent_len_courante = 0
+            self.logger.info(f"__iter__ : Recherche depuis parent.")
         else:
             # Recherche libre
             self._iter_iterateur = product(self.plateau.liste_familles + [self.plateau.case_vide],
                                         repeat=self.plateau.nb_colonnes * self.plateau.nb_lignes) 
+            self.logger.info(f"__iter__ : Recherche libre.")
         return self
 
     def __next__(self):
@@ -136,6 +147,8 @@ class IterPlateau:
             self._iter_courante = next(self._iter_iterateur)
             plateau_ligne_texte = ''.join(self._iter_courante)
             self._enregistrer_plateau_courant(plateau_ligne_texte)
+            # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
+
             self._afficher_periodiquement_iterateur()
 
             # Enregistrer l'iteration pour la reprise
@@ -155,13 +168,18 @@ class IterPlateau:
         while not valide:
             try:
                 self._iter_courante_suffixe = next(self._iter_iterateur_suffixe)
+                self._iter_iterateur_suffixe_len_courante += 1
+                if self._iter_iterateur_suffixe_len_max <= self._iter_iterateur_suffixe_len_courante:
+                    self._iter_iterateur_suffixe_len_max = self._iter_iterateur_suffixe_len_courante
             except StopIteration:
                 # Itérateur suffixe épuisé
                 try:
                     self._iter_courante_parent = next(self._iter_iterateur_parent).replace('.','') # universel => ligne
+                    self._iter_iterateur_parent_len_courante += 1
                     self._iter_iterateur_suffixe = product(self.plateau.liste_familles + [self.plateau.case_vide],
                                                         repeat=self.plateau.nb_colonnes)
                     self._iter_courante_suffixe = next(self._iter_iterateur_suffixe)
+                    self._iter_iterateur_suffixe_len_courante = 0
                 except StopIteration:
                     # Les deux iterateurs sont epuisés
                     raise StopIteration
@@ -179,7 +197,9 @@ class IterPlateau:
                 plateau_ligne_texte = self.plateau.plateau_ligne_texte
             except PlateauInvalidable:
                 continue # Iteration suivante
-            self._afficher_periodiquement_iterateur()
+            # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
+
+            self._afficher_periodiquement_iterateur_parent()
 
             # Enregistrer l'iteration pour la reprise
             self._lot_de_plateau._recherche_dernier_plateau = self.plateau.plateau_ligne_texte_universel
@@ -197,6 +217,21 @@ class IterPlateau:
         if datetime.datetime.now().timestamp() - self._dernier_affichage > self._delai_affichage:
             self.logger.info(f"iteration ='{self.plateau.plateau_ligne_texte_universel}'")
             self._dernier_affichage  = datetime.datetime.now().timestamp()
+
+    def _afficher_periodiquement_iterateur_parent(self):
+        # Log pour suivre l'avancement.
+        if datetime.datetime.now().timestamp() - self._dernier_affichage > self._delai_affichage:
+            self.logger.info(f"iteration = '{self.plateau.plateau_ligne_texte_universel}'")
+            self._dernier_affichage  = datetime.datetime.now().timestamp()
+
+            # Afficher le pourcentage de couverture du parent
+            avancement_parent_entier = 100.*(self._iter_iterateur_parent_len_courante/self._iter_iterateur_parent_len_max)
+            if self._iter_iterateur_parent_len_courante == self._iter_iterateur_parent_len_max:
+                avancement_parent_fraction = 0.
+            else:
+                avancement_parent_fraction = 100.*(self._iter_iterateur_suffixe_len_courante/self._iter_iterateur_suffixe_len_max)*(1./self._iter_iterateur_parent_len_max)
+            avancement_parent = avancement_parent_entier + avancement_parent_fraction
+            self.logger.info(f"Avancement parent = {avancement_parent:.1f}%")
 
     def plateau_connu(self, permutation_plateau: str) -> bool:
         "Retourne 'True' si le plateau est deja connu (repetition)"
@@ -220,10 +255,30 @@ class IterPlateau:
                 try:
                     self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
                 except MemoryError:
-                    # Liberer de la mémoire.
-                    self._ensemble_des_plateaux_a_ignorer.clear()
+                    # Liberer de la mémoire en urgence
+                    self.liberer_memoire()
+                    self.logger.error(f"MemoryError")
+            # Liberer de la mémoire.
+            self.liberer_memoire()
             return True
         return False
+
+    def liberer_memoire(self):
+        if self.nb_plateaux_ignores > MAX_SIZE:
+            # Librer du dépassement + 10% de MAX_SIZE
+            depassement = self.nb_plateaux_ignores - MAX_SIZE
+            _10_pourcent_max = int(0.1 * MAX_SIZE)
+            taille_suppression = depassement + _10_pourcent_max
+            # self.logger.error(f"Liberation de la memoire (MAX_SIZE={MAX_SIZE})")
+            # self.logger.error(f"Liberation de la memoire (nb plateaux={self.nb_plateaux_ignores})")
+            # self.logger.error(f"Liberation de la memoire (depassement={depassement})")
+            # self.logger.error(f"Liberation de la memoire (10% MAX={_10_pourcent_max})")
+            if taille_suppression >= MAX_SIZE:
+                self._ensemble_des_plateaux_a_ignorer.clear()
+            else:
+                for _ in range(taille_suppression):
+                    self._ensemble_des_plateaux_a_ignorer.pop()
+            self.logger.error(f"Liberation de la memoire ({taille_suppression})")
 
     def _enregistrer_plateau_courant(self, permutation_plateau: str):
         self.plateau.clear()

@@ -84,6 +84,8 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
                 return self._plateau_courant.plateau_ligne_texte_universel
             except StopIteration:
                 self._ensemble_des_plateaux_valides = deepcopy(self._iter_iterateur.plateaux_valides)
+                # Liberer la mémoire de l'iterateur avant d'enregistrer
+                self._iter_iterateur = None
                 self.arret_des_enregistrements()
         raise StopIteration
 

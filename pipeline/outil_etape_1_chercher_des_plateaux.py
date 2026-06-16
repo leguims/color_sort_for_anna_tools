@@ -28,57 +28,63 @@ class ChercherDesPlateaux:
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._periode_affichage = periode_affichage
         self._chrono = Chrono()
+        self._done = False
 
     @property
     def elapsed(self):
         return self._chrono.elapsed
 
+    @property
+    def done(self):
+        return self._done
+
     def chercher_des_plateaux(self, colonnes, lignes):
         # Configurer le logger en doublon pour la paralelisation
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
-        logger.info(f"DEBUT {self._nom_etape}")
+        # logger.info(f"DEBUT {self._nom_etape}")
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                 repertoire_export_json=self._repertoire_analyse)
 
-        if not lot_de_plateaux.est_deja_termine and lignes > 2:
-            # Le lot actuel n'est pas terminé, s'appuyer sur son parent
-            lot_de_plateaux_parent_filtre = LotDePlateaux((colonnes, lignes-1, self._nb_colonnes_vides),
+        if not lot_de_plateaux.est_deja_termine:
+            if lignes > 2:
+                # Le lot actuel n'est pas terminé, s'appuyer sur son parent
+                lot_de_plateaux_parent = LotDePlateaux((colonnes, lignes-1, self._nb_colonnes_vides),
                                                         repertoire_export_json=self._repertoire_analyse)
-            if lot_de_plateaux_parent_filtre.est_deja_termine \
-                and not lot_de_plateaux_parent_filtre._filtrer_plateaux_invalides_ou_ininteressants \
-                and not lot_de_plateaux_parent_filtre._filtrer_doublons_permutation_jetons \
-                and not lot_de_plateaux_parent_filtre._filtrer_doublons_permutation_piles \
-                and not lot_de_plateaux_parent_filtre._filtrer_doublons_permutation_jetons_piles:
-                # Si le parent est termine et filtré, on le donne comme reference pour accelerer l'iterateur
-                lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
-                                    repertoire_export_json=self._repertoire_analyse,
-                                    parent_filtre=lot_de_plateaux_parent_filtre)
-            else:
-                lot_de_plateaux_parent_filtre = None
+                if lot_de_plateaux_parent.est_deja_termine \
+                    and not lot_de_plateaux_parent._filtrer_plateaux_invalides_ou_ininteressants \
+                    and not lot_de_plateaux_parent._filtrer_doublons_permutation_jetons \
+                    and not lot_de_plateaux_parent._filtrer_doublons_permutation_piles \
+                    and not lot_de_plateaux_parent._filtrer_doublons_permutation_jetons_piles:
+                    # Si le parent est termine et non filtré, on le donne comme reference pour accelerer l'iterateur
+                    lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
+                                        repertoire_export_json=self._repertoire_analyse,
+                                        parent_filtre=lot_de_plateaux_parent)
+                else:
+                    self._done = False
+                    logger.info(f"STOP car le parent n'est pas termine.")
+                    return # Ne pas traiter en l'absence du PARENT
 
-        self._chrono.start()
-        for plateau in lot_de_plateaux:
-            pass
-        self._chrono.pause()
-        logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
-        logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-        # liste_plateaux_valides = []
-        # for plateau_ligne_texte in lot_de_plateaux.plateaux_valides:
-        #     p = Plateau(colonnes, lignes, self._nb_colonnes_vides)
-        #     p.plateau_ligne_texte = plateau_ligne_texte
-        #     liste_plateaux_valides.append(p.plateau_ligne_texte_universel)
-        #     # logger.info(f"plateau_ligne_texte_universel = '{p.plateau_ligne_texte_universel}'")
-        # logger.info(f"liste plateaux = '{liste_plateaux_valides}'")
+            self._chrono.start()
+            for plateau in lot_de_plateaux:
+                pass
+            self._chrono.pause()
+            self._done = True
+            logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
+            logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
+        else:
+            self._done = True
+            logger.info(f"La recherche de plateaux est deja terminee.")
+        # logger.info(f"FIN {self._nom_etape}")
         
     def chercher_en_sequence(self):
         # Configurer le logger
         logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
-        logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+        # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
         for iter_lignes in self._nb_lignes:
             for iter_colonnes in self._nb_colonnes:
                 self.chercher_des_plateaux(iter_colonnes, iter_lignes)
-        logger.info('-'*10 + " FIN " + '-'*10)
+        # logger.info('-'*10 + " FIN " + '-'*10)
 
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_plateaux'

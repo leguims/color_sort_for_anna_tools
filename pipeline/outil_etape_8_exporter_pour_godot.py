@@ -36,7 +36,7 @@ class ExporterLesSolutionsPourGodot:
         # Configurer le logger
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{self._nom_etape}")
-        logger.info(f"DEBUT {self._nom_etape}")
+        # logger.info(f"DEBUT {self._nom_etape}")
         solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
         solutions_classees = solutions_classees_json.importer()
 

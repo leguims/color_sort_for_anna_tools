@@ -55,6 +55,7 @@ class OutilComplet:
         )
         chercher.chercher_en_sequence()
         self._elapsed_time += chercher.elapsed
+        return chercher.done
 
     def filtrer_les_plateaux_invalides_ou_initeressants(self):
         filtrer = FiltrerLesPlateauxInvalidesOuIniteressants(
@@ -68,6 +69,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_jetons(self):
         filtrer = FiltrerLesPlateauxPermutationJetons(
@@ -81,6 +83,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_piles(self):
         filtrer = FiltrerLesPlateauxPermutationPiles(
@@ -94,6 +97,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_jetons_piles(self):
         filtrer = FiltrerLesPlateauxPermutationJetonsPiles(
@@ -107,6 +111,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def chercher_des_solutions(self):
         chercheur = ChercherDesSolutions(
@@ -121,6 +126,7 @@ class OutilComplet:
         )
         chercheur.chercher_en_sequence()
         self._elapsed_time += chercheur.elapsed
+        return chercheur.done
 
     def classer_les_solutions(self, nb_coups_min=3):
         classeur = FiltrerLesSolutions(
@@ -161,17 +167,17 @@ class OutilComplet:
         self._elapsed_time += tronqueur.elapsed
 
     def chercher_en_sequence(self):
-        self.chercher_des_plateaux()
-        self.filtrer_les_plateaux_invalides_ou_initeressants()
-        self.filtrer_les_plateaux_permutation_jetons()
-        self.filtrer_les_plateaux_permutation_piles()
-        self.filtrer_les_plateaux_permutation_jetons_piles()
-        self.chercher_des_solutions()
-        self._logger.info(self)
+        if self.chercher_des_plateaux() \
+            and self.filtrer_les_plateaux_invalides_ou_initeressants() \
+            and self.filtrer_les_plateaux_permutation_jetons() \
+            and self.filtrer_les_plateaux_permutation_piles() \
+            and self.filtrer_les_plateaux_permutation_jetons_piles():
+            self.chercher_des_solutions()
+            self._logger.info(self)
 
     def export_godot(self):
         # La synthese des solutions s'applique à tous les plateaux disponibles.
-        self._liste_nb_colonnes = range(2, 12)
+        self._liste_nb_colonnes = range(2, 14)
         self._liste_nb_lignes = range(2, 14)
         self.classer_les_solutions()
         self.exporter_pour_godot()

@@ -56,3 +56,7 @@ Retourne True si l'export a ete realise"""
             return dico_json
         except FileNotFoundError:
             return {}
+        except json.decoder.JSONDecodeError:
+            print(f"JSON : Import {self._chemin_enregistrement} : JSONDecodeError")
+            return {}
+

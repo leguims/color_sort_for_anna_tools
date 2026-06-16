@@ -44,10 +44,15 @@ class ChercherDesSolutions:
         self._periode_scrutation_secondes = periode_scrutation_secondes
         self._periode_affichage = periode_affichage
         self._chrono = Chrono()
+        self._done = False
 
     @property
     def elapsed(self):
         return self._chrono.elapsed
+
+    @property
+    def done(self):
+        return self._done
 
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
@@ -56,28 +61,25 @@ class ChercherDesSolutions:
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy(source, destination)
 
-    def chercher_des_solutions(self, colonnes, lignes, taciturne=False):
+    def chercher_des_solutions(self, colonnes, lignes):
         # Configurer le logger
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
-        if not taciturne:
-            logger.info(f"DEBUT {self._nom_etape}")
+        # logger.info(f"DEBUT {self._nom_etape}")
 
-        # Copie des fichiers
-        if self._repertoire_analyse != self._repertoire_difficulte:
-            lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
-                                            repertoire_export_json=self._repertoire_analyse,
-                                            nb_plateaux_max = self._memoire_max)
-            self.copier_les_plateaux(lot_de_plateaux.chemin_enregistrement)
-            lot_de_plateaux = None
-
-        plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
-        lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
-                                        repertoire_export_json=self._repertoire_difficulte,
+        lot_de_plateaux_parent = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
+                                        repertoire_export_json=self._repertoire_analyse,
                                         nb_plateaux_max = self._memoire_max)
-        if lot_de_plateaux.est_deja_termine or True: # True = Chercher toutes les solutions a l'heure actuel.
-            if not taciturne:
-                logger.info("Ce lot de plateaux est termine")
+        if lot_de_plateaux_parent.est_deja_termine:
+            # Copie des fichiers
+            if self._repertoire_analyse != self._repertoire_difficulte:
+                self.copier_les_plateaux(lot_de_plateaux_parent.chemin_enregistrement)
+            lot_de_plateaux_parent = None
+
+            plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
+            lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
+                                            repertoire_export_json=self._repertoire_difficulte,
+                                            nb_plateaux_max = self._memoire_max)
 
             if lot_de_plateaux.nb_plateaux_valides != lot_de_plateaux.nb_plateaux_solutionnes:
                 if lot_de_plateaux.nb_plateaux_valides < lot_de_plateaux.nb_plateaux_solutionnes:
@@ -109,12 +111,14 @@ class ChercherDesSolutions:
                 for difficulte, dico_nb_coups in lot_de_plateaux.difficulte_plateaux.items():
                     for nb_coups, liste_plateaux in dico_nb_coups.items():
                         logger.info(f"Difficulte : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{self.pluriel(liste_plateaux, lettre='x')}")
+                self._done = True
             else:
-                if not taciturne:
-                    logger.info("Toutes les solutions sont trouvees.")
+                self._done = False
+                logger.info("Toutes les solutions sont trouvees.")
         else:
-            if not taciturne:
-                logger.info("Ce lot de plateaux n'est pas encore termine, pas de recherche de solution.")
+            self._done = False
+            logger.info("Ce lot de plateaux n'est pas encore termine, pas de recherche de solution.")
+        # logger.info(f"FIN {self._nom_etape}")
 
     def pluriel(self, LIGNES, lettre='s'):
         return lettre if len(LIGNES) > 1 else ""
@@ -125,10 +129,10 @@ class ChercherDesSolutions:
         logger.info('-'*10 + " 1ere RECHERCHE " + '-'*10)
         self.chercher_en_sequence() # 1ere iteration est bavarde
         while(True):
-            logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+            # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
             for iter_lignes in self._nb_lignes:
                 for iter_colonnes in self._nb_colonnes:
-                    self.chercher_des_solutions(iter_colonnes, iter_lignes, taciturne=True)
+                    self.chercher_des_solutions(iter_colonnes, iter_lignes)
             current_time = datetime.datetime.now().strftime("%H:%M:%S")
             logger.info(f"{current_time} - Attente entre 2 iterations de {self._periode_scrutation_secondes}s...")
             time.sleep(self._periode_scrutation_secondes)
@@ -138,11 +142,11 @@ class ChercherDesSolutions:
         profil.start()
 
         logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
-        logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+        # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
         for iter_lignes in self._nb_lignes:
             for iter_colonnes in self._nb_colonnes:
                 self.chercher_des_solutions(iter_colonnes, iter_lignes)
-        logger.info('-'*10 + " FIN " + '-'*10)
+        # logger.info('-'*10 + " FIN " + '-'*10)
         profil.stop()
 
 if __name__ == "__main__":
