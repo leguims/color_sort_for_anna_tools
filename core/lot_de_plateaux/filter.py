@@ -34,8 +34,9 @@ def filtrer_plateaux_invalides_ou_ininteressants(lot_de_plateaux: LotDePlateaux,
     dernier_affichage  = datetime.datetime.now().timestamp() - periode_affichage
     nb_plateaux_a_valider = lot_de_plateaux.nb_plateaux_valides
     lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
-    # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
-    copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
+    # Utiliser une copie légère au lieu de deepcopy pour réduire la consommation mémoire
+    # On ne modifie pas les éléments eux-mêmes, juste la liste
+    copie_plateaux_valides = list(lot_de_plateaux.plateaux_valides)
 
     plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
                               lot_de_plateaux._plateau_courant.nb_lignes,
