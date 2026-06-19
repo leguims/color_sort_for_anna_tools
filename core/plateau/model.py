@@ -166,11 +166,6 @@ class Plateau:
             creer_les_familles(self)
         return self._liste_familles
 
-    @property
-    def pour_permutations(self) -> tuple:
-        "Format du plateau utilise pour les permutations"
-        return self.plateau_ligne
-
 
     # API Ops
     def la_colonne_est_vide(self, colonne) -> bool:

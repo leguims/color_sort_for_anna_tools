@@ -172,7 +172,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     def est_filtre_doublons_permutation_jetons_piles(self) -> bool:
         return self._filtrer_doublons_permutation_jetons_piles
 
-    def filtrer_plateaux_invalides_ou_initeressants(self, periode_affichage) -> None:
+    def filtrer_plateaux_invalides_ou_ininteressants(self, periode_affichage) -> None:
         from .filter import filtrer_plateaux_invalides_ou_ininteressants
         filtrer_plateaux_invalides_ou_ininteressants(self, periode_affichage)
 
