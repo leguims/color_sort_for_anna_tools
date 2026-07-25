@@ -1,4 +1,4 @@
-Outils de productions et de résolution des plateaux du jeu [Range Les Couleurs Pour Anna d'Amour]([docs/Godot-Color-Sort-For-Anna.md](https://github.com/leguims/godot-color-sort-for-anna/))
+Outils de productions et de résolution des plateaux du jeu [Range Les Couleurs Pour Anna d'Amour](https://github.com/leguims/godot-color-sort-for-anna)
 
 # Structure
 
