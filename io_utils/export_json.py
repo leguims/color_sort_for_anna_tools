@@ -2,7 +2,6 @@ import datetime
 import json
 from pathlib import Path
 
-
 class ExportJSON:
     def __init__(self, delai, longueur, nom_plateau, nom_export, repertoire):
         self._delai_enregistrement = delai
@@ -34,12 +33,17 @@ Retourne True si l'export a ete realise"""
         # Enregistrement des donnees dans un fichier JSON
         if not self._chemin_enregistrement.parent.exists():
             self._chemin_enregistrement.parent.mkdir(parents=True, exist_ok=True)
-        with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
-            if type(contenu) == dict:
-                json.dump(contenu, fichier, ensure_ascii=False, indent=4)
-            else:
-                # Enregistrement d'une classe
-                json.dump(contenu.to_dict(), fichier, ensure_ascii=False, indent=4)
+        try:
+            with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
+                if type(contenu) == dict:
+                    json.dump(contenu, fichier, ensure_ascii=False, indent=4)
+                else:
+                    # Enregistrement d'une classe
+                    json.dump(contenu.to_dict(), fichier, ensure_ascii=False, indent=4)
+        except OSError as e:
+            print(f"JSON : forcer_export() {self._chemin_enregistrement} : OSError {e}")
+            return False
+
         self._longueur_dernier_enregistrement = len(contenu)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         return True
@@ -57,6 +61,8 @@ Retourne True si l'export a ete realise"""
         except FileNotFoundError:
             return {}
         except json.decoder.JSONDecodeError:
-            print(f"JSON : Import {self._chemin_enregistrement} : JSONDecodeError")
+            print(f"JSON : importer() {self._chemin_enregistrement} : JSONDecodeError")
             return {}
-
+        except OSError as e:
+            print(f"JSON : importer() {self._chemin_enregistrement} : OSError {e}")
+            return {}

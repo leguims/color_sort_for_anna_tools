@@ -9,7 +9,7 @@ from .model import LotDePlateaux
 from .generator import construire_les_permutations_de_colonnes
 
 # TODO : Gerer la memoire si necessaire (self._ensemble_des_plateaux_a_ignorer)
-MAX_SIZE = 50_000_000
+MAX_SIZE = 1_000_000_000
 
 class IterPlateau:
     """Classe qui gere l'itération dans tous les plateaux possibles."""
@@ -264,21 +264,20 @@ class IterPlateau:
         return False
 
     def liberer_memoire(self):
-        if self.nb_plateaux_ignores > MAX_SIZE:
+        memoire_1_plateau = self.plateau.nb_colonnes * (self.plateau.nb_lignes + 1)
+        memoire_totale_plateaux = self.nb_plateaux_ignores * memoire_1_plateau
+        if memoire_totale_plateaux > MAX_SIZE:
             # Librer du dépassement + 10% de MAX_SIZE
-            depassement = self.nb_plateaux_ignores - MAX_SIZE
-            _10_pourcent_max = int(0.1 * MAX_SIZE)
-            taille_suppression = depassement + _10_pourcent_max
-            # self.logger.error(f"Liberation de la memoire (MAX_SIZE={MAX_SIZE})")
-            # self.logger.error(f"Liberation de la memoire (nb plateaux={self.nb_plateaux_ignores})")
-            # self.logger.error(f"Liberation de la memoire (depassement={depassement})")
-            # self.logger.error(f"Liberation de la memoire (10% MAX={_10_pourcent_max})")
-            if taille_suppression >= MAX_SIZE:
+            depassement = memoire_totale_plateaux - MAX_SIZE
+            _10_pourcent_du_max = int(0.1 * MAX_SIZE)
+            memoire_a_supprimer = depassement + _10_pourcent_du_max
+            if memoire_a_supprimer >= MAX_SIZE:
                 self._ensemble_des_plateaux_a_ignorer.clear()
             else:
-                for _ in range(taille_suppression):
+                nb_plateaux_a_supprimer = int(memoire_a_supprimer / memoire_1_plateau)
+                for _ in range(nb_plateaux_a_supprimer):
                     self._ensemble_des_plateaux_a_ignorer.pop()
-            self.logger.error(f"Liberation de la memoire ({taille_suppression})")
+            self.logger.error(f"Liberation de la memoire ({memoire_a_supprimer})")
 
     def _enregistrer_plateau_courant(self, permutation_plateau: str):
         self.plateau.clear()
