@@ -24,7 +24,6 @@ class IterPlateau:
         # Gestion du lot de plateau
         self._ensemble_des_plateaux_valides_initiaux = copy.deepcopy(lot_de_plateaux._ensemble_des_plateaux_valides) # Copie des plateaux valides connus
         self._recherche_dernier_plateau_initial = copy.deepcopy(lot_de_plateaux._recherche_dernier_plateau)
-        self._ensemble_des_plateaux_valides = self._lot_de_plateau._ensemble_des_plateaux_valides
         self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
         self._iter_courante = []  # Initialisation de la permutation courante
         self._iter_iterateur = product()  # Initialisation de l'itérateur de permutations
@@ -161,8 +160,7 @@ class IterPlateau:
 
             # Enregistrer l'iteration pour la reprise
             self._lot_de_plateau._recherche_dernier_plateau = self.plateau.plateau_ligne_texte_universel
-            enregistre = self._lot_de_plateau._export_json.exporter(self._lot_de_plateau)
-            if enregistre:
+            if self._lot_de_plateau.exporter_fichier_json():
                 self.logger.info(f"__next__ : Recherche : enregistre la reprise '{self.plateau.plateau_ligne_texte_universel}'.")
 
             if self.plateau_connu(plateau_ligne_texte):
@@ -262,8 +260,7 @@ class IterPlateau:
             # Enregistrer l'iteration pour la reprise
             self._lot_de_plateau._recherche_dernier_plateau = str(self._iter_courante_parent) + '+' + ''.join(self._iter_courante_suffixe)
             # self.logger.info(f"_recherche_dernier_plateau = {self._lot_de_plateau._recherche_dernier_plateau}")
-            enregistre = self._lot_de_plateau._export_json.exporter(self._lot_de_plateau)
-            if enregistre:
+            if self._lot_de_plateau.exporter_fichier_json():
                 self.logger.info(f"__next__ : Recherche : enregistre la reprise '{self.plateau.plateau_ligne_texte_universel}'.")
 
             if self.plateau_connu(plateau_ligne_texte):
@@ -295,7 +292,7 @@ class IterPlateau:
 
     def plateau_connu(self, permutation_plateau: str) -> bool:
         "Retourne 'True' si le plateau est deja connu (repetition)"
-        return permutation_plateau in self._ensemble_des_plateaux_valides
+        return permutation_plateau in self._lot_de_plateau.plateaux_valides
 
     def plateau_valide(self, permutation_plateau: str) -> bool:
         "Retourne 'True' si le plateau est valide (à remonter)"
@@ -308,7 +305,7 @@ class IterPlateau:
         # Verifier que la plateau est valide
         if self.plateau.est_valide:
             # Enregistrer la permutation courante qui est un nouveau plateau valide
-            self._ensemble_des_plateaux_valides.add(permutation_plateau)
+            self.ajouter_plateau_valide(permutation_plateau)
             # Ajouter toutes les permutations possibles de ce plateau valide à l'ensemble des plateaux à ignorer
             for permutation_plateau_a_ignorer in construire_les_permutations_de_colonnes(self._lot_de_plateau, self.plateau):
                 # Filtrer permutations piles
@@ -322,6 +319,10 @@ class IterPlateau:
             self.liberer_memoire()
             return True
         return False
+
+    def ajouter_plateau_valide(self, permutation_plateau: str) -> None:
+        self._lot_de_plateau._ensemble_des_plateaux_valides.add(permutation_plateau)
+        self._lot_de_plateau._a_change = True
 
     def liberer_memoire(self, forcer = False):
         memoire_1_plateau = self.plateau.nb_colonnes * (self.plateau.nb_lignes + 1)
@@ -359,12 +360,12 @@ class IterPlateau:
     @property
     def plateaux_valides(self) -> set:
         "Ensemble des plateaux valides"
-        return self._ensemble_des_plateaux_valides
+        return self._lot_de_plateau.plateaux_valides()
 
     @property
     def nb_plateaux_valides(self) -> int:
         "Nombre de plateaux valides"
-        return len(self._ensemble_des_plateaux_valides)
+        return self._lot_de_plateau.nb_plateaux_valides
 
     @property
     def nb_plateaux_ignores(self) -> int:

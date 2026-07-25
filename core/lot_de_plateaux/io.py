@@ -3,13 +3,19 @@ from .model import LotDePlateaux
 from io_utils.export_json import ExportJSON
 from core.plateau import Plateau
 
-DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 30*60
-TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000
+DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 10*60 # 30*60
+TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000 # 100_000
 
 def init_export_json(lot_de_plateaux: LotDePlateaux) -> None:
     nom = f"Plateaux_{lot_de_plateaux._plateau_courant.nb_colonnes}x{lot_de_plateaux._plateau_courant.nb_lignes}"
-    lot_de_plateaux._export_json = ExportJSON(delai=DELAI_ENREGISTRER_LOT_DE_PLATEAUX,
-                                    longueur=TAILLE_ENREGISTRER_LOT_DE_PLATEAUX,
+
+    taille_plateau = lot_de_plateaux._plateau_courant.nb_colonnes * lot_de_plateaux._plateau_courant.nb_lignes
+    taille_ajuste = TAILLE_ENREGISTRER_LOT_DE_PLATEAUX * taille_plateau
+    delai_ajuste = DELAI_ENREGISTRER_LOT_DE_PLATEAUX * lot_de_plateaux._plateau_courant.nb_lignes
+    print(f"Export JSON : TAILLE={int(taille_ajuste/1_000)} Ko, DELAI={int(delai_ajuste/60)} min")
+
+    lot_de_plateaux._export_json = ExportJSON(delai=delai_ajuste,
+                                    longueur=TAILLE_ENREGISTRER_LOT_DE_PLATEAUX * taille_ajuste,
                                     nom_plateau=nom, nom_export=nom,
                                     repertoire=lot_de_plateaux._repertoire_export_json)
 
@@ -24,7 +30,8 @@ def exporter_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
     """Enregistre un fichier JSON avec les plateaux valides"""
     if lot_de_plateaux.nb_plateaux_valides > 0 and lot_de_plateaux._a_change:
         lot_de_plateaux._a_change = lot_de_plateaux._a_change \
-            and not lot_de_plateaux._export_json.forcer_export(lot_de_plateaux)
+            and not lot_de_plateaux._export_json.exporter(lot_de_plateaux)
+    return not lot_de_plateaux._a_change
 
 def importer_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
     """Lit l'enregistrement JSON s'il existe"""

@@ -48,9 +48,6 @@ Retourne True si l'export a ete realise"""
             with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
                 if 'Resolution' not in str(self._chemin_enregistrement):
                     print(f"{self.now()} JSON.forcer_export() fichier ouvert '{fin_chemin}'")
-                    # print(f"{self.now()} - JSON.forcer_export()")
-                    # print(f"{fin_chemin}")
-                    # print(f"fichier ouvert")
                 if type(contenu) == dict:
                     json.dump(contenu, fichier, ensure_ascii=False, indent=4)
                 else:
@@ -58,13 +55,8 @@ Retourne True si l'export a ete realise"""
                     json.dump(contenu.to_dict(), fichier, ensure_ascii=False, indent=4)
             if 'Resolution' not in str(self._chemin_enregistrement):
                 print(f"{self.now()} JSON.forcer_export() fichier ferme '{fin_chemin}'")
-                # print(f"{self.now()} - JSON.forcer_export()")
-                # print(f"{fin_chemin}")
-                # print(f"fichier ferme")
         except OSError as e:
             print(f"{self.now()} JSON.forcer_export() OSError '{fin_chemin}'")
-            # print(f"{self.now()} - JSON.forcer_export()")
-            # print(f"{fin_chemin}")
             print(f"OSError : '{e}'")
             return False
 
