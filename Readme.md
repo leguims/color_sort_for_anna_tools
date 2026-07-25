@@ -75,6 +75,28 @@ Ci-dessus :
 - 2x2 est exhaustif et 2x3 à 2x11 enrichit la liste des plateaux de son parent.
 - 11x2 est exhaustif et 11x3 à 11x11 enrichit la liste des plateaux de son parent.
 
+### ancien_algo, future_1, future_2, future_3, future_4, future_5
+
+Branche de diagnostic de performance de la recherche de plateaux selon les filtres appliqués. A la découverte d'un plateau, faut-il ignorer tous ses doublons ou les ajouter dans une liste pour ne pas les étudier plus tard ? Le temps de productions des doublons est conséquent et l'argent en vaut-il la chandelle.
+
+|  | Passé (ancien_algo) | Présent (main) | future_1 | future_2 | future_3 | future_4 | future_5 |
+|-|-|-|-|-|-|-|-|
+| Algo | permutation | product | product Sans ‘ignoré’ | product perm_pile (1) perm_jeton (2) Perm_jeton_pile (3) | product perm_pile (1) perm_jeton (2) | product perm_pile (1) | product Perm_jeton (2) |
+| __Plateau__ | __3x5__ |
+| Durée | 1800 s | __312 s__ | __364 s__ | _378 s_ | 373 s | __367 s__ | 368 s |
+| Gain | 100 % | __477 %__ | __394 %__ | 375 % | 382 % | __390 %__ | 389 % |
+| __Plateau__ | __4x3__ |
+| Durée | 1800 s | __287 s__ | __363 s__ | _374 s_ | 374 s | __353 s__ | 365 s |
+| Gain | 100 % | __525 %__ | __396 %__ | 380 % | 380 % | __409 %__ | 393 % |
+|   |   | __TOP 1__ | __TOP 3__ |  |  | __TOP 2__ |  |
+| Espace disque total Ko | __208__ | 3900 | 3900 | __1500__ | 1800 | __1700__ | 2300 |
+|   | __TOP 1__ |  |  | __TOP 2__ |  | __TOP 3__ |  |
+| Synthèse |   |   |  |   |   | __TOP 1__ |  |
+
+
+
+C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
+
 ## V0.4.4 : Travaux pour la prochaine version
 
 ### Outillage
