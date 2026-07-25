@@ -24,7 +24,7 @@ class ChercherDesSolutions:
                 repertoire_solution,
                 nom_tache,
                 fichier_journal,
-                memoire_max = 5_000_000,
+                #memoire_max = 5_000_000,
                 profiler_le_code = False,
                 periode_scrutation_secondes = 30*60, # en secondes
                 periode_affichage = 1*60): # en secondes
@@ -39,7 +39,7 @@ class ChercherDesSolutions:
         self._fichier_journal = fichier_journal
         if not self._fichier_journal.parent.exists():
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
-        self._memoire_max = memoire_max
+        #self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
         self._periode_affichage = periode_affichage
@@ -52,7 +52,7 @@ class ChercherDesSolutions:
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
         destination = Path(self._repertoire_difficulte) / source.parent.name
-        if source.exists() and not (destination/source.name).exists():
+        if source.exists() and not destination.exists():
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy(source, destination)
 
@@ -66,15 +66,15 @@ class ChercherDesSolutions:
         # Copie des fichiers
         if self._repertoire_analyse != self._repertoire_difficulte:
             lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
-                                            repertoire_export_json=self._repertoire_analyse,
-                                            nb_plateaux_max = self._memoire_max)
+                                            repertoire_export_json=self._repertoire_analyse) #,
+                                            #nb_plateaux_max = self._memoire_max)
             self.copier_les_plateaux(lot_de_plateaux.chemin_enregistrement)
             lot_de_plateaux = None
 
         plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
-                                        repertoire_export_json=self._repertoire_difficulte,
-                                        nb_plateaux_max = self._memoire_max)
+                                        repertoire_export_json=self._repertoire_difficulte) #,
+                                        #nb_plateaux_max = self._memoire_max)
         if lot_de_plateaux.est_deja_termine or True: # True = Chercher toutes les solutions a l'heure actuel.
             if not taciturne:
                 logger.info("Ce lot de plateaux est termine")
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
     FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
     FICHIER_DIFFICULTE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_plateaux_avec_difficulte'
-    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
+    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions_unitaires'
 
     # Configurer le logger
     if not FICHIER_JOURNAL.parent.exists():

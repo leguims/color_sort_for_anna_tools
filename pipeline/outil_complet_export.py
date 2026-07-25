@@ -113,7 +113,7 @@ class OutilComplet:
             nb_colonnes_vides=self._nb_colonnes_vides,
             repertoire_analyse=str(self._repertoire_pipeline/'pipeline_5_filtre_doublons_permutation_jetons_piles'),
             repertoire_difficulte=str(self._repertoire_pipeline/'pipeline_6_plateaux_avec_difficulte'),
-            repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions_unitaires'),
+            repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions'),
             nom_tache=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
@@ -178,24 +178,12 @@ class OutilComplet:
         logger.info(self)
 
 if __name__ == "__main__":
-    NOM_TACHE = 'outil_complet'
+    NOM_TACHE = 'outil_complet_export'
     FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
     REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines'
 
     PROFILER_LE_CODE = False
 
-    # Pour avoir une sequence complete sur un type de plateau
-    for colonne in range(2,4):
-        for ligne in range(3,6):
-            outil_complet = OutilComplet(
-                liste_nb_colonnes=[colonne],
-                liste_nb_lignes=[ligne],
-                nb_colonnes_vides=1,
-                repertoire_pipeline=REPERTOIRE_PIPELINE,
-                nom_tache=NOM_TACHE,
-                fichier_journal=FICHIER_JOURNAL
-            )
-            outil_complet.chercher_en_sequence()
     # La synthese des solutions s'applique à tous les plateaux disponibles.
     outil_complet = OutilComplet(
         liste_nb_colonnes=[1],

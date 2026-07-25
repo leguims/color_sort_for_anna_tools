@@ -12,7 +12,7 @@ DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 5*60
 class LotDePlateaux:
     """Classe qui gere les lots de plateaux pour parcourir l'immensite des plateaux existants.
 Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherche."""
-    def __init__(self, dim_plateau, repertoire_export_json, nb_plateaux_max = 1_000_000):
+    def __init__(self, dim_plateau, repertoire_export_json): #, nb_plateaux_max = 1_000_000):
         # Plateau de base
         self._dim_plateau = dim_plateau
         self._plateau_courant = Plateau(dim_plateau[0], dim_plateau[1], dim_plateau[2])
@@ -26,7 +26,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
 
 
         self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons
-        self._nb_plateaux_max = nb_plateaux_max # Limite memoire pour la recherche (plateaux à ignorer)
+        # self._nb_plateaux_max = nb_plateaux_max # Limite memoire pour la recherche (plateaux à ignorer)
         self._export_json: ExportJSON
         self._ensemble_des_difficultes_de_plateaux = {} # Ensemble des plateaux classés par difficulté et profondeur
         self._a_change = False # Indique si les données de la classe ont changé.
@@ -168,7 +168,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     def est_filtre_doublons_permutation_jetons_piles(self) -> bool:
         return self._filtrer_doublons_permutation_jetons_piles
 
-    def filtrer_plateaux_invalides_ou_initeressants(self, periode_affichage) -> None:
+    def filtrer_plateaux_invalides_ou_ininteressants(self, periode_affichage) -> None:
         from .filter import filtrer_plateaux_invalides_ou_ininteressants
         filtrer_plateaux_invalides_ou_ininteressants(self, periode_affichage)
 

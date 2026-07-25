@@ -1,4 +1,3 @@
-import copy
 import datetime
 
 from .model import LotDePlateaux
@@ -98,8 +97,9 @@ def filtrer_doublons_permutation_jetons(lot_de_plateaux: LotDePlateaux, periode_
     dernier_affichage  = datetime.datetime.now().timestamp() - periode_affichage
     nb_plateaux_a_valider = lot_de_plateaux.nb_plateaux_valides
     lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
-    # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
-    copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
+    # Utiliser une copie légère au lieu de deepcopy pour réduire la consommation mémoire
+    # On ne modifie pas les éléments eux-mêmes, juste la liste
+    copie_plateaux_valides = list(lot_de_plateaux.plateaux_valides)
 
     plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
                               lot_de_plateaux._plateau_courant.nb_lignes,
@@ -123,9 +123,8 @@ def filtrer_doublons_permutation_jetons(lot_de_plateaux: LotDePlateaux, periode_
             # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
             # Construire les permutations de jetons, rationnaliser et parcourir
             liste_permutations = construire_les_permutations_de_jetons(lot_de_plateaux, plateau_courant)
-            # Eliminer les doublons et le plateau courant
-            liste_permutations_texte = set([p.plateau_ligne_texte for p in liste_permutations])
-            liste_permutations.clear()
+            # Eliminer les doublons et le plateau courant - utiliser un générateur pour éviter la création d'une liste intermédiaire
+            liste_permutations_texte = {p.plateau_ligne_texte for p in liste_permutations}
             # Ne surtout pas effacer le plateau courant, on cherche les doublons.
             liste_permutations_texte.discard(iter_plateau_ligne_texte)
             # lot_de_plateaux.logger.debug(f"{prefixe_log} taille des permutations de doublons = {len(liste_permutations_texte)}")
@@ -166,8 +165,9 @@ def filtrer_doublons_permutation_piles(lot_de_plateaux: LotDePlateaux, periode_a
     dernier_affichage  = datetime.datetime.now().timestamp() - periode_affichage
     nb_plateaux_a_valider = lot_de_plateaux.nb_plateaux_valides
     lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
-    # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
-    copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
+    # Utiliser une copie légère au lieu de deepcopy pour réduire la consommation mémoire
+    # On ne modifie pas les éléments eux-mêmes, juste la liste
+    copie_plateaux_valides = list(lot_de_plateaux.plateaux_valides)
 
     plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
                               lot_de_plateaux._plateau_courant.nb_lignes,
@@ -190,9 +190,8 @@ def filtrer_doublons_permutation_piles(lot_de_plateaux: LotDePlateaux, periode_a
             # Verifier de nouvelles formes de doublons (permutations) dans les plateaux valides
             # Construire les permutations de colonnes, rationnaliser et parcourir
             liste_permutations = construire_les_permutations_de_colonnes(lot_de_plateaux, plateau_courant)
-            # Eliminer les doublons et le plateau courant
-            liste_permutations_texte = set([p.plateau_ligne_texte for p in liste_permutations])
-            liste_permutations.clear()
+            # Eliminer les doublons et le plateau courant - utiliser un set comprehension pour éviter la création d'une liste intermédiaire
+            liste_permutations_texte = {p.plateau_ligne_texte for p in liste_permutations}
             # Ne surtout pas effacer le plateau courant, on cherche les doublons.
             liste_permutations_texte.discard(iter_plateau_ligne_texte)
             lot_de_plateaux.logger.debug(f"{prefixe_log} taille des permutations de colonnes = {len(liste_permutations_texte)}")
@@ -237,8 +236,9 @@ def filtrer_doublons_permutation_jetons_piles(lot_de_plateaux: LotDePlateaux, pe
     dernier_affichage  = datetime.datetime.now().timestamp() - periode_affichage
     nb_plateaux_a_valider = lot_de_plateaux.nb_plateaux_valides
     lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
-    # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
-    copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
+    # Utiliser une copie légère au lieu de deepcopy pour réduire la consommation mémoire
+    # On ne modifie pas les éléments eux-mêmes, juste la liste
+    copie_plateaux_valides = list(lot_de_plateaux.plateaux_valides)
 
     plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
                               lot_de_plateaux._plateau_courant.nb_lignes,
@@ -265,9 +265,8 @@ def filtrer_doublons_permutation_jetons_piles(lot_de_plateaux: LotDePlateaux, pe
             for plateau_permutation_de_colonne in liste_permutations_colonnes:
                 nb_permutations_jetons += 1
                 liste_permutations = construire_les_permutations_de_jetons(lot_de_plateaux, plateau_permutation_de_colonne)
-                # Eliminer les doublons et le plateau courant
-                liste_permutations_texte = set([p.plateau_ligne_texte for p in liste_permutations])
-                liste_permutations.clear()
+                # Eliminer les doublons et le plateau courant - utiliser un set comprehension pour éviter la création d'une liste intermédiaire
+                liste_permutations_texte = {p.plateau_ligne_texte for p in liste_permutations}
                 # Ne surtout pas effacer le plateau courant, on cherche les doublons.
                 liste_permutations_texte.discard(iter_plateau_ligne_texte)
                 if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:

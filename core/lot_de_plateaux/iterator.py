@@ -20,49 +20,28 @@ class IterPlateau:
         self._lot_de_plateau = lot_de_plateaux
         self._delai_affichage = delai_affichage
         self._dernier_affichage = 0.
+        self._reprise_phase_1 = True
+        self._reprise_phase_2 = True
 
         # Gestion du lot de plateau
         self._ensemble_des_plateaux_valides_initiaux = copy.deepcopy(lot_de_plateaux._ensemble_des_plateaux_valides) # Copie des plateaux valides connus
-        self._recherche_dernier_plateau_initial = copy.deepcopy(lot_de_plateaux._recherche_dernier_plateau) # Copie des plateaux valides connus
         self._ensemble_des_plateaux_valides = set() # Plateaux valides collectés dans la recherche.
         self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
         self._iter_courante = None  # Initialisation de la permutation courante
         self._iter_iterateur = None  # Initialisation de l'itérateur de permutations
-
         self._logger = logging.getLogger(f"{self.plateau.nb_colonnes}.{self.plateau.nb_lignes}.{IterPlateau.__name__}")
         self.__iter__()
 
     # Iterateur avec : __iter__ et __next__
     def __iter__(self):
         self.logger.debug(f"__iter__ : Initialisation de l'itérateur.")
-        # 2 options :
-        #        - Recherche libre
-        #        - Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
-
-        # Recherche libre
         self._iter_iterateur = product(self.plateau.liste_familles + [self.plateau.case_vide],
-                                    repeat=self.plateau.nb_colonnes * self.plateau.nb_lignes) 
+                                       repeat=self.plateau.nb_colonnes * self.plateau.nb_lignes) 
         return self
 
     def __next__(self):
-        # 2 options :
-        #        - Recherche libre
-        #        - Recherche depuis plateau "ligne-1" terminé (etape_5_filtrer)
-
-        # Recherche libre
         # Phase 1 : Avancer dans les iterations de plateaux deja connus
-        if self._ensemble_des_plateaux_valides_initiaux:
-            self.__next__recherche_libre_phase_1()
-
-        # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
-        if self._recherche_dernier_plateau_initial:
-            self.__next__recherche_libre_phase_2()
-
-        return self.__next__recherche_libre_phase_3()
-
-    def __next__recherche_libre_phase_1(self):
-        # Phase 1 : Avancer dans les iterations de plateaux deja connus
-        if self._ensemble_des_plateaux_valides_initiaux:
+        if self._reprise_phase_1 and self._ensemble_des_plateaux_valides_initiaux:
             self.logger.info(f"__next__ : Reprise phase 1 debutee.")
             while self._ensemble_des_plateaux_valides_initiaux:
                 self._iter_courante = next(self._iter_iterateur)
@@ -78,15 +57,14 @@ class IterPlateau:
                         return self.plateau 
                 except KeyError:
                     pass
-            self._ensemble_des_plateaux_valides_initiaux.clear() # Nettoyer pour ne pas refaire cette phase
             self.logger.info(f"__next__ : Reprise phase 1 terminee.")
+        self._reprise_phase_1 = False
 
-    def __next__recherche_libre_phase_2(self):
         # Phase 2 : Avancer dans les iterations de plateaux deja cherchés
-        if self._recherche_dernier_plateau_initial:
+        if self._reprise_phase_2 and self._lot_de_plateau._recherche_dernier_plateau:
             self.logger.info(f"__next__ : Reprise phase 2 debutee.")
 
-            plateau_reprise_ligne_texte_universel = self._recherche_dernier_plateau_initial
+            plateau_reprise_ligne_texte_universel = self._lot_de_plateau._recherche_dernier_plateau
             plateau_reprise_ligne_texte = plateau_reprise_ligne_texte_universel.replace('.','')
             self.logger.info(f"__next__ : Reprise : derniere iteration = '{plateau_reprise_ligne_texte_universel}'.")
 
@@ -94,6 +72,8 @@ class IterPlateau:
                 self._iter_courante = next(self._iter_iterateur)
                 plateau_ligne_texte = ''.join(self._iter_courante)
                 self._enregistrer_plateau_courant(plateau_ligne_texte)
+                self._afficher_periodiquement_iterateur()
+
 
             # Traiter le plateau de reprise
             if self.plateau_connu(plateau_reprise_ligne_texte):
@@ -102,17 +82,16 @@ class IterPlateau:
             valide = self.plateau_valide(plateau_reprise_ligne_texte)
             if valide:
                 return self.plateau
-            self._recherche_dernier_plateau_initial = '' # Nettoyer pour ne pas refaire cette phase
             self.logger.info(f"__next__ : Reprise phase 2 terminee.")
+        self._reprise_phase_2 = False
 
-    def __next__recherche_libre_phase_3(self):
         valide = False
         while not valide:
             # Itérer avec les 'product'
             self._iter_courante = next(self._iter_iterateur)
             plateau_ligne_texte = ''.join(self._iter_courante)
             self._enregistrer_plateau_courant(plateau_ligne_texte)
-            # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
+            # self.logger.info(f"derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
 
             self._afficher_periodiquement_iterateur()
 
@@ -120,10 +99,10 @@ class IterPlateau:
             self._lot_de_plateau._recherche_dernier_plateau = self.plateau.plateau_ligne_texte_universel
             enregistre = self._lot_de_plateau._export_json.exporter(self._lot_de_plateau)
             if enregistre:
-                self.logger.info(f"__next__ : Recherche : enregistre la reprise '{self.plateau.plateau_ligne_texte_universel}'.")
+                self.logger.info(f"enregistre la reprise '{self.plateau.plateau_ligne_texte_universel}'.")
 
             if self.plateau_connu(plateau_ligne_texte):
-                self.logger.debug(f"__next__ : StopIteration.")
+                self.logger.debug(f"StopIteration.")
                 raise StopIteration
             valide = self.plateau_valide(plateau_ligne_texte)
         return self.plateau
@@ -153,7 +132,12 @@ class IterPlateau:
             # Ajouter toutes les permutations possibles de ce plateau valide à l'ensemble des plateaux à ignorer
             for permutation_plateau_a_ignorer in construire_les_permutations_de_colonnes(self._lot_de_plateau, self.plateau):
                 # Filtrer permutations piles
-                self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
+                try:
+                    self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
+                except MemoryError:
+                    # Liberer de la mémoire.
+                    self._ensemble_des_plateaux_a_ignorer.clear()
+                    self.logger.error(f"Liberation de la memoire")
             return True
         return False
 

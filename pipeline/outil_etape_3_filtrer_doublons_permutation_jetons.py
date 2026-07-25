@@ -19,7 +19,7 @@ class FiltrerLesPlateaux:
                 repertoire_filtre,
                 nom_tache,
                 fichier_journal,
-                memoire_max = 5_000_000,
+                # memoire_max = 5_000_000,
                 profiler_le_code = False,
                 periode_affichage = 1*60): # en secondes
         self._nb_colonnes = nb_colonnes
@@ -32,7 +32,7 @@ class FiltrerLesPlateaux:
         self._fichier_journal = fichier_journal
         if not self._fichier_journal.parent.exists():
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
-        self._memoire_max = memoire_max
+        # self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_affichage = periode_affichage
         self._chrono = Chrono()
@@ -44,7 +44,7 @@ class FiltrerLesPlateaux:
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
         destination = Path(self._repertoire_filtre) / source.parent.name
-        if source.exists() and not (destination/source.name).exists():
+        if source.exists() and not destination.exists():
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy(source, destination)
 
@@ -57,8 +57,8 @@ class FiltrerLesPlateaux:
         # Copie des fichiers
         if self._repertoire_analyse != self._repertoire_filtre:
             lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
-                                            repertoire_export_json=self._repertoire_analyse,
-                                            nb_plateaux_max = self._memoire_max)
+                                            repertoire_export_json=self._repertoire_analyse) #,
+                                            # nb_plateaux_max = self._memoire_max)
             if not lot_de_plateaux.est_filtre_plateaux_invalides_ou_ininteressants:
                 logger.info(f"Le filtrage des plateaux invalides ou ininteressants n'est pas achevé.")
                 return
@@ -66,8 +66,8 @@ class FiltrerLesPlateaux:
             lot_de_plateaux = None
 
         lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
-                                        repertoire_export_json=self._repertoire_filtre,
-                                        nb_plateaux_max = self._memoire_max)
+                                        repertoire_export_json=self._repertoire_filtre) #,
+                                        # nb_plateaux_max = self._memoire_max)
         # Parcourir les plateaux et supprimer les plateaux "invalides"
         self._chrono.start()
         lot_de_plateaux.filtrer_doublons_permutation_jetons(self._periode_affichage)
