@@ -154,7 +154,7 @@ if __name__ == "__main__":
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
     FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
     FICHIER_DIFFICULTE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_plateaux_avec_difficulte'
-    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
+    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions_unitaires'
 
     # Configurer le logger
     if not FICHIER_JOURNAL.parent.exists():

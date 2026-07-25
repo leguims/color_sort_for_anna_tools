@@ -31,17 +31,29 @@ Retourne True si l'export a ete realise"""
         """Enregistre un fichier JSON en ignorant les criteres.
 Retourne True si l'export a ete realise"""
         # Enregistrement des donnees dans un fichier JSON
+        chemin = self._chemin_enregistrement
+        fin_chemin = Path() / chemin.parts[-3] / chemin.parts[-2] / chemin.parts[-1]
         if not self._chemin_enregistrement.parent.exists():
             self._chemin_enregistrement.parent.mkdir(parents=True, exist_ok=True)
         try:
             with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
+                if 'Resolution' not in str(self._chemin_enregistrement):
+                    print(f"{datetime.datetime.now()} - JSON.forcer_export()")
+                    print(f"{fin_chemin}")
+                    print(f"fichier ouvert")
                 if type(contenu) == dict:
                     json.dump(contenu, fichier, ensure_ascii=False, indent=4)
                 else:
                     # Enregistrement d'une classe
                     json.dump(contenu.to_dict(), fichier, ensure_ascii=False, indent=4)
+            if 'Resolution' not in str(self._chemin_enregistrement):
+                print(f"{datetime.datetime.now()} - JSON.forcer_export()")
+                print(f"{fin_chemin}")
+                print(f"fichier ferme")
         except OSError as e:
-            print(f"JSON : forcer_export() {self._chemin_enregistrement} : OSError {e}")
+            print(f"{datetime.datetime.now()} - JSON.forcer_export()")
+            print(f"{fin_chemin}")
+            print(f"OSError : '{e}'")
             return False
 
         self._longueur_dernier_enregistrement = len(contenu)
@@ -54,15 +66,35 @@ Retourne True si l'export a ete realise"""
 
     def importer(self):
         """Lit dans un fichier JSON les informations totales ou de la derniere iteration realisee."""
+        chemin = self._chemin_enregistrement
+        fin_chemin = Path() / chemin.parts[-3] / chemin.parts[-2] / chemin.parts[-1]
         try:
             with open(self._chemin_enregistrement, "r", encoding='utf-8') as fichier:
+                if 'Resolution' not in str(self._chemin_enregistrement):
+                    print(f"{datetime.datetime.now()} - JSON.importer()")
+                    print(f"{fin_chemin}")
+                    print(f"fichier ouvert")
                 dico_json = json.load(fichier)
+            if 'Resolution' not in str(self._chemin_enregistrement):
+                print(f"{datetime.datetime.now()} - JSON.importer()")
+                print(f"{fin_chemin}")
+                print(f"fichier ferme")
             return dico_json
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            if 'Resolution' not in str(self._chemin_enregistrement):
+                print(f"{datetime.datetime.now()} - JSON.importer()")
+                print(f"{fin_chemin}")
+                print(f"FileNotFoundError : '{e}'")
             return {}
-        except json.decoder.JSONDecodeError:
-            print(f"JSON : importer() {self._chemin_enregistrement} : JSONDecodeError")
+        except json.decoder.JSONDecodeError as e:
+            if 'Resolution' not in str(self._chemin_enregistrement):
+                print(f"{datetime.datetime.now()} - JSON.importer()")
+                print(f"{fin_chemin}")
+                print(f"JSONDecodeError : '{e}'")
             return {}
         except OSError as e:
-            print(f"JSON : importer() {self._chemin_enregistrement} : OSError {e}")
+            if 'Resolution' not in str(self._chemin_enregistrement):
+                print(f"{datetime.datetime.now()} - JSON.importer()")
+                print(f"{fin_chemin}")
+                print(f"OSError : '{e}'")
             return {}

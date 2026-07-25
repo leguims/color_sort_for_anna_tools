@@ -120,7 +120,7 @@ class OutilComplet:
             nb_colonnes_vides=self._nb_colonnes_vides,
             repertoire_analyse=str(self._repertoire_pipeline/'pipeline_5_filtre_doublons_permutation_jetons_piles'),
             repertoire_difficulte=str(self._repertoire_pipeline/'pipeline_6_plateaux_avec_difficulte'),
-            repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions'),
+            repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions_unitaires'),
             nom_tache=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
