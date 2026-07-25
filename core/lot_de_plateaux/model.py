@@ -78,9 +78,10 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             try:
                 self._plateau_courant = next(self._iter_iterateur)
 
-                # Enregistrement du plateau courant pour une eventuelle reprise.
-                self._recherche_dernier_plateau = self._plateau_courant.plateau_ligne_texte_universel
-                self._export_json.exporter(self)
+                # ENREGISTREMENT PAR L'ITERATEUR UNIQUEMENT
+                # # Enregistrement du plateau courant pour une eventuelle reprise.
+                # self._recherche_dernier_plateau = self._plateau_courant.plateau_ligne_texte_universel
+                # self._export_json.exporter(self)
                 return self._plateau_courant.plateau_ligne_texte_universel
             except StopIteration:
                 self._ensemble_des_plateaux_valides = deepcopy(self._iter_iterateur.plateaux_valides)
