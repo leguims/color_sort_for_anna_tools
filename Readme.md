@@ -60,6 +60,21 @@ Réduction arbitraire du fichier pour le jeu pour limiter le nombre de plateaux 
 
 # Versions
 
+Le versionnage est donné par rapport aux versions sorties du jeu. C'est une simplification de gestion au dépend de l'enrochoissement fonctionnel de l'outil qui en est indépendant.
+
+## Branches
+
+### recherche_par_parent
+
+La variation avec la branche _main_ se situe au niveau de la recherche de plateaux. Pour accelérer la découverte de plateaux, la recherche est exhaustive pour les plateaux 'Yx2' (Y colonnes et 2 lignes). Par contre, la recherche de niveau suivante s'appuie sur la liste des plateaux du parent. Cela permet de gagner du temps même si une masse importante de plateaux valide sont ignorés.
+- 2x2 => 2x3 => 2x4 => ... => 2x11
+- ...
+- 11x2 => 11x3 => 11x4 => ... => 11x11
+
+Ci-dessus :
+- 2x2 est exhaustif et 2x3 à 2x11 enrichit la liste des plateaux de son parent.
+- 11x2 est exhaustif et 11x3 à 11x11 enrichit la liste des plateaux de son parent.
+
 ## V0.4.4 : Travaux pour la prochaine version
 
 ### Outillage
