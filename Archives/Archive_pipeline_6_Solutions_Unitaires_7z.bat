@@ -1,29 +1,52 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal EnableDelayedExpansion
 
-set Path=%Path%;C:\Program Files\7-Zip
+set PATH=%PATH%;C:\Program Files\7-Zip
 set repertoire_source=..\..\Pipelines_rapide\pipeline_6_solutions_unitaires\*
 
+set "OUTDIR=7z"
+set "BATCH=1000"
+
+if not exist "%OUTDIR%" mkdir "%OUTDIR%"
+echo if not exist "%OUTDIR%" mkdir "%OUTDIR%"
+
 for /d %%D in (%repertoire_source%) do (
-    echo ########## Traitement sur : %%~nxD
-    if "%%~nxD" == ".git" (
-        echo ##########    Repertoire ".git" ignore
+    echo ########## Traitement sur : %%~D
+    if /I "%%~nxD"==".git" (
+        echo ##########    Repertoire .git ignore
     ) else (
+        echo ########## Traitement sur : %%~nxD
+
         REM Pas de solutions unitaires si elles sont en cours de resolution
-        set resolution_achevee=pipeline_6_Plateaux_Difficulte-Archive_compressee-%%~nxD.7z
-        if exist "7z\!resolution_achevee!" (
+        set resolution_achevee=%OUTDIR%\pipeline_6_Plateaux_Difficulte-Archive_compressee-%%~nxD.7z
+        if exist "!resolution_achevee!" (
             set nom_cible_compressee=pipeline_6_Solutions_Unitaires-Archive_compressee-%%~nxD.7z
-            if not exist "7z\!nom_cible_compressee!" (
-                set nom_cible=pipeline_6_Solutions_Unitaires-Archive-%%~nxD.7z
-                echo ##########    !nom_cible!
+            if not exist "%OUTDIR%\!nom_cible_compressee!" (
                 echo ##########    !nom_cible_compressee!
 
+                REM Prepare un index de lots
+                set /a idx=0
+                set /a next = idx + BATCH
+
                 REM Creer l'archive en filtrant les fichiers
-                7z a -mx0 -t7z -- !nom_cible! %%~D
-                REM Compresser l'archive (pas trop pour le temps)
-                7z a -mx5 -t7z -sdel -- !nom_cible_compressee! !nom_cible!
+                for %%F in (%%~D\*.json) do (
+                    set /a mod = idx %% BATCH
+                    if !mod! EQU 0 (
+                        set nom_cible=pipeline_6_Solutions_Unitaires-Archive-%%~nxD-!idx!.7z
+                        set /a next = idx + BATCH
+                        set nom_cible_suivante=pipeline_6_Solutions_Unitaires-Archive-%%~nxD-!next!.7z
+                        echo ##########    !nom_cible!
+                    )
+                    REM Enregistrer seulement si l'archive suivante n'existe pas.
+                    if not exist "!nom_cible_suivante!" (
+                        7z a -mx0 -t7z -- !nom_cible! %%~F >nul
+                    )
+                    set /a idx+=1
+                )
+                REM Compresser l'archive (pas trop pour le temps d'execution)
+                7z a -mx5 -t7z -sdel -- !nom_cible_compressee! pipeline_6_Solutions_Unitaires-Archive-%%~nxD-*.7z >nul
                 REM Ranger l'archive
-                MOVE !nom_cible_compressee! 7z\!nom_cible_compressee!
+                MOVE !nom_cible_compressee! %OUTDIR%\!nom_cible_compressee!
             ) else (
                 echo ##########    %%~nxD : deja traite
             )

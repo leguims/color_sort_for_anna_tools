@@ -59,6 +59,10 @@ Retourne True si l'export a ete realise"""
             print(f"{self.now()} JSON.forcer_export() OSError '{fin_chemin}'")
             print(f"OSError : '{e}'")
             return False
+        except MemoryError as e:
+            print(f"{self.now()} JSON.forcer_export() MemoryError '{fin_chemin}'")
+            print(f"MemoryError : '{e}'")
+            return False
 
         self._longueur_dernier_enregistrement = len(contenu)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
@@ -83,28 +87,24 @@ Retourne True si l'export a ete realise"""
                 dico_json = json.load(fichier)
             if 'Resolution' not in str(self._chemin_enregistrement):
                 print(f"{self.now()} JSON.importer() fichier ferme '{fin_chemin}'")
-                # print(f"{self.now()} - JSON.importer()")
-                # print(f"{fin_chemin}")
-                # print(f"fichier ferme")
             return dico_json
         except FileNotFoundError as e:
             if 'Resolution' not in str(self._chemin_enregistrement):
                 print(f"{self.now()} JSON.importer() FileNotFoundError '{fin_chemin}'")
-                # print(f"{self.now()} - JSON.importer()")
-                # print(f"{fin_chemin}")
                 # print(f"FileNotFoundError : '{e}'")
             return {}
         except json.decoder.JSONDecodeError as e:
             if 'Resolution' not in str(self._chemin_enregistrement):
                 print(f"{self.now()} JSON.importer() JSONDecodeError '{fin_chemin}'")
-                # print(f"{self.now()} - JSON.importer()")
-                # print(f"{fin_chemin}")
                 print(f"JSONDecodeError : '{e}'")
             return {}
         except OSError as e:
             if 'Resolution' not in str(self._chemin_enregistrement):
                 print(f"{self.now()} JSON.importer() OSError '{fin_chemin}'")
-                # print(f"{self.now()} - JSON.importer()")
-                # print(f"{fin_chemin}")
                 print(f"OSError : '{e}'")
+            return {}
+        except MemoryError as e:
+            if 'Resolution' not in str(self._chemin_enregistrement):
+                print(f"{self.now()} JSON.importer() MemoryError '{fin_chemin}'")
+                print(f"MemoryError : '{e}'")
             return {}
