@@ -108,9 +108,10 @@ class IterPlateau:
             while self._ensemble_des_plateaux_valides_initiaux:
                 self._iter_courante = next(self._iter_iterateur)
                 plateau_ligne_texte = ''.join(self._iter_courante)
-                self._enregistrer_plateau_courant(plateau_ligne_texte)
-                # self.logger.info(f"__next__ : Epuisement : iteration courante = '{self.plateau.plateau_ligne_texte_universel}'.")
-                self._afficher_periodiquement_iterateur()
+                if self._affichable_periodiquement_iterateur():
+                    self._enregistrer_plateau_courant(plateau_ligne_texte)
+                    # self.logger.info(f"__next__ : Epuisement : iteration courante = '{self.plateau.plateau_ligne_texte_universel}'.")
+                    self._afficher_periodiquement_iterateur()
                 try:
                     self._ensemble_des_plateaux_valides_initiaux.remove(plateau_ligne_texte)
                     # Pas d'exception = Le plateau valide est trouvé
@@ -132,11 +133,13 @@ class IterPlateau:
             plateau_reprise_ligne_texte = plateau_reprise_ligne_texte_universel.replace('.','')
             self.logger.info(f"__next__ : Reprise : derniere iteration = '{plateau_reprise_ligne_texte_universel}'.")
 
-            while plateau_reprise_ligne_texte_universel != self.plateau.plateau_ligne_texte_universel:
+            plateau_ligne_texte = ''
+            while plateau_reprise_ligne_texte != plateau_ligne_texte:
                 self._iter_courante = next(self._iter_iterateur)
                 plateau_ligne_texte = ''.join(self._iter_courante)
-                self._enregistrer_plateau_courant(plateau_ligne_texte)
-                self._afficher_periodiquement_iterateur()
+                if self._affichable_periodiquement_iterateur():
+                    self._enregistrer_plateau_courant(plateau_ligne_texte)
+                    self._afficher_periodiquement_iterateur()
 
             # Traiter le plateau de reprise
             if self.plateau_connu(plateau_reprise_ligne_texte):
@@ -153,15 +156,15 @@ class IterPlateau:
             # Itérer avec les 'product'
             self._iter_courante = next(self._iter_iterateur)
             plateau_ligne_texte = ''.join(self._iter_courante)
-            self._enregistrer_plateau_courant(plateau_ligne_texte)
-            # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
+            if self._affichable_periodiquement_iterateur():
+                self._enregistrer_plateau_courant(plateau_ligne_texte)
+                # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
+                self._afficher_periodiquement_iterateur()
 
-            self._afficher_periodiquement_iterateur()
-
-            # Enregistrer l'iteration pour la reprise
-            self._lot_de_plateau._recherche_dernier_plateau = self.plateau.plateau_ligne_texte_universel
-            if self._lot_de_plateau.exporter_fichier_json():
-                self.logger.info(f"__next__ : Recherche : enregistre la reprise '{self.plateau.plateau_ligne_texte_universel}'.")
+                # Enregistrer l'iteration pour la reprise
+                self._lot_de_plateau._recherche_dernier_plateau = self.plateau.plateau_ligne_texte_universel
+                if self._lot_de_plateau.exporter_fichier_json():
+                    self.logger.info(f"__next__ : Recherche : enregistre la reprise '{self.plateau.plateau_ligne_texte_universel}'.")
 
             if self.plateau_connu(plateau_ligne_texte):
                 self.logger.debug(f"__next__ : StopIteration.")
@@ -255,28 +258,33 @@ class IterPlateau:
                 continue # Iteration suivante
             # self.logger.info(f"__next__ : Recherche : derniere iteration = '{self.plateau.plateau_ligne_texte_universel}'.")
 
-            self._afficher_periodiquement_iterateur_parent()
+            if self._affichable_periodiquement_iterateur():
+                self._afficher_periodiquement_iterateur_parent()
 
-            # Enregistrer l'iteration pour la reprise
-            self._lot_de_plateau._recherche_dernier_plateau = str(self._iter_courante_parent) + '+' + ''.join(self._iter_courante_suffixe)
-            # self.logger.info(f"_recherche_dernier_plateau = {self._lot_de_plateau._recherche_dernier_plateau}")
-            if self._lot_de_plateau.exporter_fichier_json():
-                self.logger.info(f"__next__ : Recherche : enregistre la reprise '{self.plateau.plateau_ligne_texte_universel}'.")
+                # Enregistrer l'iteration pour la reprise
+                self._lot_de_plateau._recherche_dernier_plateau = str(self._iter_courante_parent) + '+' + ''.join(self._iter_courante_suffixe)
+                # self.logger.info(f"_recherche_dernier_plateau = {self._lot_de_plateau._recherche_dernier_plateau}")
+                if self._lot_de_plateau.exporter_fichier_json():
+                    self.logger.info(f"__next__ : Recherche : enregistre la reprise '{self.plateau.plateau_ligne_texte_universel}'.")
 
             if self.plateau_connu(plateau_ligne_texte):
                 continue # Iteration suivante
             valide = self.plateau_valide(plateau_ligne_texte)
         return self.plateau
 
+    def _affichable_periodiquement_iterateur(self):
+        # Log pour suivre l'avancement.
+        return datetime.datetime.now().timestamp() - self._dernier_affichage > self._delai_affichage
+
     def _afficher_periodiquement_iterateur(self):
         # Log pour suivre l'avancement.
-        if datetime.datetime.now().timestamp() - self._dernier_affichage > self._delai_affichage:
+        if self._affichable_periodiquement_iterateur():
             self.logger.info(f"iteration ='{self.plateau.plateau_ligne_texte_universel}'")
             self._dernier_affichage  = datetime.datetime.now().timestamp()
 
     def _afficher_periodiquement_iterateur_parent(self):
         # Log pour suivre l'avancement.
-        if datetime.datetime.now().timestamp() - self._dernier_affichage > self._delai_affichage:
+        if self._affichable_periodiquement_iterateur():
             self.logger.info(f"iteration = '{self.plateau.plateau_ligne_texte_universel}'")
             self.logger.info("'"+str(self._iter_courante_parent) + '+' + ''.join(self._iter_courante_suffixe)+"'")
             self._dernier_affichage  = datetime.datetime.now().timestamp()
