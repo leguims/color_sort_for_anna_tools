@@ -136,6 +136,8 @@ C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
 
 ## V1.0 : Travaux long terme
 
+### Minage des grand plateaux
+
 J'ai depuis le début eu à coeur de choisir mes plateaux parmi une population exhaustive. Mais la recherche de plateaux devient longue avec la taille des plateaux. Le nombre de plateaux trouvés, puis filtrés, puis résolus devient immense. Un première optimisation a été réalisée avec la recherche par parent (voir le chapitre sur la branche 'recherche_par_parent') pour limiter la recherche brute.
 
 Après avoir vu des vidéos de 'Code BH' qui mettent en oeuvre des scenarii d'evolutions et de deep learning. Je me demande si cette stratégie ne serait pas l'étape suivante de minage pour trouver les plateaux interessant à long terme et de large taille.
@@ -149,3 +151,14 @@ Pour ce faire, il faudrait définir:
   - Nombres de solutions
   - Nombre d'echecs
   - differentes longueurs de solutions/echecs
+
+### Export GODOT de la campagne
+
+Lors de l'export des solutions classées vers GODOT, associer des elements de jeu à chaque plateau:
+- Plateau : Texte universel du plateau
+- Difficulté : Taux d'echec du plateau
+- Type de jeu : Classique, Memoire, Défi, Qui Perd Gagne, Double Face
+- [Memoire] [Défi] Nombre de coups cible
+- [Double Face] Difficulté Face 1 et 2
+
+Le fichier d'export des plateaux devient directement la partition de la campagne.
