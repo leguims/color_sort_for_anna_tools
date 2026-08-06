@@ -60,7 +60,7 @@ Réduction arbitraire du fichier pour le jeu pour limiter le nombre de plateaux 
 
 # Versions
 
-Le versionnage est donné par rapport aux versions sorties du jeu. C'est une simplification de gestion au dépend de l'enrochoissement fonctionnel de l'outil qui en est indépendant.
+Le versionnage est donné par rapport aux versions sorties du jeu. C'est une simplification de gestion au dépend de l'enrichissement fonctionnel de l'outil qui en est indépendant.
 
 ## Branches
 
@@ -133,3 +133,19 @@ C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
 	- nombre de colonnes min/max
 	- nombre de lignes min/max
 	- nombre de coups de la solution min/max
+
+## V1.0 : Travaux long terme
+
+J'ai depuis le début eu à coeur de choisir mes plateaux parmi une population exhaustive. Mais la recherche de plateaux devient longue avec la taille des plateaux. Le nombre de plateaux trouvés, puis filtrés, puis résolus devient immense. Un première optimisation a été réalisée avec la recherche par parent (voir le chapitre sur la branche 'recherche_par_parent') pour limiter la recherche brute.
+
+Après avoir vu des vidéos de 'Code BH' qui mettent en oeuvre des scenarii d'evolutions et de deep learning. Je me demande si cette stratégie ne serait pas l'étape suivante de minage pour trouver les plateaux interessant à long terme et de large taille.
+
+Pour ce faire, il faudrait définir:
+- Les parents initiaux : les plateaux initiaux de toutes les tailles : 5x5 à 10x10
+- la physique de recherche et d'évolution : quel changement à chaque génération
+  - Deplacement de jetons du le plateau parent.
+  - Plateau valide
+- les critères de score d'un plateau : indicateurs de résolution
+  - Nombres de solutions
+  - Nombre d'echecs
+  - differentes longueurs de solutions/echecs
