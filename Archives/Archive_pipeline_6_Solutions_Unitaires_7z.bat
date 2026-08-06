@@ -4,6 +4,7 @@ setlocal EnableDelayedExpansion
 set PATH=%PATH%;C:\Program Files\7-Zip
 set repertoire_source=..\..\Pipelines_rapide\pipeline_6_solutions_unitaires\*
 
+set "TEMP=temp"
 set "OUTDIR=7z"
 set "BATCH=1000"
 
@@ -32,9 +33,9 @@ for /d %%D in (%repertoire_source%) do (
                 for %%F in (%%~D\*.json) do (
                     set /a mod = idx %% BATCH
                     if !mod! EQU 0 (
-                        set nom_cible=pipeline_6_Solutions_Unitaires-Archive-%%~nxD-!idx!.7z
+                        set nom_cible=%TEMP%\pipeline_6_Solutions_Unitaires-Archive-%%~nxD-!idx!.7z
                         set /a next = idx + BATCH
-                        set nom_cible_suivante=pipeline_6_Solutions_Unitaires-Archive-%%~nxD-!next!.7z
+                        set nom_cible_suivante=%TEMP%\pipeline_6_Solutions_Unitaires-Archive-%%~nxD-!next!.7z
                         echo ##########    !nom_cible!
                     )
                     REM Enregistrer seulement si l'archive suivante n'existe pas.
@@ -44,7 +45,7 @@ for /d %%D in (%repertoire_source%) do (
                     set /a idx+=1
                 )
                 REM Compresser l'archive (pas trop pour le temps d'execution)
-                7z a -mx5 -t7z -sdel -- !nom_cible_compressee! pipeline_6_Solutions_Unitaires-Archive-%%~nxD-*.7z >nul
+                7z a -mx5 -t7z -sdel -- !nom_cible_compressee! %TEMP%\pipeline_6_Solutions_Unitaires-Archive-%%~nxD-*.7z >nul
                 REM Ranger l'archive
                 MOVE !nom_cible_compressee! %OUTDIR%\!nom_cible_compressee!
             ) else (
