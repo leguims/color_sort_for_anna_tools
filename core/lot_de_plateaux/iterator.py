@@ -25,10 +25,9 @@ class IterPlateau:
         self._ensemble_des_plateaux_valides_initiaux = copy.deepcopy(lot_de_plateaux._ensemble_des_plateaux_valides) # Copie des plateaux valides connus
         self._recherche_dernier_plateau_initial = copy.deepcopy(lot_de_plateaux._recherche_dernier_plateau)
 
-        # Optimisation
-        if self._plateau.nb_lignes > 2:
-            self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
-        else:
+        self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
+        # Optimisation - Exception aux plateaux ignorés
+        if self._plateau.nb_lignes <= 2 or self._lot_de_plateau._parent_filtre:
             self._ensemble_des_plateaux_a_ignorer = None # Plateaux invalides ne sont pas collectés dans la recherche.
 
         self._iter_courante = []  # Initialisation de la permutation courante
