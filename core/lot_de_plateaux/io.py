@@ -3,8 +3,8 @@ from .model import LotDePlateaux
 from io_utils.export_json import ExportJSON
 from core.plateau import Plateau
 
-DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 10*60 # 30*60
-TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000 # 100_000
+DELAI_ENREGISTRER_LOT_DE_PLATEAUX = 30*60
+TAILLE_ENREGISTRER_LOT_DE_PLATEAUX = 100_000
 
 def init_export_json(lot_de_plateaux: LotDePlateaux) -> None:
     nom = f"Plateaux_{lot_de_plateaux._plateau_courant.nb_colonnes}x{lot_de_plateaux._plateau_courant.nb_lignes}"

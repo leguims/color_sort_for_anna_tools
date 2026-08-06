@@ -5,7 +5,7 @@ from copy import deepcopy
 from core.plateau import Plateau
 from io_utils.export_json import ExportJSON
 
-DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 5*60
+DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 30*60
 
 # TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
 
