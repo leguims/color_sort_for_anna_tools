@@ -24,7 +24,13 @@ class IterPlateau:
         # Gestion du lot de plateau
         self._ensemble_des_plateaux_valides_initiaux = copy.deepcopy(lot_de_plateaux._ensemble_des_plateaux_valides) # Copie des plateaux valides connus
         self._recherche_dernier_plateau_initial = copy.deepcopy(lot_de_plateaux._recherche_dernier_plateau)
-        self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
+
+        # Optimisation
+        if self._plateau.nb_lignes > 2:
+            self._ensemble_des_plateaux_a_ignorer = set() # Plateaux invalides collectés dans la recherche.
+        else:
+            self._ensemble_des_plateaux_a_ignorer = None # Plateaux invalides ne sont pas collectés dans la recherche.
+
         self._iter_courante = []  # Initialisation de la permutation courante
         self._iter_iterateur = product()  # Initialisation de l'itérateur de permutations
 
@@ -112,14 +118,12 @@ class IterPlateau:
                     self._enregistrer_plateau_courant(plateau_ligne_texte)
                     # self.logger.info(f"__next__ : Epuisement : iteration courante = '{self.plateau.plateau_ligne_texte_universel}'.")
                     self._afficher_periodiquement_iterateur()
-                try:
-                    self._ensemble_des_plateaux_valides_initiaux.remove(plateau_ligne_texte)
-                    # Pas d'exception = Le plateau valide est trouvé
+                if plateau_ligne_texte in self._ensemble_des_plateaux_valides_initiaux:
+                    # Le plateau est trouvé dans les plateaux initiaux
+                    self._ensemble_des_plateaux_valides_initiaux.discard(plateau_ligne_texte)
                     if self.plateau_valide(plateau_ligne_texte):
                         self.logger.info(f"__next__ : Epuisement des plateaux connus restants : {len(self._ensemble_des_plateaux_valides_initiaux)}.")
                         return True
-                except KeyError:
-                    pass
             self._ensemble_des_plateaux_valides_initiaux.clear() # Epuisement des plateaux connus restants
             self.logger.info(f"__next__ : Reprise phase 1 terminee.")
             return False
@@ -304,7 +308,7 @@ class IterPlateau:
 
     def plateau_valide(self, permutation_plateau: str) -> bool:
         "Retourne 'True' si le plateau est valide (à remonter)"
-        if permutation_plateau in self._ensemble_des_plateaux_a_ignorer:
+        if self._ensemble_des_plateaux_a_ignorer and permutation_plateau in self._ensemble_des_plateaux_a_ignorer:
             # Ignorer et oublier ce plateau
             self._ensemble_des_plateaux_a_ignorer.discard(permutation_plateau)
             return False
@@ -315,14 +319,15 @@ class IterPlateau:
             # Enregistrer la permutation courante qui est un nouveau plateau valide
             self.ajouter_plateau_valide(permutation_plateau)
             # Ajouter toutes les permutations possibles de ce plateau valide à l'ensemble des plateaux à ignorer
-            for permutation_plateau_a_ignorer in construire_les_permutations_de_colonnes(self._lot_de_plateau, self.plateau):
-                # Filtrer permutations piles
-                try:
-                    self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
-                except MemoryError:
-                    # Liberer de la mémoire en urgence
-                    self.liberer_memoire(forcer = True)
-                    self.logger.error(f"MemoryError")
+            if self._ensemble_des_plateaux_a_ignorer is not None:
+                for permutation_plateau_a_ignorer in construire_les_permutations_de_colonnes(self._lot_de_plateau, self.plateau):
+                    # Filtrer permutations piles
+                    try:
+                        self._ensemble_des_plateaux_a_ignorer.add(permutation_plateau_a_ignorer.plateau_ligne_texte)
+                    except MemoryError:
+                        # Liberer de la mémoire en urgence
+                        self.liberer_memoire(forcer = True)
+                        self.logger.error(f"MemoryError")
             # Liberer de la mémoire.
             self.liberer_memoire()
             return True
@@ -333,20 +338,21 @@ class IterPlateau:
         self._lot_de_plateau._a_change = True
 
     def liberer_memoire(self, forcer = False):
-        memoire_1_plateau = self.plateau.nb_colonnes * (self.plateau.nb_lignes + 1)
-        memoire_totale_plateaux = self.nb_plateaux_ignores * memoire_1_plateau
-        if memoire_totale_plateaux > MAX_SIZE or forcer:
-            # Librer du dépassement + 10% de MAX_SIZE
-            depassement = memoire_totale_plateaux - MAX_SIZE
-            _10_pourcent_du_max = int(0.1 * MAX_SIZE)
-            memoire_a_supprimer = depassement + _10_pourcent_du_max
-            if memoire_a_supprimer >= MAX_SIZE:
-                self._ensemble_des_plateaux_a_ignorer.clear()
-            else:
-                nb_plateaux_a_supprimer = int(memoire_a_supprimer / memoire_1_plateau)
-                for _ in range(nb_plateaux_a_supprimer):
-                    self._ensemble_des_plateaux_a_ignorer.pop()
-            self.logger.error(f"Liberation de la memoire ({memoire_a_supprimer})")
+        if self._ensemble_des_plateaux_a_ignorer is not None:
+            memoire_1_plateau = self.plateau.nb_colonnes * (self.plateau.nb_lignes + 1)
+            memoire_totale_plateaux = len(self._ensemble_des_plateaux_a_ignorer) * memoire_1_plateau
+            if memoire_totale_plateaux > MAX_SIZE or forcer:
+                # Librer du dépassement + 10% de MAX_SIZE
+                depassement = memoire_totale_plateaux - MAX_SIZE
+                _10_pourcent_du_max = int(0.1 * MAX_SIZE)
+                memoire_a_supprimer = depassement + _10_pourcent_du_max
+                if memoire_a_supprimer >= MAX_SIZE:
+                    self._ensemble_des_plateaux_a_ignorer.clear()
+                else:
+                    nb_plateaux_a_supprimer = int(memoire_a_supprimer / memoire_1_plateau)
+                    for _ in range(nb_plateaux_a_supprimer):
+                        self._ensemble_des_plateaux_a_ignorer.pop()
+                self.logger.error(f"Liberation de la memoire ({memoire_a_supprimer})")
 
     def _enregistrer_plateau_courant(self, permutation_plateau: str):
         self.plateau.clear()
@@ -374,8 +380,3 @@ class IterPlateau:
     def nb_plateaux_valides(self) -> int:
         "Nombre de plateaux valides"
         return self._lot_de_plateau.nb_plateaux_valides
-
-    @property
-    def nb_plateaux_ignores(self) -> int:
-        "Nombre de plateaux ignores"
-        return len(self._ensemble_des_plateaux_a_ignorer)
