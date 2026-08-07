@@ -136,7 +136,7 @@ C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
 
 ## V1.0 : Travaux long terme
 
-### Minage des grand plateaux
+### Minage des grands plateaux
 
 J'ai depuis le début eu à coeur de choisir mes plateaux parmi une population exhaustive. Mais la recherche de plateaux devient longue avec la taille des plateaux. Le nombre de plateaux trouvés, puis filtrés, puis résolus devient immense. Un première optimisation a été réalisée avec la recherche par parent (voir le chapitre sur la branche 'recherche_par_parent') pour limiter la recherche brute.
 
