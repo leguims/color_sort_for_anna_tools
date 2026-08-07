@@ -77,8 +77,10 @@ def importer_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
         # Recuperation des plateaux valides que la recherche soit terminee ou non
         # pas d'optilmisation identifiee pour accelerer la poursuite de la recherche
         plateau = lot_de_plateaux._plateau_courant
+
         while data_json['liste plateaux']:
             # pop() pour ne pas doubler la mémoire lors de la copie/traduction
+            # pop(0) est extrement gourmand en temps, meme s'il permet de maintenir une liste ordonnée
             plateau_valide = data_json['liste plateaux'].pop()
             # 'self.est_ignore()' n'est pas utilise, car il va modifier le fichier
             #  d'export quand des plateaux valides sont ajoutes. Dans notre cas, il
@@ -113,6 +115,7 @@ def importer_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
                     lot_de_plateaux._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups] = []
                 while liste_plateaux:
                     # pop() pour ne pas doubler la mémoire lors de la copie
+                    # pop(0) est extrement gourmand en temps, meme s'il permet de maintenir une liste ordonnée
                     plateau_txt = liste_plateaux.pop()
                     plateau.clear()
                     plateau.plateau_ligne_texte_universel = plateau_txt

@@ -45,14 +45,15 @@ Retourne True si l'export a ete realise"""
         if not self._chemin_enregistrement.parent.exists():
             self._chemin_enregistrement.parent.mkdir(parents=True, exist_ok=True)
         try:
+            if type(contenu) == dict:
+                contenu_dict = contenu
+            else:
+                # Enregistrement d'une classe
+                contenu_dict = contenu.to_dict()
             with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
                 if 'Resolution' not in str(self._chemin_enregistrement):
                     print(f"{self.now()} JSON.forcer_export() fichier ouvert '{fin_chemin}'")
-                if type(contenu) == dict:
-                    json.dump(contenu, fichier, ensure_ascii=False, indent=4)
-                else:
-                    # Enregistrement d'une classe
-                    json.dump(contenu.to_dict(), fichier, ensure_ascii=False, indent=4)
+                json.dump(contenu_dict, fichier, ensure_ascii=False, indent=4)
             if 'Resolution' not in str(self._chemin_enregistrement):
                 print(f"{self.now()} JSON.forcer_export() fichier ferme '{fin_chemin}'")
         except OSError as e:
@@ -64,7 +65,7 @@ Retourne True si l'export a ete realise"""
             print(f"MemoryError : '{e}'")
             return False
 
-        self._longueur_dernier_enregistrement = len(contenu)
+        self._longueur_dernier_enregistrement = len(contenu_dict)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         return True
 
