@@ -97,7 +97,7 @@ Branche de diagnostic de performance de la recherche de plateaux selon les filtr
 
 C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
 
-## V0.4.4 : Travaux pour la prochaine version
+## V0.4.5 : Travaux pour la prochaine version
 
 ### Outillage
 
@@ -125,6 +125,8 @@ C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
   - Solution la plus courte en 6 coups.
   - Solution la plus longue en 7 coups.
 - Renommer l'étape 5. Ce n'est pas tronquer les solutions, c'est produire le fichier de solutions au format du jeu godot. Tronquer, ajouter infos plateau et autres. "Étape 5 = Exporter solution vers godot"
+- Dans l'export des plateaux vers GODOT, associer le mode de jeu avec le plateau.
+- Appliquer un décalage dans l'alphabet d'un plateau pour chaque jeton lors de l'exportation godot.
 
 #### Divers
 - pour les plateaux sans solution, lancer une recherche en ajoutant 1 colonne d'une seule ligne OU 1 case vide sur la derniere colonne.
