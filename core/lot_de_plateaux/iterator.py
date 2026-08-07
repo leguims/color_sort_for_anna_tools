@@ -373,7 +373,7 @@ class IterPlateau:
     @property
     def plateaux_valides(self) -> set:
         "Ensemble des plateaux valides"
-        return self._lot_de_plateau.plateaux_valides()
+        return self._lot_de_plateau.plateaux_valides
 
     @property
     def nb_plateaux_valides(self) -> int:
