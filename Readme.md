@@ -164,3 +164,58 @@ Lors de l'export des solutions classées vers GODOT, associer des elements de je
 - [Double Face] Difficulté Face 1 et 2
 
 Le fichier d'export des plateaux devient directement la partition de la campagne.
+
+### Export lié aux nouveaux gameplay
+
+#### Synthèse
+
+- Enregistrer les longueurs des solutions et leur population pour chaque plateau.
+- Enregistrer l'état du plateau lors de la solution et leur population pour chaque plateau.
+- Enregistrer le nombres de jetons déplacés lors de la solution et leur population
+
+#### Au Plus Près
+
+- Avec le plateau, enregistrer les longueurs des solutions et leur population
+- Annoncer une gratification en fonction de la rareté de la solution.
+- Afficher les 3 plus rares avec des étoiles pour indiquer leur valeurs.
+
+_'Pile Poil' et 'Au Plus Près' auront le même données et pourront être joué dans les deux modes en jeu libre._
+
+#### Pile Poil
+
+- Avec le plateau, enregistrer les longueurs des solutions et leur population
+- Choisir la solution la plus rare
+
+_'Pile Poil' et 'Au Plus Près' auront le même données et pourront être joué dans les deux modes en jeu libre._
+
+#### Tout En Tête
+
+- Sans objet
+
+#### Programmation
+
+- Sans objet
+
+#### Programmation Genius
+
+- Sans objet
+
+#### Qui Perd Gagne
+
+- Sans objet
+
+#### Poids Plume
+
+- Avec le plateau, enregistrer le nombres de jetons déplacés lors de la solution et leur population
+- Choisir la solution la plus économique en énergie
+
+#### Pile Ou Face
+
+- Sans objet
+
+#### Mot Caché
+
+- Enregistrer l'état du plateau lors de la solution.
+- Comptabiliser tous les plateaux de solutions
+- Le dictionnaire aura peu de solutions d'arrivée.
+- L'outil devra associer la phrase solution avec le nombre de colonnes et produire le plateau de départs qui amène à la phase solution. (remplacer les lettre pour arriver sur la phrase, car le jeu jouera le plateau sans réaliser d'opération de préparation)
