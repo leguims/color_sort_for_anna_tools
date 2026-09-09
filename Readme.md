@@ -48,7 +48,7 @@ Phase de recherche de toutes les solutions possibles d'un plateau. À partir de 
 
 ## Filtrer les solutions pour le jeu
 
-Phase de filtrage selon l'interet des plateaux. Un plateau sans solution ou avec une profondeur de coup trop courte est supprimé.
+Phase de filtrage selon l'interet des plateaux. Un plateau sans solution, sans defaite ou avec une profondeur de coup trop courte est supprimé.
 
 ## Export pour le jeu
 
@@ -97,7 +97,7 @@ Branche de diagnostic de performance de la recherche de plateaux selon les filtr
 
 C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
 
-## V0.4.5 : Travaux pour la prochaine version
+## V1.0.0 : Travaux pour la prochaine version
 
 ### Outillage
 
@@ -138,6 +138,13 @@ C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
 
 ## V1.0 : Travaux long terme
 
+### Filtrage des plateaux
+
+Filtrer les plateaux:
+- ~~Sans solution~~
+- Sans defaite
+- ~~Avec une profondeur de coup trop courte~~
+
 ### Minage des grands plateaux
 
 J'ai depuis le début eu à coeur de choisir mes plateaux parmi une population exhaustive. Mais la recherche de plateaux devient longue avec la taille des plateaux. Le nombre de plateaux trouvés, puis filtrés, puis résolus devient immense. Un première optimisation a été réalisée avec la recherche par parent (voir le chapitre sur la branche 'recherche_par_parent') pour limiter la recherche brute.
@@ -156,6 +163,8 @@ Pour ce faire, il faudrait définir:
 
 ### Export GODOT de la campagne
 
+#### Données des plateaux
+
 Lors de l'export des solutions classées vers GODOT, associer des elements de jeu à chaque plateau:
 - Plateau : Texte universel du plateau
 - Difficulté : Taux d'echec du plateau
@@ -164,6 +173,34 @@ Lors de l'export des solutions classées vers GODOT, associer des elements de je
 - [Double Face] Difficulté Face 1 et 2
 
 Le fichier d'export des plateaux devient directement la partition de la campagne.
+
+#### Taille des niveaux
+
+Réaliser une selection de 100 plateaux répartis ainsi:
+- niveau 1 : 5 plateaux
+- niveau 2 : 5 plateaux
+- niveau 3 : 5 plateaux
+- niveau 4 : 5 plateaux
+- niveau 5 : 10 plateaux
+- niveau 6 : 10 plateaux
+- niveau 7 : 10 plateaux
+- niveau 8 : 15 plateaux
+- niveau 9 : 15 plateaux
+- niveau 10 : 20 plateaux
+
+#### Difficulté des niveaux
+
+Regrouper dans chaque niveau des plateaux dans l'intervalle de difficulté correspondant :
+- niveau 1 : 1 à 10
+- niveau 2 : 1 à 20
+- niveau 3 : 10 à 30
+- niveau 4 : 20 à 50
+- niveau 5 : 40 à 60
+- niveau 6 : 40 à 70
+- niveau 7 : 50 à 80
+- niveau 8 : 60 à 80
+- niveau 9 : 70 à 90
+- niveau 10 : 80 à 100
 
 ### Export lié aux nouveaux gameplay
 
@@ -219,3 +256,28 @@ _'Pile Poil' et 'Au Plus Près' auront le même données et pourront être joué
 - Comptabiliser tous les plateaux de solutions
 - Le dictionnaire aura peu de solutions d'arrivée.
 - L'outil devra associer la phrase solution avec le nombre de colonnes et produire le plateau de départs qui amène à la phase solution. (remplacer les lettre pour arriver sur la phrase, car le jeu jouera le plateau sans réaliser d'opération de préparation)
+
+### Collecte des références de temps (pour le score)
+
+- Faire un script pour extraire les statistiques du json de sauvegarde des testeurs.
+- Enregistrer la référence avec le plateau dans "campagne.json".
+- Enregistrer le record avec le plateau dans "campagne.json".
+- Prévoir un score bonnus lors d'un record battu
+
+#### Processus de collecte
+
+- Phase 1: Fichier de campagne sans temps de référence
+- Phase 2 : Diffuser une version de test avec tous les gameplay chronometrés
+- Phase 3 : Les joueurs réalisent 3 fois de suite le même plateau et les resultats sont enregistrés
+- Phase 4: Prendre le meilleur temps de première réussite de chaque plateau et l'injecter dans le fichier de campagne comme "Référence".
+- Phase 5: Prendre le meilleur temps de tous les testeurs de chaque plateau et l'injecter dans le fichier de campagne comme "Record".
+
+### IDEE : Ajout des scores des testeurs dans la version déployée
+
+Faut-il enregistrer la meilleure performance de chaque testeur dans la version déployée afin d'avoir des references de statistiques de jeu et un tableau des scores peuplé ?
+
+Ne pas dépasser 4 joueurs pour que le vrai joueur puisse entrer dans le tableau des scores.
+
+Protéger les comptes pour qu'ils puissent être éffacés, mais pas utilisés pour jouer, même sur une nouvelle campagne.
+
+Joueurs : Anna, GuiGuiX et Anatole
