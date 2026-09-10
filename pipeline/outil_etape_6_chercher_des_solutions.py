@@ -157,6 +157,9 @@ if __name__ == "__main__":
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+    # TODO : Supprimer le fichier intermédiaire 'pipeline_6_plateaux_avec_difficulte'
+    # TODO : ... avec les gameplay, il n'est plus utile.
+
     chercher_solutions = ChercherDesSolutions(
         nb_colonnes=[3], #range(2, 12),
         nb_lignes=[3], #range(2, 14),

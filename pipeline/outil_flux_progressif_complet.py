@@ -26,7 +26,7 @@ from pipeline.outil_etape_3_filtrer_doublons_permutation_jetons import FiltrerLe
 from pipeline.outil_etape_4_filtrer_doublons_permutation_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationPiles
 from pipeline.outil_etape_5_filtrer_doublons_permutation_jetons_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetonsPiles
 from pipeline.outil_etape_6_chercher_des_solutions import ChercherDesSolutions
-from pipeline.outil_etape_7_filtrer_les_solutions_pour_godot import FiltrerLesSolutions
+from sources.pipeline.outil_etape_7_filtrer_les_solutions_CLASSIQUE_pour_godot import FiltrerLesSolutionsClassique
 from pipeline.outil_etape_8_exporter_pour_godot import ExporterLesSolutionsPourGodot
 from pipeline.outil_etape_9_tronquer_les_solutions_godot import TronquerLesSolutions
 
@@ -166,7 +166,7 @@ class FluxProgressif:
         chercheur.chercher_des_solutions(self._nb_colonnes, self._nb_lignes)
 
     def classer_les_solutions(self, nb_coups_min=3):
-        classeur = FiltrerLesSolutions(
+        classeur = FiltrerLesSolutionsClassique(
             nb_colonnes=self._nb_colonnes,
             nb_lignes=self._nb_lignes,
             nb_colonnes_vides=self._nb_colonnes_vides,

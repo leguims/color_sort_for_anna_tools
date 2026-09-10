@@ -55,4 +55,5 @@ Retourne True si l'export a ete realise"""
                 dico_json = json.load(fichier)
             return dico_json
         except FileNotFoundError:
+            print(f"Fichier non trouve: {self._chemin_enregistrement}")
             return {}

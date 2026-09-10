@@ -11,14 +11,15 @@ class ResoudrePlateau:
                  repertoire_solution: str):
         self._plateau_initial = copy.deepcopy(plateau_initial)
         # Statistiques des solutions: voir io.py
-        self._dico_des_longueurs_de_solutions = {}
-        self._dico_des_longueurs_de_blocages = {}
+        self._dico_des_longueurs_de_solutions : dict[str, int] = {}
+        self._dico_des_longueurs_de_blocages : dict[str, int] = {}
         self._recherche_terminee = False
-        self._difficulte = None
-        self._solution = None
+        self._difficulte_classique = -1
+        self._difficulte_qui_perd_gagne = -1
+        self._solution = []
 
-        self._liste_des_choix_possibles = None
-        self._liste_plateaux_gagnants = None
+        self._liste_des_choix_possibles = []
+        self._liste_plateaux_gagnants = []
 
         nom_plateau = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial.nb_lignes}"
         nom_solution = f"Plateaux_{self._plateau_initial.nb_colonnes}x{self._plateau_initial.nb_lignes}_Resolution_{self._plateau_initial.plateau_ligne_texte.replace(' ', '-')}"
@@ -30,8 +31,7 @@ class ResoudrePlateau:
         importer_fichier_json(self)
 
     def __len__(self) -> int:
-        "La longueur de la solution definit la difficulte"
-        # Le nombre de solution n'a pas d'incidence sur la difficulte
+        "La longueur de la solution la plus courte"
         return len(self._solution) if self._solution else 0
 
     def to_dict(self) -> dict:
@@ -39,9 +39,42 @@ class ResoudrePlateau:
         return to_dict(self)
 
     @property
-    def difficulte(self) -> int | None:
-        from .heuristics import difficulte
-        return difficulte(self)
+    def difficulte_classique(self) -> int:
+        from .heuristics import difficulte_classique
+        return difficulte_classique(self)
+
+    @property
+    def difficulte_qui_perd_gagne(self) -> int:
+        from .heuristics import difficulte_qui_perd_gagne
+        return difficulte_qui_perd_gagne(self)
+
+    @property
+    def longueur_solution_classique(self) -> int:
+        if not self._dico_des_longueurs_de_solutions:
+            return 0
+        return min([int(k) for k in self._dico_des_longueurs_de_solutions.keys()])
+
+    @property
+    def longueur_solution_qui_perd_gagne(self) -> int:
+        if not self._dico_des_longueurs_de_blocages:
+            return 0
+        return min([int(k) for k in self._dico_des_longueurs_de_blocages.keys()])
+
+    @property
+    def nb_solution_classique(self) -> int:
+        if not self._dico_des_longueurs_de_solutions:
+            return 0
+        return sum([v for v in self._dico_des_longueurs_de_solutions.values()])
+
+    @property
+    def nb_solution_qui_perd_gagne(self) -> int:
+        if not self._dico_des_longueurs_de_blocages:
+            return 0
+        return sum([v for v in self._dico_des_longueurs_de_blocages.values()])
+
+    @property
+    def nb_branches(self) -> int:
+        return self.nb_solution_classique + self.nb_solution_qui_perd_gagne
 
     # API io
     # def exporter_fichier_json(self) -> None:

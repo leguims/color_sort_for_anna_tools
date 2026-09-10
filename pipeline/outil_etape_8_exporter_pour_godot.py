@@ -1,4 +1,7 @@
-"""Crée un fichier directement intégrable dans la production GODOT."""
+"""Crée un fichier directement intégrable dans la production GODOT.
+- Crée la campagne
+- Crée chaque niveau par difficulté et nombre de plateaux
+- Vérifie que les plateaux sont inédits (dans aucune autre campagne)"""
 import logging
 from pathlib import Path
 
