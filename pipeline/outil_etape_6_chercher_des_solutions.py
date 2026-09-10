@@ -55,7 +55,7 @@ class ChercherDesSolutions:
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
         destination = Path(self._repertoire_difficulte) / source.parent.name
-        if source.exists() and not destination.exists():
+        if source.exists() and not (destination/source.name).exists():
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy(source, destination)
 
@@ -90,7 +90,9 @@ class ChercherDesSolutions:
                 
                 dernier_affichage  = datetime.datetime.now().timestamp() - self._periode_affichage
                 nb_solutions_a_trouver = lot_de_plateaux.nb_plateaux_valides
-                for plateau_ligne_texte_a_resoudre in lot_de_plateaux.plateaux_valides:
+                plateaux_valides_melanges = list(copy.deepcopy(lot_de_plateaux.plateaux_valides))
+                random.shuffle(plateaux_valides_melanges)
+                for plateau_ligne_texte_a_resoudre in plateaux_valides_melanges:
                     plateau.clear()
                     plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
                     if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):

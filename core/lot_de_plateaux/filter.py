@@ -35,7 +35,7 @@ def filtrer_plateaux_invalides_ou_ininteressants(lot_de_plateaux: LotDePlateaux,
     nb_plateaux_a_valider = lot_de_plateaux.nb_plateaux_valides
     lot_de_plateaux.logger.info(f"{prefixe_log} Il reste {nb_plateaux_a_valider} plateaux a valider")
     # Copie de la liste pour pouvoir effacer des elements au sein de la boucle FOR
-    copie_plateaux_valides = copy.deepcopy(lot_de_plateaux.plateaux_valides)
+    copie_plateaux_valides = list(lot_de_plateaux.plateaux_valides)
 
     plateau_courant = Plateau(lot_de_plateaux._plateau_courant.nb_colonnes,
                               lot_de_plateaux._plateau_courant.nb_lignes,
@@ -130,6 +130,7 @@ def filtrer_doublons_permutation_jetons(lot_de_plateaux: LotDePlateaux, periode_
             # lot_de_plateaux.logger.debug(f"{prefixe_log} taille des permutations de doublons = {len(liste_permutations_texte)}")
 
             effacer_plateaux_valides(lot_de_plateaux, liste_permutations_texte, prefixe_log, plateau_courant)
+            liste_permutations_texte.clear()
             nb_plateaux_a_valider -= 1
 
             # Log pour l'avancement du traitement
@@ -198,6 +199,7 @@ def filtrer_doublons_permutation_piles(lot_de_plateaux: LotDePlateaux, periode_a
 
             effacer_plateaux_valides(lot_de_plateaux, liste_permutations_texte, prefixe_log, plateau_courant)
 
+            liste_permutations_texte.clear()
             nb_plateaux_a_valider -= 1
 
             if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:
@@ -274,7 +276,9 @@ def filtrer_doublons_permutation_jetons_piles(lot_de_plateaux: LotDePlateaux, pe
                     dernier_affichage  = datetime.datetime.now().timestamp()
 
                 effacer_plateaux_valides(lot_de_plateaux, liste_permutations_texte, prefixe_log, plateau_courant)
+                liste_permutations_texte.clear()
 
+            liste_permutations_colonnes.clear()
             nb_plateaux_a_valider -= 1
 
             if datetime.datetime.now().timestamp() - dernier_affichage > periode_affichage:

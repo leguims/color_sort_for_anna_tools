@@ -38,6 +38,8 @@ class OutilComplet:
         if not self._fichier_journal.parent.exists():
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._elapsed_time = 0.
+        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self._logger = logging.getLogger(self._nom_tache)
 
     def __str__(self) -> str:
         return f"Duree du traitement complet : {self._elapsed_time:.4f} secondes".replace('.', ',')
@@ -57,6 +59,7 @@ class OutilComplet:
         )
         chercher.chercher_en_sequence()
         self._elapsed_time += chercher.elapsed
+        return chercher.done
 
     def filtrer_les_plateaux_invalides_ou_initeressants(self):
         filtrer = FiltrerLesPlateauxInvalidesOuIniteressants(
@@ -70,6 +73,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_jetons(self):
         filtrer = FiltrerLesPlateauxPermutationJetons(
@@ -83,6 +87,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_piles(self):
         filtrer = FiltrerLesPlateauxPermutationPiles(
@@ -96,6 +101,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_jetons_piles(self):
         filtrer = FiltrerLesPlateauxPermutationJetonsPiles(
@@ -109,6 +115,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def chercher_des_solutions(self):
         chercheur = ChercherDesSolutions(
@@ -123,6 +130,7 @@ class OutilComplet:
         )
         chercheur.chercher_en_sequence()
         self._elapsed_time += chercheur.elapsed
+        return chercheur.done
 
     def classer_les_solutions_classique(self,
                                         nb_coups_min=3,
@@ -195,16 +203,17 @@ class OutilComplet:
         self._elapsed_time += tronqueur.elapsed
 
     def chercher_en_sequence(self):
-        self.chercher_des_plateaux()
-        self.filtrer_les_plateaux_invalides_ou_initeressants()
-        self.filtrer_les_plateaux_permutation_jetons()
-        self.filtrer_les_plateaux_permutation_piles()
-        self.filtrer_les_plateaux_permutation_jetons_piles()
-        self.chercher_des_solutions()
+        if self.chercher_des_plateaux() \
+            and self.filtrer_les_plateaux_invalides_ou_initeressants() \
+            and self.filtrer_les_plateaux_permutation_jetons() \
+            and self.filtrer_les_plateaux_permutation_piles() \
+            and self.filtrer_les_plateaux_permutation_jetons_piles():
+            self.chercher_des_solutions()
+            self._logger.info(self)
 
     def export_godot(self):
         # La synthese des solutions s'applique à tous les plateaux disponibles.
-        self._liste_nb_colonnes = range(2, 12)
+        self._liste_nb_colonnes = range(2, 14)
         self._liste_nb_lignes = range(2, 14)
         self.classer_les_solutions_classique()
         self.classer_les_solutions_qui_perd_gagne()
@@ -233,10 +242,11 @@ if __name__ == "__main__":
                 fichier_journal=FICHIER_JOURNAL
             )
             outil_complet.chercher_en_sequence()
+
     # La synthese des solutions s'applique à tous les plateaux disponibles.
     outil_complet = OutilComplet(
-        liste_nb_colonnes=[1],
-        liste_nb_lignes=[1],
+        liste_nb_colonnes=[2],
+        liste_nb_lignes=[2],
         nb_colonnes_vides=1,
         repertoire_pipeline=REPERTOIRE_PIPELINE,
         nom_tache=NOM_TACHE,
