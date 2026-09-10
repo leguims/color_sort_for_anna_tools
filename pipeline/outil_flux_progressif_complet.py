@@ -9,12 +9,15 @@ Recommencer tout en augmentant legerement la similarité.
 L'objectif est de traiter de bout en bout des plateaux qui ne se ressemblent pas.
 Biensur, la démarche Etape 1 à 5 est à conserver, mais elle est très longue."""
 import logging
-import pathlib
+from pathlib import Path
 from rapidfuzz import fuzz
 
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+# pour importer depuis le dossier parent
+REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
+if str(REPERTOIRE_SOURCES) not in sys.path:
+    sys.path.insert(0, str(REPERTOIRE_SOURCES))
 
 from core.plateau import Plateau
 from core.lot_de_plateaux import LotDePlateaux
@@ -209,7 +212,7 @@ class FluxProgressif:
 
 if __name__ == "__main__":
     NOM_TACHE = 'flux_progressif_complet'
-    FICHIER_JOURNAL = pathlib.Path('logs') / f'{NOM_TACHE}.log'
+    FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
 
     PROFILER_LE_CODE = False
 
@@ -236,7 +239,7 @@ if __name__ == "__main__":
                     fichier_solution='Solutions_classees_'+str(similarite),
                     fichier_godot='Solutions_godot_'+str(similarite),
                     nom_tache='flux_progressif_complet',
-                    fichier_journal=pathlib.Path('logs') / f'{NOM_TACHE}.log'
+                    fichier_journal=Path('logs') / f'{NOM_TACHE}.log'
                 )
                 # Seuil faible = moins de plateaux ; seuil élevé = plus de plateaux (similaires entre eux)
                 flux_progressif.copie_plateaux_base(seuil_similarite_max=similarite)

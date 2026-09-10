@@ -8,7 +8,10 @@ import shutil
 import sys
 import os
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+# pour importer depuis le dossier parent
+REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
+if str(REPERTOIRE_SOURCES) not in sys.path:
+    sys.path.insert(0, str(REPERTOIRE_SOURCES))
 
 from core.plateau import Plateau
 from core.lot_de_plateaux import LotDePlateaux

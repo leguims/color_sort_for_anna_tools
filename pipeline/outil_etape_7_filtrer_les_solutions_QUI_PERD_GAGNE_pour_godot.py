@@ -33,7 +33,7 @@ class FiltrerLesSolutionsQuiPerdGagne:
                 nb_coups_min,
                 difficulte_min,
                 difficulte_max,
-                nb_branches_min,
+                nb_chemins_min,
                 nom_tache,
                 fichier_journal,
                 profiler_le_code = False,
@@ -48,7 +48,7 @@ class FiltrerLesSolutionsQuiPerdGagne:
         self._nb_coups_min = nb_coups_min
         self._difficulte_min = difficulte_min
         self._difficulte_max = difficulte_max
-        self._nb_branches_min = nb_branches_min
+        self._nb_chemins_min = nb_chemins_min
         self._nom_tache = nom_tache
         self._fichier_journal = fichier_journal
         if not self._fichier_journal.parent.exists():
@@ -94,11 +94,11 @@ class FiltrerLesSolutionsQuiPerdGagne:
                                             repertoire_solution=self._repertoire_solution_unitaire)
                 difficulte = resolution.difficulte_qui_perd_gagne
                 lg_solution = resolution.longueur_solution_qui_perd_gagne
-                nb_branches = resolution.nb_branches
+                nb_chemins = resolution.nb_chemins
                 # Filtrage des plateaux selon la qualité des solutions
                 if self._difficulte_min <= difficulte <= self._difficulte_max \
                     and lg_solution >= self._nb_coups_min \
-                    and nb_branches >= self._nb_branches_min:
+                    and nb_chemins >= self._nb_chemins_min:
                     if difficulte not in dict_difficulte:
                         dict_difficulte[difficulte] = []
                     if plateau_ligne_texte_universel not in dict_difficulte[difficulte]:
@@ -198,7 +198,7 @@ if __name__ == "__main__":
         nb_coups_min=3,
         difficulte_min=1,
         difficulte_max=99,
-        nb_branches_min=10,
+        nb_chemins_min=10,
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL,
         periode_scrutation_secondes = 1 * 60 * 60 # 1h

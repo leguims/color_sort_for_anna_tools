@@ -4,7 +4,10 @@ from pathlib import Path
 
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+# pour importer depuis le dossier parent
+REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
+if str(REPERTOIRE_SOURCES) not in sys.path:
+    sys.path.insert(0, str(REPERTOIRE_SOURCES))
 
 from pipeline.outil_etape_1_chercher_des_plateaux import ChercherDesPlateaux
 from pipeline.outil_etape_2_filtrer_plateaux_invalides_ou_ininteressants import FiltrerLesPlateaux as FiltrerLesPlateauxInvalidesOuIniteressants
@@ -13,6 +16,7 @@ from pipeline.outil_etape_4_filtrer_doublons_permutation_piles import FiltrerLes
 from pipeline.outil_etape_5_filtrer_doublons_permutation_jetons_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetonsPiles
 from pipeline.outil_etape_6_chercher_des_solutions import ChercherDesSolutions
 from sources.pipeline.outil_etape_7_filtrer_les_solutions_CLASSIQUE_pour_godot import FiltrerLesSolutionsClassique
+from sources.pipeline.outil_etape_7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot import FiltrerLesSolutionsQuiPerdGagne
 from pipeline.outil_etape_8_exporter_pour_godot import ExporterLesSolutionsPourGodot
 from pipeline.outil_etape_9_tronquer_les_solutions_godot import TronquerLesSolutionsGodot
 
@@ -120,15 +124,46 @@ class OutilComplet:
         chercheur.chercher_en_sequence()
         self._elapsed_time += chercheur.elapsed
 
-    def classer_les_solutions(self, nb_coups_min=3):
+    def classer_les_solutions_classique(self,
+                                        nb_coups_min=3,
+                                        difficulte_min=1,
+                                        difficulte_max=99,
+                                        nb_chemins_min=10):
         classeur = FiltrerLesSolutionsClassique(
             nb_colonnes=self._liste_nb_colonnes,
             nb_lignes=self._liste_nb_lignes,
             nb_colonnes_vides=self._nb_colonnes_vides,
-            repertoire_analyse=str(self._repertoire_pipeline/'pipeline_6_plateaux_avec_difficulte'),
+            repertoire_analyse=str(self._repertoire_pipeline/'pipeline_5_filtre_doublons_permutation_jetons_piles'),
+            repertoire_solution_unitaire=str(self._repertoire_pipeline/'pipeline_6_solutions_unitaires'),
             repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions'),
-            fichier_solution='7_filtrer_les_solutions_pour_godot',
+            fichier_solution='7_filtrer_les_solutions_CLASSIQUE_pour_godot',
             nb_coups_min=nb_coups_min,
+            difficulte_min=difficulte_min,
+            difficulte_max=difficulte_max,
+            nb_chemins_min=nb_chemins_min,
+            nom_tache=self._nom_tache,
+            fichier_journal=self._fichier_journal
+        )
+        classeur.chercher_en_sequence()
+        self._elapsed_time += classeur.elapsed
+
+    def classer_les_solutions_qui_perd_gagne(self,
+                                        nb_coups_min=3,
+                                        difficulte_min=1,
+                                        difficulte_max=99,
+                                        nb_chemins_min=10):
+        classeur = FiltrerLesSolutionsQuiPerdGagne(
+            nb_colonnes=self._liste_nb_colonnes,
+            nb_lignes=self._liste_nb_lignes,
+            nb_colonnes_vides=self._nb_colonnes_vides,
+            repertoire_analyse=str(self._repertoire_pipeline/'pipeline_5_filtre_doublons_permutation_jetons_piles'),
+            repertoire_solution_unitaire=str(self._repertoire_pipeline/'pipeline_6_solutions_unitaires'),
+            repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions'),
+            fichier_solution='7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot',
+            nb_coups_min=nb_coups_min,
+            difficulte_min=difficulte_min,
+            difficulte_max=difficulte_max,
+            nb_chemins_min=nb_chemins_min,
             nom_tache=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
@@ -138,8 +173,9 @@ class OutilComplet:
     def exporter_pour_godot(self):
         export = ExporterLesSolutionsPourGodot(
             repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions'),
-            fichier_solution='7_filtrer_les_solutions_pour_godot',
-            fichier_godot='8_exporter_pour_godot_Solutions_classees',
+            fichier_solution_classique='7_filtrer_les_solutions_CLASSIQUE_pour_godot',
+            fichier_solution_qui_perd_gagne='7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot',
+            fichier_godot='8_campagne_godot',
             nom_etape=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
@@ -149,8 +185,8 @@ class OutilComplet:
     def tronquer_les_solutions(self, taille_tronquee, decallage=0):
         tronqueur = TronquerLesSolutionsGodot(
             repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions'),
-            fichier_godot='8_exporter_pour_godot_Solutions_classees',
-            fichier_godot_tronque='9_tronquer_les_solutions_godot',
+            fichier_godot='8_solutions_godot',
+            fichier_godot_tronque='9_campagne_godot',
             nombre_de_plateaux=200,
             nom_etape=self._nom_tache,
             fichier_journal=self._fichier_journal
@@ -170,7 +206,8 @@ class OutilComplet:
         # La synthese des solutions s'applique à tous les plateaux disponibles.
         self._liste_nb_colonnes = range(2, 12)
         self._liste_nb_lignes = range(2, 14)
-        self.classer_les_solutions()
+        self.classer_les_solutions_classique()
+        self.classer_les_solutions_qui_perd_gagne()
         self.exporter_pour_godot()
         self.tronquer_les_solutions(taille_tronquee=200, decallage=0)
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

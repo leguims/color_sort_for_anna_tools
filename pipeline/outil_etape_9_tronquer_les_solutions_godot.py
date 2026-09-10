@@ -1,11 +1,19 @@
-"""Tronque le fichier de solutions GODOT"""
+"""Crée un fichier directement intégrable dans la production GODOT.
+- Crée la campagne
+- Crée chaque niveau par difficulté et nombre de plateaux
+- Vérifie que les plateaux sont inédits (dans aucune autre campagne)"""
+
 import logging
 from pathlib import Path
 import random
 
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+
+# pour importer depuis le dossier parent
+REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
+if str(REPERTOIRE_SOURCES) not in sys.path:
+    sys.path.insert(0, str(REPERTOIRE_SOURCES))
 
 from io_utils.export_json import ExportJSON
 from io_utils.chrono import Chrono

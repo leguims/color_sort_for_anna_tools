@@ -1,34 +1,35 @@
-"""Crée un fichier directement intégrable dans la production GODOT.
-- Crée la campagne
-- Crée chaque niveau par difficulté et nombre de plateaux
-- Vérifie que les plateaux sont inédits (dans aucune autre campagne)"""
+"""Crée un fichier qui rassemble tous les gameplays de GODOT avec leur attributs spécifiques."""
 import logging
 from pathlib import Path
 
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # pour importer depuis le dossier parent
+
+# pour importer depuis le dossier parent
+REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
+if str(REPERTOIRE_SOURCES) not in sys.path:
+    sys.path.insert(0, str(REPERTOIRE_SOURCES))
 
 from io_utils.export_json import ExportJSON
 from io_utils.chrono import Chrono
 
 class ExporterLesSolutionsPourGodot:
-    """Parcourt 'Solutions_classees.json' et supprime la notion de nombre de coups"""
+    """Parcourt 'Solutions_classees.json' et crée un fichier de campagne pour Godot"""
     def __init__(self,
                 repertoire_solution,
-                fichier_solution,
+                fichier_solution_classique,
+                fichier_solution_qui_perd_gagne,
                 fichier_godot,
                 nom_etape,
-                fichier_journal,
-                periode_scrutation_secondes = 30*60): # en secondes
+                fichier_journal):
         self._repertoire_solution = repertoire_solution
-        self._fichier_solution = fichier_solution
+        self._fichier_solution_classique = fichier_solution_classique
+        self._fichier_solution_qui_perd_gagne = fichier_solution_qui_perd_gagne
         self._fichier_godot = fichier_godot
         self._nom_etape = nom_etape
         self._fichier_journal = fichier_journal
         if not self._fichier_journal.parent.exists():
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
-        self._periode_scrutation_secondes = periode_scrutation_secondes
         self._chrono = Chrono()
 
     @property
@@ -40,24 +41,61 @@ class ExporterLesSolutionsPourGodot:
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{self._nom_etape}")
         logger.info(f"DEBUT {self._nom_etape}")
-        solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
-        solutions_classees = solutions_classees_json.importer()
 
-        # Creation du fichier de solution pour Godot
-        solution_godot = {"liste difficulte des plateaux": {}}
+        # Creation du fichier de campagne pour Godot
+        solutions_godot = {"liste difficulte des plateaux": {}}
+        liste_difficulte = solutions_godot["liste difficulte des plateaux"]
+
+        # Rassembler les plateaux du gameplay avec ses attributs spécifiques
+        solutions_classees_classique_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
+                                                       nom_export=self._fichier_solution_classique,
+                                                       repertoire=self._repertoire_solution)
+        solutions_classees_classique = solutions_classees_classique_json.importer()
+
         self._chrono.start()
-        if solutions_classees.get('liste difficulte des plateaux'):
-            for difficulte, dico_nb_coups in solutions_classees.get('liste difficulte des plateaux').items():
-                for nb_coups, liste_plateaux in dico_nb_coups.items():
-                    difficulte_str = f"{int(difficulte):03d}"
-                    if difficulte_str not in solution_godot["liste difficulte des plateaux"]:
-                        solution_godot["liste difficulte des plateaux"][difficulte_str] = []
-                    solution_godot["liste difficulte des plateaux"][difficulte_str] += liste_plateaux
+        if solutions_classees_classique.get('liste difficulte des plateaux'):
+            for difficulte, liste_plateaux in solutions_classees_classique.get('liste difficulte des plateaux', {}).items():
+                for plateau in liste_plateaux:
+                    difficulte_json_key_str = f"{int(difficulte):03d}"
+                    if difficulte_json_key_str not in liste_difficulte:
+                        liste_difficulte[difficulte_json_key_str] = []
+                    plateau_classique = {
+                        "nom": plateau,
+                        "difficulte": difficulte,
+                        "gameplay": "CLASSIQUE"
+                        }
+                    liste_difficulte[difficulte_json_key_str].append(plateau_classique)
         self._chrono.pause()
+        logger.info(f"Export des plateaux Classique achevé")
+
+        solutions_classees_qui_perd_gagne_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
+                                                       nom_export=self._fichier_solution_qui_perd_gagne,
+                                                       repertoire=self._repertoire_solution)
+        solutions_classees_qui_perd_gagne = solutions_classees_qui_perd_gagne_json.importer()
+
+        self._chrono.start()
+        if solutions_classees_qui_perd_gagne.get('liste difficulte des plateaux'):
+            for difficulte, liste_plateaux in solutions_classees_qui_perd_gagne.get('liste difficulte des plateaux', {}).items():
+                for plateau in liste_plateaux:
+                    difficulte_json_key_str = f"{int(difficulte):03d}"
+                    if difficulte_json_key_str not in liste_difficulte:
+                        liste_difficulte[difficulte_json_key_str] = []
+                    plateau_qui_perd_gagne = {
+                        "nom": plateau,
+                        "difficulte": difficulte,
+                        "gameplay": "QUI_PERD_GAGNE"
+                    }
+                    liste_difficulte[difficulte_json_key_str].append(plateau_qui_perd_gagne)
+        self._chrono.pause()
+        logger.info(f"Export des plateaux Qui Perd Gagne achevé")
+
         logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
-        export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_godot, repertoire=self._repertoire_solution)
+
+        export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
+                                       nom_export=self._fichier_godot,
+                                       repertoire=self._repertoire_solution)
         export_godot_json.effacer()
-        export_godot_json.forcer_export(solution_godot)
+        export_godot_json.forcer_export(solutions_godot)
         logger.info("Export termine")
 
 
@@ -73,10 +111,10 @@ if __name__ == "__main__":
 
     solutions_godot = ExporterLesSolutionsPourGodot(
         repertoire_solution=str(FICHIER_SOLUTION),
-        fichier_solution='7_filtrer_les_solutions_pour_godot',
-        fichier_godot='8_exporter_pour_godot_Solutions_classees',
+        fichier_solution_classique='7_filtrer_les_solutions_CLASSIQUE_pour_godot',
+        fichier_solution_qui_perd_gagne='7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot',
+        fichier_godot='8_solutions_godot',
         nom_etape=NOM_ETAPE,
         fichier_journal=FICHIER_JOURNAL,
-        periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )
     solutions_godot.exporter_vers_godot()

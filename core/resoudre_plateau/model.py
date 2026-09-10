@@ -73,7 +73,7 @@ class ResoudrePlateau:
         return sum([v for v in self._dico_des_longueurs_de_blocages.values()])
 
     @property
-    def nb_branches(self) -> int:
+    def nb_chemins(self) -> int:
         return self.nb_solution_classique + self.nb_solution_qui_perd_gagne
 
     # API io
