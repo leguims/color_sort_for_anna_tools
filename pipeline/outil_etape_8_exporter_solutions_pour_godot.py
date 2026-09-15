@@ -116,4 +116,4 @@ if __name__ == "__main__":
         nom_etape=NOM_ETAPE,
         fichier_journal=FICHIER_JOURNAL,
     )
-    solutions_godot.exporter_vers_godot()
+    solutions_godot.exporter_solutions_pour_godot()
