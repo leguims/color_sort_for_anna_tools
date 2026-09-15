@@ -3,7 +3,6 @@ import logging
 from pathlib import Path
 
 import sys
-import os
 
 # pour importer depuis le dossier parent
 REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
@@ -36,7 +35,7 @@ class ExporterLesSolutionsPourGodot:
     def elapsed(self):
         return self._chrono.elapsed
 
-    def exporter_vers_godot(self):
+    def exporter_solutions_pour_godot(self):
         # Configurer le logger
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{self._nom_etape}")
@@ -100,7 +99,7 @@ class ExporterLesSolutionsPourGodot:
 
 
 if __name__ == "__main__":
-    NOM_ETAPE = 'exporter_vers_godot'
+    NOM_ETAPE = 'exporter_solutions_vers_godot'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
     FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
 

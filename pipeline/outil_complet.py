@@ -10,15 +10,15 @@ if str(REPERTOIRE_SOURCES) not in sys.path:
     sys.path.insert(0, str(REPERTOIRE_SOURCES))
 
 from pipeline.outil_etape_1_chercher_des_plateaux import ChercherDesPlateaux
-from pipeline.outil_etape_2_filtrer_plateaux_invalides_ou_ininteressants import FiltrerLesPlateaux as FiltrerLesPlateauxInvalidesOuIniteressants
+from pipeline.outil_etape_2_filtrer_plateaux_invalides_ou_ininteressants import FiltrerLesPlateaux as FiltrerLesPlateauxInvalidesOuIninteressants
 from pipeline.outil_etape_3_filtrer_doublons_permutation_jetons import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetons
 from pipeline.outil_etape_4_filtrer_doublons_permutation_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationPiles
 from pipeline.outil_etape_5_filtrer_doublons_permutation_jetons_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetonsPiles
 from pipeline.outil_etape_6_chercher_des_solutions import ChercherDesSolutions
 from sources.pipeline.outil_etape_7_filtrer_les_solutions_CLASSIQUE_pour_godot import FiltrerLesSolutionsClassique
 from sources.pipeline.outil_etape_7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot import FiltrerLesSolutionsQuiPerdGagne
-from pipeline.outil_etape_8_exporter_pour_godot import ExporterLesSolutionsPourGodot
-from pipeline.outil_etape_9_tronquer_les_solutions_godot import TronquerLesSolutionsGodot
+from sources.pipeline.outil_etape_8_exporter_solutions_pour_godot import ExporterLesSolutionsPourGodot
+from pipeline.outil_etape_9_creer_campagne_pour_godot import CreerLaCampagnePourGodot
 
 class OutilComplet:
     "Module pour traiter la chaine complete Etape 1 à 9 avec un ensemble de plateaux différents'"
@@ -59,10 +59,9 @@ class OutilComplet:
         )
         chercher.chercher_en_sequence()
         self._elapsed_time += chercher.elapsed
-        return chercher.done
 
     def filtrer_les_plateaux_invalides_ou_initeressants(self):
-        filtrer = FiltrerLesPlateauxInvalidesOuIniteressants(
+        filtrer = FiltrerLesPlateauxInvalidesOuIninteressants(
             nb_colonnes=self._liste_nb_colonnes,
             nb_lignes=self._liste_nb_lignes,
             nb_colonnes_vides=self._nb_colonnes_vides,
@@ -73,7 +72,6 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
-        return filtrer.done
 
     def filtrer_les_plateaux_permutation_jetons(self):
         filtrer = FiltrerLesPlateauxPermutationJetons(
@@ -87,7 +85,6 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
-        return filtrer.done
 
     def filtrer_les_plateaux_permutation_piles(self):
         filtrer = FiltrerLesPlateauxPermutationPiles(
@@ -101,7 +98,6 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
-        return filtrer.done
 
     def filtrer_les_plateaux_permutation_jetons_piles(self):
         filtrer = FiltrerLesPlateauxPermutationJetonsPiles(
@@ -115,7 +111,6 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
-        return filtrer.done
 
     def chercher_des_solutions(self):
         chercheur = ChercherDesSolutions(
@@ -130,7 +125,6 @@ class OutilComplet:
         )
         chercheur.chercher_en_sequence()
         self._elapsed_time += chercheur.elapsed
-        return chercheur.done
 
     def classer_les_solutions_classique(self,
                                         nb_coups_min=3,
@@ -178,7 +172,7 @@ class OutilComplet:
         classeur.chercher_en_sequence()
         self._elapsed_time += classeur.elapsed
 
-    def exporter_pour_godot(self):
+    def exporter_solutions_pour_godot(self):
         export = ExporterLesSolutionsPourGodot(
             repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions'),
             fichier_solution_classique='7_filtrer_les_solutions_CLASSIQUE_pour_godot',
@@ -187,29 +181,29 @@ class OutilComplet:
             nom_etape=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
-        export.exporter_vers_godot()
+        export.exporter_solutions_pour_godot()
         self._elapsed_time += export.elapsed
 
-    def tronquer_les_solutions(self, taille_tronquee, decallage=0):
-        tronqueur = TronquerLesSolutionsGodot(
+    def creer_campagne_pour_godot(self):
+        campagne = CreerLaCampagnePourGodot(
             repertoire_solution=str(self._repertoire_pipeline/'pipeline_6_solutions'),
-            fichier_godot='8_solutions_godot',
-            fichier_godot_tronque='9_campagne_godot',
-            nombre_de_plateaux=200,
+            fichier_solution='8_solutions_godot',
+            fichier_campagne='9_campagne_godot',
+            fichier_configuration_campagne='outil_etape_9_structure_campagne_godot',
             nom_etape=self._nom_tache,
             fichier_journal=self._fichier_journal
         )
-        tronqueur.tronquer()
-        self._elapsed_time += tronqueur.elapsed
+        campagne.exporter_campagne_pour_godot()
+        self._elapsed_time += campagne.elapsed
 
     def chercher_en_sequence(self):
-        if self.chercher_des_plateaux() \
-            and self.filtrer_les_plateaux_invalides_ou_initeressants() \
-            and self.filtrer_les_plateaux_permutation_jetons() \
-            and self.filtrer_les_plateaux_permutation_piles() \
-            and self.filtrer_les_plateaux_permutation_jetons_piles():
-            self.chercher_des_solutions()
-            self._logger.info(self)
+        self.chercher_des_plateaux()
+        self.filtrer_les_plateaux_invalides_ou_initeressants()
+        self.filtrer_les_plateaux_permutation_jetons()
+        self.filtrer_les_plateaux_permutation_piles()
+        self.filtrer_les_plateaux_permutation_jetons_piles()
+        self.chercher_des_solutions()
+        self._logger.info(self)
 
     def export_godot(self):
         # La synthese des solutions s'applique à tous les plateaux disponibles.
@@ -217,8 +211,8 @@ class OutilComplet:
         self._liste_nb_lignes = range(2, 14)
         self.classer_les_solutions_classique()
         self.classer_les_solutions_qui_perd_gagne()
-        self.exporter_pour_godot()
-        self.tronquer_les_solutions(taille_tronquee=200, decallage=0)
+        self.exporter_solutions_pour_godot()
+        self.creer_campagne_pour_godot()
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(self._nom_tache)
         logger.info(self)
@@ -231,8 +225,8 @@ if __name__ == "__main__":
     PROFILER_LE_CODE = False
 
     # Pour avoir une sequence complete sur un type de plateau
-    for colonne in range(2,4):
-        for ligne in range(3,6):
+    for colonne in [4]:
+        for ligne in range(2,4):
             outil_complet = OutilComplet(
                 liste_nb_colonnes=[colonne],
                 liste_nb_lignes=[ligne],

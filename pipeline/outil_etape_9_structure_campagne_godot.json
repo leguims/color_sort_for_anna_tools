@@ -1,0 +1,178 @@
+{
+    "nom": "Campagne 1",
+    "description": "Première campagne de la série",
+    "nb_niveaux": 10,
+    "nb_plateaux": 100,
+    "niveaux": [
+        {
+            "nom": "Niveau 1",
+            "difficulte": {"min": 1, "max": 10},
+            "nb_plateaux": 5,
+            "plateaux": [
+                {"difficulte": {"min": 1, "max": 6}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 2, "max": 7}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 3, "max": 8}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 4, "max": 9}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 5, "max": 10}, "gameplay": "CLASSIQUE"}
+            ]
+        },
+        {
+            "nom": "Niveau 2",
+            "difficulte": {"min": 1, "max": 20},
+            "nb_plateaux": 5,
+            "plateaux": [
+                {"difficulte": {"min": 1, "max": 10}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 5, "max": 15}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 10, "max": 15}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 10, "max": 20}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 15, "max": 20}, "gameplay": "CLASSIQUE"}
+            ]
+        },
+        {
+            "nom": "Niveau 3",
+            "difficulte": {"min": 10, "max": 30},
+            "nb_plateaux": 5,
+            "plateaux": [
+                {"difficulte": {"min": 10, "max": 20}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 15, "max": 25}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 20, "max": 25}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 20, "max": 30}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 25, "max": 30}, "gameplay": "QUI_PERD_GAGNE"}
+            ]
+        },
+        {
+            "nom": "Niveau 4",
+            "difficulte": {"min": 20, "max": 50},
+            "nb_plateaux": 5,
+            "plateaux": [
+                {"difficulte": {"min": 20, "max": 30}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 25, "max": 40}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 30, "max": 40}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 35, "max": 50}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 40, "max": 50}, "gameplay": "CLASSIQUE"}
+            ]
+        },
+        {
+            "nom": "Niveau 5",
+            "difficulte": {"min": 40, "max": 60},
+            "nb_plateaux": 10,
+            "plateaux": [
+                {"difficulte": {"min": 40, "max": 45}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 40, "max": 45}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 45, "max": 50}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 45, "max": 50}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 50, "max": 55}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 50, "max": 55}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 50, "max": 55}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 55, "max": 60}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 55, "max": 60}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 55, "max": 60}, "gameplay": "QUI_PERD_GAGNE"}
+            ]
+        },
+        {
+            "nom": "Niveau 6",
+            "difficulte": {"min": 40, "max": 70},
+            "nb_plateaux": 10,
+            "plateaux": [
+                {"difficulte": {"min": 40, "max": 50}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 40, "max": 50}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 45, "max": 55}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 45, "max": 55}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 50, "max": 60}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 50, "max": 60}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 55, "max": 65}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 55, "max": 65}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 60, "max": 70}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 60, "max": 70}, "gameplay": "QUI_PERD_GAGNE"}
+            ]
+        },
+        {
+            "nom": "Niveau 7",
+            "difficulte": {"min": 50, "max": 80},
+            "nb_plateaux": 10,
+            "plateaux": [
+                {"difficulte": {"min": 50, "max": 55}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 50, "max": 55}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 55, "max": 60}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 55, "max": 60}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 60, "max": 65}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 60, "max": 65}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "QUI_PERD_GAGNE"}
+            ]
+        },
+        {
+            "nom": "Niveau 8",
+            "difficulte": {"min": 60, "max": 80},
+            "nb_plateaux": 15,
+            "plateaux": [
+                {"difficulte": {"min": 60, "max": 65}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 60, "max": 65}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 60, "max": 65}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 65, "max": 70}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 65, "max": 70}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 65, "max": 70}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 65, "max": 70}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "QUI_PERD_GAGNE"}
+            ]
+        },
+        {
+            "nom": "Niveau 9",
+            "difficulte": {"min": 70, "max": 90},
+            "nb_plateaux": 15,
+            "plateaux": [
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 70, "max": 75}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 75, "max": 80}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "QUI_PERD_GAGNE"}
+            ]
+        },
+        {
+            "nom": "Niveau 10",
+            "difficulte": {"min": 80, "max": 100},
+            "nb_plateaux": 20,
+            "plateaux": [
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 80, "max": 85}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 90, "max": 95}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 90, "max": 95}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 90, "max": 95}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 90, "max": 95}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 90, "max": 95}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 95, "max": 100}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 95, "max": 100}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 95, "max": 100}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 95, "max": 100}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 95, "max": 100}, "gameplay": "QUI_PERD_GAGNE"}
+            ]
+        }
+    ]
+}

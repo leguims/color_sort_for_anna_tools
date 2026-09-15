@@ -70,7 +70,7 @@ class FiltrerLesPlateaux:
                                         # nb_plateaux_max = self._memoire_max)
         # Parcourir les plateaux et supprimer les plateaux "invalides"
         self._chrono.start()
-        lot_de_plateaux.filtrer_plateaux_invalides_ou_initeressants(self._periode_affichage)
+        lot_de_plateaux.filtrer_plateaux_invalides_ou_ininteressants(self._periode_affichage)
         self._chrono.pause()
         logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
 
