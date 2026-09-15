@@ -7,6 +7,7 @@ from pathlib import Path
 import random
 
 import sys
+import os
 # pour importer depuis le dossier parent
 REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
 if str(REPERTOIRE_SOURCES) not in sys.path:
@@ -44,11 +45,18 @@ class CreerLaCampagnePourGodot:
         logger = logging.getLogger(f"{self._nom_etape}")
         logger.info(f"DEBUT {self._nom_etape}")
 
-        solutions_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
+        solutions_godot_json = ExportJSON(
+            delai=60, longueur=100, nom_plateau='',
+            nom_export=self._fichier_solution,
+            repertoire=self._repertoire_solution)
         solutions_godot = solutions_godot_json.importer()
         liste_difficulte_godot = solutions_godot.get('liste difficulte des plateaux', {})
 
-        configuration_campagne_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_configuration_campagne, repertoire='.')
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        configuration_campagne_godot_json = ExportJSON(
+                delai=60, longueur=100, nom_plateau='',
+                nom_export=self._fichier_configuration_campagne,
+                repertoire=current_dir)
         configuration_campagne = configuration_campagne_godot_json.importer()
 
         self._chrono.start()
@@ -61,6 +69,10 @@ class CreerLaCampagnePourGodot:
             "niveaux": []
             }
         # Construire les niveaux 1 par un
+        # Vérifier les doublons
+        plateaux_vus = set()
+        # Vérifier les absences
+        liste_echec_recherche = []
         for conf_niveau in configuration_campagne.get("niveaux", []):
             niveau_godot = {
                 "nom": conf_niveau.get("nom", ""),
@@ -69,29 +81,47 @@ class CreerLaCampagnePourGodot:
             }
             # Selectionner les plateaux pour ce niveau
             plateaux_godot = []
+            plateaux_doublons = []
             for conf_plateau in conf_niveau.get("plateaux", []):
                 difficulte_min = conf_plateau.get("difficulte", {}).get("min", 1)
                 difficulte_max = conf_plateau.get("difficulte", {}).get("max", 99)
                 gameplay = conf_plateau.get("gameplay", "CLASSIQUE")
+                logger.info(f"{self._nom_etape} Recherche : difficulte [{difficulte_min}-{difficulte_max}], gameplay {gameplay}")
                 # Parcourir les solutions pour trouver l'élu (choix de difficulté aleatoire)
                 plateau_godot = None
-                for difficulte in random.sample(range(difficulte_min, difficulte_max + 1),
-                                       k=difficulte_max-difficulte_min+1):
-                    difficulte_str = str(difficulte).zfill(3)
-                    if difficulte_str in liste_difficulte_godot:
-                        # Selectionner un plateau aleatoire
-                        plateau_godot = random.choice(solutions_godot['liste difficulte des plateaux'][difficulte_str])
-                        if plateau_godot.get("gameplay") == gameplay:
-                            plateaux_godot.append(plateau_godot)
-                            # Sortir de l'itération "difficulté"
-                            break
-                        # Tenter une autre difficulté
-                        continue
-                if not plateau_godot:
-                    raise ValueError(f"Aucun plateau trouvé pour la configuration : {conf_plateau}")
-                plateaux_godot.append(plateau_godot)
+                cpt_iteration = 1
+                while not plateau_godot:
+                    logger.info(f"{self._nom_etape} While not plateau_godot... {cpt_iteration}")
+                    for difficulte in random.sample(range(difficulte_min, difficulte_max + 1),
+                                        k=difficulte_max-difficulte_min+1):
+                        difficulte_str = str(difficulte).zfill(3)
+                        if difficulte_str in liste_difficulte_godot:
+                            # Selectionner un plateau aleatoire
+                            plateau_godot = random.choice(solutions_godot['liste difficulte des plateaux'][difficulte_str])
+                            if plateau_godot.get("gameplay") == gameplay:
+                                plateaux_godot.append(plateau_godot)
+                                logger.info(f"{self._nom_etape} Trouve : difficulte= {plateau_godot.get('difficulte')}, gameplay {plateau_godot.get('gameplay')}")
+                                # Verifier les doublons
+                                plateau_tuple = (plateau_godot.get("nom"), plateau_godot.get("gameplay"))
+                                if plateau_tuple in plateaux_vus:
+                                    plateaux_doublons.append(plateau_godot)
+                                else:
+                                    plateaux_vus.add(plateau_tuple)
+                                # Sortir de l'itération "difficulté"
+                                break
+                            # Tenter une autre difficulté
+                            plateau_godot = None
+                            continue
+                    if not plateau_godot:
+                        cpt_iteration += 1
+                        if cpt_iteration >= 100:
+                            liste_echec_recherche.append(conf_plateau)
+                            break    # Sortie du while.
+                            # raise ValueError(f"Aucun plateau trouvé pour la configuration : {conf_plateau}")
             niveau_godot["plateaux"] = plateaux_godot
             campagne_godot["niveaux"].append(niveau_godot)
+            if plateaux_doublons:
+                logger.error(f"Doublons trouves dans le niveau '{niveau_godot.get('nom', 'inconnu')}': {plateaux_doublons}")
         self._chrono.pause()
         logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
         export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
@@ -99,6 +129,9 @@ class CreerLaCampagnePourGodot:
                                        repertoire=self._repertoire_solution)
         export_godot_json.effacer()
         export_godot_json.forcer_export(campagne_godot)
+
+        if liste_echec_recherche:
+            logger.error(f"Configurations de plateau non trouvees : {liste_echec_recherche}")
         logger.info("Export termine")
 
 
@@ -106,6 +139,8 @@ if __name__ == "__main__":
     NOM_ETAPE = 'creer_campagne_pour_godot'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
     FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
+    # FICHIER_JOURNAL = Path('logs') / f'{NOM_ETAPE}.log' # DEBUG
+    # FICHIER_SOLUTION = Path('Pipelines') / 'pipeline_6_solutions' # DEBUG
 
     # Configurer le logger
     if not FICHIER_JOURNAL.parent.exists():

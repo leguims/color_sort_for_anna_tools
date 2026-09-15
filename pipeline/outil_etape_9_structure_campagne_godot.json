@@ -11,7 +11,7 @@
             "plateaux": [
                 {"difficulte": {"min": 1, "max": 6}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 2, "max": 7}, "gameplay": "CLASSIQUE"},
-                {"difficulte": {"min": 3, "max": 8}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 3, "max": 8}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 4, "max": 9}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 5, "max": 10}, "gameplay": "CLASSIQUE"}
             ]
@@ -22,10 +22,10 @@
             "nb_plateaux": 5,
             "plateaux": [
                 {"difficulte": {"min": 1, "max": 10}, "gameplay": "CLASSIQUE"},
-                {"difficulte": {"min": 5, "max": 15}, "gameplay": "QUI_PERD_GAGNE"},
-                {"difficulte": {"min": 10, "max": 15}, "gameplay": "CLASSIQUE"},
-                {"difficulte": {"min": 10, "max": 20}, "gameplay": "QUI_PERD_GAGNE"},
-                {"difficulte": {"min": 15, "max": 20}, "gameplay": "CLASSIQUE"}
+                {"difficulte": {"min": 5, "max": 15}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 10, "max": 15}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 10, "max": 20}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 15, "max": 20}, "gameplay": "QUI_PERD_GAGNE"}
             ]
         },
         {
