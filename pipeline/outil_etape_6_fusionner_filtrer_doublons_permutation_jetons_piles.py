@@ -17,11 +17,14 @@ from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.creer_les_taches import CreerLesTaches
 from io_utils.chrono import Chrono
 
+# TODO : Etape 1 à 5 à ajuster avec un parametre sur le type d'ITERATEUR (old ou RAPIDE)
+#        ... + varier le chemin de sortie en fonction.
 
-class FiltrerLesPlateaux:
+class FusionnerFiltrerLesPlateaux:
     "Parcourt les plateaux et pratique un elagage des doublons et de similarite"
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides,
-                repertoire_analyse,
+                repertoire_analyse_1,
+                repertoire_analyse_2,
                 repertoire_filtre,
                 nom_tache,
                 fichier_journal,
@@ -32,7 +35,8 @@ class FiltrerLesPlateaux:
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
-        self._repertoire_analyse = repertoire_analyse
+        self._repertoire_analyse_1 = repertoire_analyse_1
+        self._repertoire_analyse_2 = repertoire_analyse_2
         self._repertoire_filtre = repertoire_filtre
         self._nom_tache = nom_tache
         self._nom_etape = 'filtrer_doublons_permutation_jetons_piles'
@@ -54,12 +58,18 @@ class FiltrerLesPlateaux:
     def done(self):
         return self._done
 
-    def copier_les_plateaux(self, source: Path):
+    def copier_parent(self, source: Path, nb_colonnes, nb_lignes):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
         destination = Path(self._repertoire_filtre) / source.parent.name
         if source.exists() and not (destination/source.name).exists():
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy(source, destination)
+
+            # Reset le filtrage pour la fusion à venir
+            lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
+                            repertoire_export_json=self._repertoire_filtre)
+            lot_de_plateaux._filtrer_doublons_permutation_jetons_piles = False
+            lot_de_plateaux._export_json.forcer_export(lot_de_plateaux)
 
     def filtrer_les_plateaux(self, nb_colonnes, nb_lignes):
         # Configurer le logger en doublon pour la paralelisation
@@ -67,19 +77,37 @@ class FiltrerLesPlateaux:
         logger = logging.getLogger(f"{nb_colonnes}.{nb_lignes}.{self._nom_etape}")
         # logger.info(f"DEBUT {self._nom_etape}")
 
-        lot_de_plateaux_parent = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
-                                        repertoire_export_json=self._repertoire_analyse,
+        # TODO : Prevoir de créer un lien symbolique de PARENT_1 si PARENT_2 est vide.
+
+        lot_de_plateaux_parent_1 = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
+                                        repertoire_export_json=self._repertoire_analyse_1,
                                         nb_plateaux_max = self._memoire_max)
-        if lot_de_plateaux_parent.est_filtre_doublons_permutation_piles:
+        lot_de_plateaux_parent_2 = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
+                                        repertoire_export_json=self._repertoire_analyse_2,
+                                        nb_plateaux_max = self._memoire_max)
+        if lot_de_plateaux_parent_1.est_filtre_doublons_permutation_piles \
+            and lot_de_plateaux_parent_2.est_filtre_doublons_permutation_piles:
             # Copie des fichiers
-            if self._repertoire_analyse != self._repertoire_filtre:
-                self.copier_les_plateaux(lot_de_plateaux_parent.chemin_enregistrement)
-            lot_de_plateaux_parent = None
+            if self._repertoire_analyse_1 != self._repertoire_filtre:
+                self._chrono.start()
+                self.copier_parent(lot_de_plateaux_parent_1.chemin_enregistrement,
+                                   nb_colonnes, nb_lignes)
+                self._chrono.pause()
+            lot_de_plateaux_parent_1 = None
 
             lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
                                             repertoire_export_json=self._repertoire_filtre,
                                             nb_plateaux_max = self._memoire_max)
             if not lot_de_plateaux.est_filtre_doublons_permutation_jetons_piles:
+                # Fusionner le parent 2 et le liberer
+                self._chrono.start()
+                plateaux_valides_parent_2 = lot_de_plateaux_parent_2.plateaux_valides
+                plateaux_valides_filtre = lot_de_plateaux.plateaux_valides
+                lot_de_plateaux._ensemble_des_plateaux_valides.update(plateaux_valides_parent_2)
+                plateaux_valides_parent_2.clear()
+                lot_de_plateaux_parent_2 = None
+                self._chrono.pause()
+
                 # Parcourir les plateaux et supprimer les plateaux "invalides"
                 self._chrono.start()
                 lot_de_plateaux.filtrer_doublons_permutation_jetons_piles(self._periode_affichage)
@@ -132,21 +160,23 @@ class FiltrerLesPlateaux:
         profil.stop()
 
 if __name__ == "__main__":
-    NOM_TACHE = 'filtrer_doublons_permutation_jetons_piles'
+    NOM_TACHE = 'fusionner_filtrer_doublons_permutation_jetons_piles'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_4_filtre_doublons_permutation_piles'
-    FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
+    REPERTOIRE_ANALYSE_1 = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
+    REPERTOIRE_ANALYSE_2 = Path('..') / '..' / 'Pipelines_rapide' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
+    REPERTOIRE_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
 
     if not FICHIER_JOURNAL.parent.exists():
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    filtrer = FiltrerLesPlateaux(
+    filtrer = FusionnerFiltrerLesPlateaux(
         nb_colonnes=[3], #range(3, 12),
         nb_lignes=[3], #range(3,14),
         nb_colonnes_vides=1,
-        repertoire_analyse=str(FICHIER_ANALYSE),
-        repertoire_filtre=str(FICHIER_FILTRE),
+        repertoire_analyse_1=str(REPERTOIRE_ANALYSE_1),
+        repertoire_analyse_2=str(REPERTOIRE_ANALYSE_2),
+        repertoire_filtre=str(REPERTOIRE_FILTRE),
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL,
         periode_scrutation_secondes = 1 * 60 * 60 # 1h

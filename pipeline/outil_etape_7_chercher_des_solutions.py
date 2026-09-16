@@ -5,10 +5,8 @@ import time
 import logging
 from pathlib import Path
 import random
-import shutil
 
 import sys
-import os
 
 # pour importer depuis le dossier parent
 REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
@@ -25,7 +23,6 @@ class ChercherDesSolutions:
     "Parcourt les plateaux exhaustifs et en trouve les solutions 'ColorWoodSort'"
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides,
                 repertoire_analyse,
-                repertoire_difficulte,
                 repertoire_solution,
                 nom_tache,
                 fichier_journal,
@@ -37,7 +34,6 @@ class ChercherDesSolutions:
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
         self._repertoire_analyse = repertoire_analyse
-        self._repertoire_difficulte = repertoire_difficulte
         self._repertoire_solution = repertoire_solution
         self._nom_tache = nom_tache
         self._nom_etape = 'chercher_des_solutions'
@@ -59,12 +55,10 @@ class ChercherDesSolutions:
     def done(self):
         return self._done
 
-    def copier_les_plateaux(self, source: Path):
-        # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
-        destination = Path(self._repertoire_difficulte) / source.parent.name
-        if source.exists() and not (destination/source.name).exists():
-            destination.mkdir(parents=True, exist_ok=True)
-            shutil.copy(source, destination)
+    def creer_repertoire_solution(self):
+        # Crée le repertoire pour la synthèse des solutions
+        if not (self._repertoire_solution).exists():
+            self._repertoire_solution.mkdir(parents=True, exist_ok=True)
 
     def chercher_des_solutions(self, colonnes, lignes):
         # Configurer le logger
@@ -72,40 +66,33 @@ class ChercherDesSolutions:
         logger = logging.getLogger(f"{colonnes}.{lignes}.{self._nom_etape}")
         # logger.info(f"DEBUT {self._nom_etape}")
 
-        lot_de_plateaux_parent = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
+        lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse,
                                         nb_plateaux_max = self._memoire_max)
-        if lot_de_plateaux_parent.est_deja_termine:
-            # Copie des fichiers
-            if self._repertoire_analyse != self._repertoire_difficulte:
-                self.copier_les_plateaux(lot_de_plateaux_parent.chemin_enregistrement)
-            lot_de_plateaux_parent = None
-
+        if lot_de_plateaux.est_deja_termine:
+            self.creer_repertoire_solution()
             plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
-            lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
-                                            repertoire_export_json=self._repertoire_difficulte,
-                                            nb_plateaux_max = self._memoire_max)
 
             if lot_de_plateaux.nb_plateaux_valides != lot_de_plateaux.nb_plateaux_solutionnes:
                 if lot_de_plateaux.nb_plateaux_valides < lot_de_plateaux.nb_plateaux_solutionnes:
-                    logger.info(f"Il y a plus de plateaux de solutions que de plateaux valides ! Il y a un probleme ! {lot_de_plateaux.nb_plateaux_solutionnes} > {lot_de_plateaux.nb_plateaux_valides}")
+                    logger.error(f"Il y a plus de plateaux de solutions que de plateaux valides ! Il y a un probleme ! {lot_de_plateaux.nb_plateaux_solutionnes} > {lot_de_plateaux.nb_plateaux_valides}")
                     # TODO : Il y a probablement des solutions de plateau obsoletes a effacer.
                 logger.info(f"Il reste des solutions a trouver : {lot_de_plateaux.nb_plateaux_valides} != {lot_de_plateaux.nb_plateaux_solutionnes}")
-                
+
                 dernier_affichage  = datetime.datetime.now().timestamp() - self._periode_affichage
                 nb_solutions_a_trouver = lot_de_plateaux.nb_plateaux_valides
+                lot_de_plateaux.reset_solutions()
                 plateaux_valides_melanges = list(copy.deepcopy(lot_de_plateaux.plateaux_valides))
                 random.shuffle(plateaux_valides_melanges)
                 for plateau_ligne_texte_a_resoudre in plateaux_valides_melanges:
                     plateau.clear()
                     plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
-                    if not lot_de_plateaux.est_deja_connu_difficulte_plateau(plateau):
-                        self._chrono.start()
-                        resolution = ResoudrePlateau(plateau,
-                                                    repertoire_solution=self._repertoire_solution)
-                        resolution.backtracking()
-                        self._chrono.pause()
-                        lot_de_plateaux.definir_difficulte_plateau(plateau, resolution.difficulte_classique, len(resolution))
+                    self._chrono.start()
+                    resolution = ResoudrePlateau(plateau,
+                                                repertoire_solution=self._repertoire_solution)
+                    resolution.backtracking()
+                    self._chrono.pause()
+                    lot_de_plateaux.incrementer_nb_solutions()
                     
                     # Afficher si dernier affichage > 5mins
                     nb_solutions_a_trouver -= 1
@@ -115,9 +102,6 @@ class ChercherDesSolutions:
                 logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
 
                 lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
-                for difficulte, dico_nb_coups in lot_de_plateaux.difficulte_plateaux.items():
-                    for nb_coups, liste_plateaux in dico_nb_coups.items():
-                        logger.info(f"Difficulte : {difficulte} en {nb_coups} coups : {len(liste_plateaux)} plateau{self.pluriel(liste_plateaux, lettre='x')}")
                 self._done = True
             else:
                 self._done = False
@@ -126,9 +110,6 @@ class ChercherDesSolutions:
             self._done = False
             logger.info("Ce lot de plateaux n'est pas encore termine, pas de recherche de solution.")
         # logger.info(f"FIN {self._nom_etape}")
-
-    def pluriel(self, LIGNES, lettre='s'):
-        return lettre if len(LIGNES) > 1 else ""
 
     def chercher_en_boucle(self):
         logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
@@ -159,9 +140,9 @@ class ChercherDesSolutions:
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_solutions'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
-    FICHIER_DIFFICULTE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_plateaux_avec_difficulte'
-    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions_unitaires'
+    # REPERTOIRE_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
+    REPERTOIRE_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
+    REPERTOIRE_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions_unitaires'
 
     # Configurer le logger
     if not FICHIER_JOURNAL.parent.exists():
@@ -172,9 +153,8 @@ if __name__ == "__main__":
         nb_colonnes=[3], #range(2, 12),
         nb_lignes=[3], #range(2, 14),
         nb_colonnes_vides=1,
-        repertoire_analyse=str(FICHIER_ANALYSE),
-        repertoire_difficulte=str(FICHIER_DIFFICULTE),
-        repertoire_solution=str(FICHIER_SOLUTION),
+        repertoire_analyse=str(REPERTOIRE_ANALYSE),
+        repertoire_solution=str(REPERTOIRE_SOLUTION),
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL,
         periode_scrutation_secondes = 1 * 60 * 60 # 1h

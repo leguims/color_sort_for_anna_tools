@@ -102,7 +102,7 @@ if __name__ == "__main__":
     NOM_ETAPE = 'exporter_solutions_vers_godot'
     for pipeline in ['Pipelines', 'Pipelines_rapide']:
         FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
-        FICHIER_SOLUTION = Path('..') / '..' / pipeline / 'pipeline_6_solutions'
+        FICHIER_SOLUTION = Path('..') / '..' / pipeline / 'pipeline_7_solutions'
 
         # Configurer le logger
         if not FICHIER_JOURNAL.parent.exists():
@@ -111,9 +111,9 @@ if __name__ == "__main__":
 
         solutions_godot = ExporterLesSolutionsPourGodot(
             repertoire_solution=str(FICHIER_SOLUTION),
-            fichier_solution_classique='7_filtrer_les_solutions_CLASSIQUE_pour_godot',
-            fichier_solution_qui_perd_gagne='7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot',
-            fichier_godot='8_solutions_godot',
+            fichier_solution_classique='8_filtrer_les_solutions_CLASSIQUE_pour_godot',
+            fichier_solution_qui_perd_gagne='8_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot',
+            fichier_godot='9_solutions_godot',
             nom_etape=NOM_ETAPE,
             fichier_journal=FICHIER_JOURNAL,
         )

@@ -139,9 +139,9 @@ if __name__ == "__main__":
     NOM_ETAPE = 'creer_campagne_pour_godot'
     for pipeline in ['Pipelines', 'Pipelines_rapide']:
         FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
-        FICHIER_SOLUTION = Path('..') / '..' / pipeline / 'pipeline_6_solutions'
+        FICHIER_SOLUTION = Path('..') / '..' / pipeline / 'pipeline_7_solutions'
         # FICHIER_JOURNAL = Path('logs') / f'{NOM_ETAPE}.log' # DEBUG
-        # FICHIER_SOLUTION = Path(pipeline) / 'pipeline_6_solutions' # DEBUG
+        # FICHIER_SOLUTION = Path(pipeline) / 'pipeline_7_solutions' # DEBUG
 
         # Configurer le logger
         if not FICHIER_JOURNAL.parent.exists():
@@ -150,9 +150,9 @@ if __name__ == "__main__":
 
         solutions_godot = CreerLaCampagnePourGodot(
             repertoire_solution=str(FICHIER_SOLUTION),
-            fichier_solution='8_solutions_godot',
-            fichier_campagne='9_campagne_godot',
-            fichier_configuration_campagne='outil_etape_9_structure_campagne_godot',
+            fichier_solution='9_solutions_godot',
+            fichier_campagne='10_campagne_godot',
+            fichier_configuration_campagne='outil_etape_10_structure_campagne_godot',
             nom_etape=NOM_ETAPE,
             fichier_journal=FICHIER_JOURNAL,
         )

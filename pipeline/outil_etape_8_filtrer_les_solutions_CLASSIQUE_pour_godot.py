@@ -183,32 +183,32 @@ class FiltrerLesSolutionsClassique:
 
 if __name__ == "__main__":
     NOM_TACHE = 'classer_les_solutions_classique'
-    for pipeline in ['Pipelines', 'Pipelines_rapide']:
-        FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-        FICHIER_ANALYSE = Path('..') / '..' / pipeline / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
-        FICHIER_SOLUTION_UNITAIRE = Path('..') / '..' / pipeline / 'pipeline_6_solutions_unitaires'
-        FICHIER_SOLUTION = Path('..') / '..' / pipeline / 'pipeline_6_solutions'
+    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
+    # FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
+    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
+    FICHIER_SOLUTION_UNITAIRE = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions_unitaires'
+    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions'
 
-        # Configurer le logger
-        if not FICHIER_JOURNAL.parent.exists():
-            FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
-        logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Configurer le logger
+    if not FICHIER_JOURNAL.parent.exists():
+        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-        classer_solutions = FiltrerLesSolutionsClassique(
-            nb_colonnes=range(2, 12),
-            nb_lignes=range(2, 14),
-            nb_colonnes_vides=1,
-            repertoire_analyse=str(FICHIER_ANALYSE),
-            repertoire_solution_unitaire=str(FICHIER_SOLUTION_UNITAIRE),
-            repertoire_solution=str(FICHIER_SOLUTION),
-            fichier_solution='7_filtrer_les_solutions_CLASSIQUE_pour_godot',
-            nb_coups_min=3,
-            difficulte_min=1,
-            difficulte_max=99,
-            nb_chemins_min=10,
-            nom_tache=NOM_TACHE,
-            fichier_journal=FICHIER_JOURNAL,
-            periode_scrutation_secondes = 1 * 60 * 60 # 1h
-        )
-        classer_solutions.chercher_en_sequence()
-        #classer_solutions.chercher_en_boucle()
+    classer_solutions = FiltrerLesSolutionsClassique(
+        nb_colonnes=range(2, 12),
+        nb_lignes=range(2, 14),
+        nb_colonnes_vides=1,
+        repertoire_analyse=str(FICHIER_ANALYSE),
+        repertoire_solution_unitaire=str(FICHIER_SOLUTION_UNITAIRE),
+        repertoire_solution=str(FICHIER_SOLUTION),
+        fichier_solution='8_filtrer_les_solutions_CLASSIQUE_pour_godot',
+        nb_coups_min=3,
+        difficulte_min=1,
+        difficulte_max=99,
+        nb_chemins_min=10,
+        nom_tache=NOM_TACHE,
+        fichier_journal=FICHIER_JOURNAL,
+        periode_scrutation_secondes = 1 * 60 * 60 # 1h
+    )
+    classer_solutions.chercher_en_sequence()
+    #classer_solutions.chercher_en_boucle()
