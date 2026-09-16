@@ -5,14 +5,14 @@ from copy import deepcopy
 from core.plateau import Plateau
 from io_utils.export_json import ExportJSON
 
-DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 5*60
+DELAI_AFFICHER_ITER_LOT_DE_PLATEAUX = 30*60
 
 # TODO : reprendre l'enregistrement a partir du fichier. => Pas d'amelioration, essayer de comprendre.
 
 class LotDePlateaux:
     """Classe qui gere les lots de plateaux pour parcourir l'immensite des plateaux existants.
 Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherche."""
-    def __init__(self, dim_plateau, repertoire_export_json): #, nb_plateaux_max = 1_000_000):
+    def __init__(self, dim_plateau, repertoire_export_json, nb_plateaux_max = 1_000_000):
         # Plateau de base
         self._dim_plateau = dim_plateau
         self._plateau_courant = Plateau(dim_plateau[0], dim_plateau[1], dim_plateau[2])
@@ -23,10 +23,10 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._iter_index_max = 0
         self._recherche_terminee = False # Indique si la recherche de plateaux valides est terminee (exhaustive)
         self._recherche_dernier_plateau = None # Dernier plateau traité en recherche pour reprise
-
+        self._lot_parent = None # Lot de plateau "Ligne-1" pour accelerer l'iterateur
 
         self._ensemble_des_permutations_de_nombres = None # Ensemble constant utilisé pour les permutations de jetons
-        # self._nb_plateaux_max = nb_plateaux_max # Limite memoire pour la recherche (plateaux à ignorer)
+        self._nb_plateaux_max = nb_plateaux_max # Limite memoire pour la recherche (plateaux à ignorer)
         self._export_json: ExportJSON
         self._ensemble_des_difficultes_de_plateaux = {} # Ensemble des plateaux classés par difficulté et profondeur
         self._a_change = False # Indique si les données de la classe ont changé.
@@ -39,12 +39,21 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
 
         # Reprise de la recherche
         self._repertoire_export_json = repertoire_export_json
-        from .io import init_export_json, importer_fichier_json
+        self._import_entete = False
+        self._import_plateaux = False
+        self._import_solutions = False
+        from .io import init_export_json, importer_entete_fichier_json
         init_export_json(self)
-        importer_fichier_json(self)
+        importer_entete_fichier_json(self)
+
+    def declarer_lot_parent(self, lot_parent: 'LotDePlateaux'):
+        self._lot_parent = lot_parent # Lot de plateau "Ligne-1" pour accelerer l'iterateur
 
     # Iterateur avec : __iter__ et __next__
     def __iter__(self):
+        if not self._import_plateaux:
+            from .io import importer_plateaux_fichier_json
+            importer_plateaux_fichier_json(self)
         if self.est_deja_termine:
             self.logger.debug(f"__iter__ : est_deja_termine.")
             # Parcourir les plateaux valides
@@ -76,12 +85,15 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
             try:
                 self._plateau_courant = next(self._iter_iterateur)
 
-                # Enregistrement du plateau courant pour une eventuelle reprise.
-                self._recherche_dernier_plateau = self._plateau_courant.plateau_ligne_texte_universel
-                self._export_json.exporter(self)
+                # ENREGISTREMENT PAR L'ITERATEUR UNIQUEMENT
+                # # Enregistrement du plateau courant pour une eventuelle reprise.
+                # self._recherche_dernier_plateau = self._plateau_courant.plateau_ligne_texte_universel
+                # self._export_json.exporter(self)
                 return self._plateau_courant.plateau_ligne_texte_universel
             except StopIteration:
                 self._ensemble_des_plateaux_valides = deepcopy(self._iter_iterateur.plateaux_valides)
+                # Liberer la mémoire de l'iterateur avant d'enregistrer
+                self._iter_iterateur = None
                 self.arret_des_enregistrements()
         raise StopIteration
 
@@ -100,11 +112,17 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     @property
     def plateaux_valides(self) -> set:
         "Ensemble des plateaux valides"
+        if not self._import_plateaux:
+            from .io import importer_plateaux_fichier_json
+            importer_plateaux_fichier_json(self)
         return self._ensemble_des_plateaux_valides
 
     @property
     def plateaux_valides_liste_classee(self) -> list:
         "Liste classee des plateaux valides"
+        if not self._import_plateaux:
+            from .io import importer_plateaux_fichier_json
+            importer_plateaux_fichier_json(self)
         liste_classee = list(self._ensemble_des_plateaux_valides)
         liste_classee.sort()
         return liste_classee
@@ -112,16 +130,25 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
     @property
     def nb_plateaux_valides(self) -> int:
         "Nombre de plateaux valides"
+        if not self._import_plateaux:
+            from .io import importer_plateaux_fichier_json
+            importer_plateaux_fichier_json(self)
         return len(self._ensemble_des_plateaux_valides)
 
     @property
     def difficulte_plateaux(self) -> dict:
         "Ensemble des difficultes de plateaux resolus"
+        if not self._import_solutions:
+            from .io import importer_solutions_fichier_json
+            importer_solutions_fichier_json(self)
         return self._ensemble_des_difficultes_de_plateaux
 
     @property
     def nb_plateaux_solutionnes(self) -> int:
         "Nombre de plateaux valides"
+        if not self._import_solutions:
+            from .io import importer_solutions_fichier_json
+            importer_solutions_fichier_json(self)
         return sum([len(liste_plateaux) for _, dico_nb_coups in self._ensemble_des_difficultes_de_plateaux.items() for _, liste_plateaux in dico_nb_coups.items()])
 
     @property

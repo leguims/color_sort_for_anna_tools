@@ -43,6 +43,6 @@ def _enregistrer_difficulte(resoudre_plateau: ResoudrePlateau):
     # ... Enregistrer la difficulté dans le fichier JSON
     if resoudre_plateau._recherche_terminee:
         resoudre_plateau._export_json_solutions.forcer_export(resoudre_plateau)
-        print("Resolution" \
-                + f" '{resoudre_plateau._plateau_initial.plateau_ligne_texte.replace(' ', '-')}'" \
-                + " : MaJ difficulte")
+        # print("Resolution" \
+        #         + f" '{resoudre_plateau._plateau_initial.plateau_ligne_texte.replace(' ', '-')}'" \
+        #         + " : MaJ difficulte")
