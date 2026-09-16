@@ -31,10 +31,15 @@ class ChercherDesPlateaux:
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._periode_affichage = periode_affichage
         self._chrono = Chrono()
+        self._done = False
 
     @property
     def elapsed(self):
         return self._chrono.elapsed
+
+    @property
+    def done(self):
+        return self._done
 
     def chercher_des_plateaux(self, colonnes, lignes):
         # Configurer le logger en doublon pour la paralelisation
@@ -47,15 +52,9 @@ class ChercherDesPlateaux:
         for plateau in lot_de_plateaux:
             pass
         self._chrono.pause()
+        self._done = True
         logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
         logger.info(f"nb_plateaux_valides={lot_de_plateaux.nb_plateaux_valides}")
-        # liste_plateaux_valides = []
-        # for plateau_ligne_texte in lot_de_plateaux.plateaux_valides:
-        #     p = Plateau(colonnes, lignes, self._nb_colonnes_vides)
-        #     p.plateau_ligne_texte = plateau_ligne_texte
-        #     liste_plateaux_valides.append(p.plateau_ligne_texte_universel)
-        #     # logger.info(f"plateau_ligne_texte_universel = '{p.plateau_ligne_texte_universel}'")
-        # logger.info(f"liste plateaux = '{liste_plateaux_valides}'")
         
     def chercher_en_sequence(self):
         # Configurer le logger

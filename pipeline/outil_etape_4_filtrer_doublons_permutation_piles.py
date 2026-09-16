@@ -24,7 +24,7 @@ class FiltrerLesPlateaux:
                 repertoire_filtre,
                 nom_tache,
                 fichier_journal,
-                # memoire_max = 5_000_000,
+                memoire_max = 5_000_000,
                 profiler_le_code = False,
                 periode_scrutation_secondes = 30*60, # en secondes
                 periode_affichage = 1*60): # en secondes
@@ -38,20 +38,25 @@ class FiltrerLesPlateaux:
         self._fichier_journal = fichier_journal
         if not self._fichier_journal.parent.exists():
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
-        # self._memoire_max = memoire_max
+        self._memoire_max = memoire_max
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
         self._periode_affichage = periode_affichage
         self._chrono = Chrono()
+        self._done = False
 
     @property
     def elapsed(self):
         return self._chrono.elapsed
 
+    @property
+    def done(self):
+        return self._done
+
     def copier_les_plateaux(self, source: Path):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
         destination = Path(self._repertoire_filtre) / source.parent.name
-        if source.exists() and not destination.exists():
+        if source.exists() and not (destination/source.name).exists():
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy(source, destination)
 
@@ -59,36 +64,42 @@ class FiltrerLesPlateaux:
         # Configurer le logger en doublon pour la paralelisation
         logging.basicConfig(filename=self._fichier_journal, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         logger = logging.getLogger(f"{nb_colonnes}.{nb_lignes}.{self._nom_etape}")
-        logger.info(f"DEBUT {self._nom_etape}")
+        # logger.info(f"DEBUT {self._nom_etape}")
 
-        # Copie des fichiers
-        if self._repertoire_analyse != self._repertoire_filtre:
+        lot_de_plateaux_parent = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
+                                        repertoire_export_json=self._repertoire_analyse,
+                                        nb_plateaux_max = self._memoire_max)
+        if lot_de_plateaux_parent.est_filtre_doublons_permutation_jetons:
+            # Copie des fichiers
+            if self._repertoire_analyse != self._repertoire_filtre:
+                self.copier_les_plateaux(lot_de_plateaux_parent.chemin_enregistrement)
+            lot_de_plateaux_parent = None
+
             lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
-                                            repertoire_export_json=self._repertoire_analyse) #,
-                                            #nb_plateaux_max = self._memoire_max)
-            if not lot_de_plateaux.est_filtre_doublons_permutation_jetons:
-                logger.info(f"Le filtrage des doublons de permutation des jetons n'est pas achevé.")
-                return
-            self.copier_les_plateaux(lot_de_plateaux.chemin_enregistrement)
-            lot_de_plateaux = None
-
-        lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
-                                        repertoire_export_json=self._repertoire_filtre) #,
-                                        #nb_plateaux_max = self._memoire_max)
-        # Parcourir les plateaux et supprimer les plateaux "invalides"
-        self._chrono.start()
-        lot_de_plateaux.filtrer_doublons_permutation_piles(self._periode_affichage)
-        self._chrono.pause()
-        logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
+                                            repertoire_export_json=self._repertoire_filtre,
+                                            nb_plateaux_max = self._memoire_max)
+            if not lot_de_plateaux.est_filtre_doublons_permutation_piles:
+                # Parcourir les plateaux et supprimer les plateaux "invalides"
+                self._chrono.start()
+                lot_de_plateaux.filtrer_doublons_permutation_piles(self._periode_affichage)
+                self._chrono.pause()
+                logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
+            else:
+                logger.info(f"Le filtrage est deja acheve.")
+            self._done = True
+        else:
+            self._done = False
+            logger.info(f"Le filtrage parent n'est pas acheve.")
+        # logger.info(f"FIN {self._nom_etape}")
 
     def chercher_en_boucle(self):
         logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")
         while(True):
-            logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+            # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
             for iter_lignes in self._nb_lignes:
                 for iter_colonnes in self._nb_colonnes:
                     self.filtrer_les_plateaux(iter_colonnes, iter_lignes)
-            logger.info('-'*10 + " FIN " + '-'*10)
+            # logger.info('-'*10 + " FIN " + '-'*10)
             current_time = datetime.datetime.now().strftime("%H:%M:%S")
             logger.info(f"{current_time} - Attente entre 2 iterations de {self._periode_scrutation_secondes}s...")
             time.sleep(self._periode_scrutation_secondes)
@@ -96,11 +107,11 @@ class FiltrerLesPlateaux:
     def chercher_en_sequence(self):
         # Configurer le logger
         logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
-        logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+        # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
         for iter_lignes in self._nb_lignes:
             for iter_colonnes in self._nb_colonnes:
                 self.filtrer_les_plateaux(iter_colonnes, iter_lignes)
-        logger.info('-'*10 + " FIN " + '-'*10)
+        # logger.info('-'*10 + " FIN " + '-'*10)
 
     def chercher_en_parallele(self):
         profil = ProfilerLeCode(self._nom_tache, self._profiler_le_code)
@@ -110,12 +121,12 @@ class FiltrerLesPlateaux:
         
         # Configurer le logger
         logger = logging.getLogger(f"chercher_en_parallele.NOUVELLE-RECHERCHE")
-        logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
+        # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
 
         # taches.exporter()
         taches.importer()
         taches.executer_taches(self.filtrer_les_plateaux)
-        logger.info('-'*10 + " FIN " + '-'*10)
+        # logger.info('-'*10 + " FIN " + '-'*10)
 
         profil.stop()
 

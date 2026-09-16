@@ -15,9 +15,9 @@ from pipeline.outil_etape_3_filtrer_doublons_permutation_jetons import FiltrerLe
 from pipeline.outil_etape_4_filtrer_doublons_permutation_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationPiles
 from pipeline.outil_etape_5_filtrer_doublons_permutation_jetons_piles import FiltrerLesPlateaux as FiltrerLesPlateauxPermutationJetonsPiles
 from pipeline.outil_etape_6_chercher_des_solutions import ChercherDesSolutions
-from sources.pipeline.outil_etape_7_filtrer_les_solutions_CLASSIQUE_pour_godot import FiltrerLesSolutionsClassique
-from sources.pipeline.outil_etape_7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot import FiltrerLesSolutionsQuiPerdGagne
-from sources.pipeline.outil_etape_8_exporter_solutions_pour_godot import ExporterLesSolutionsPourGodot
+from pipeline.outil_etape_7_filtrer_les_solutions_CLASSIQUE_pour_godot import FiltrerLesSolutionsClassique
+from pipeline.outil_etape_7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot import FiltrerLesSolutionsQuiPerdGagne
+from pipeline.outil_etape_8_exporter_solutions_pour_godot import ExporterLesSolutionsPourGodot
 from pipeline.outil_etape_9_creer_campagne_pour_godot import CreerLaCampagnePourGodot
 
 class OutilComplet:
@@ -59,8 +59,9 @@ class OutilComplet:
         )
         chercher.chercher_en_sequence()
         self._elapsed_time += chercher.elapsed
+        return chercher.done
 
-    def filtrer_les_plateaux_invalides_ou_initeressants(self):
+    def filtrer_les_plateaux_invalides_ou_ininteressants(self):
         filtrer = FiltrerLesPlateauxInvalidesOuIninteressants(
             nb_colonnes=self._liste_nb_colonnes,
             nb_lignes=self._liste_nb_lignes,
@@ -72,6 +73,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_jetons(self):
         filtrer = FiltrerLesPlateauxPermutationJetons(
@@ -85,6 +87,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_piles(self):
         filtrer = FiltrerLesPlateauxPermutationPiles(
@@ -98,6 +101,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def filtrer_les_plateaux_permutation_jetons_piles(self):
         filtrer = FiltrerLesPlateauxPermutationJetonsPiles(
@@ -111,6 +115,7 @@ class OutilComplet:
         )
         filtrer.chercher_en_sequence()
         self._elapsed_time += filtrer.elapsed
+        return filtrer.done
 
     def chercher_des_solutions(self):
         chercheur = ChercherDesSolutions(
@@ -125,6 +130,7 @@ class OutilComplet:
         )
         chercheur.chercher_en_sequence()
         self._elapsed_time += chercheur.elapsed
+        return chercheur.done
 
     def classer_les_solutions_classique(self,
                                         nb_coups_min=3,
@@ -198,7 +204,7 @@ class OutilComplet:
 
     def chercher_en_sequence(self):
         self.chercher_des_plateaux()
-        self.filtrer_les_plateaux_invalides_ou_initeressants()
+        self.filtrer_les_plateaux_invalides_ou_ininteressants()
         self.filtrer_les_plateaux_permutation_jetons()
         self.filtrer_les_plateaux_permutation_piles()
         self.filtrer_les_plateaux_permutation_jetons_piles()

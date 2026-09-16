@@ -137,22 +137,23 @@ class CreerLaCampagnePourGodot:
 
 if __name__ == "__main__":
     NOM_ETAPE = 'creer_campagne_pour_godot'
-    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
-    FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_6_solutions'
-    # FICHIER_JOURNAL = Path('logs') / f'{NOM_ETAPE}.log' # DEBUG
-    # FICHIER_SOLUTION = Path('Pipelines') / 'pipeline_6_solutions' # DEBUG
+    for pipeline in ['Pipelines', 'Pipelines_rapide']:
+        FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_ETAPE}.log'
+        FICHIER_SOLUTION = Path('..') / '..' / pipeline / 'pipeline_6_solutions'
+        # FICHIER_JOURNAL = Path('logs') / f'{NOM_ETAPE}.log' # DEBUG
+        # FICHIER_SOLUTION = Path(pipeline) / 'pipeline_6_solutions' # DEBUG
 
-    # Configurer le logger
-    if not FICHIER_JOURNAL.parent.exists():
-        FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
-    logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # Configurer le logger
+        if not FICHIER_JOURNAL.parent.exists():
+            FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+        logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    solutions_godot = CreerLaCampagnePourGodot(
-        repertoire_solution=str(FICHIER_SOLUTION),
-        fichier_solution='8_solutions_godot',
-        fichier_campagne='9_campagne_godot',
-        fichier_configuration_campagne='outil_etape_9_structure_campagne_godot',
-        nom_etape=NOM_ETAPE,
-        fichier_journal=FICHIER_JOURNAL,
-    )
-    solutions_godot.exporter_campagne_pour_godot()
+        solutions_godot = CreerLaCampagnePourGodot(
+            repertoire_solution=str(FICHIER_SOLUTION),
+            fichier_solution='8_solutions_godot',
+            fichier_campagne='9_campagne_godot',
+            fichier_configuration_campagne='outil_etape_9_structure_campagne_godot',
+            nom_etape=NOM_ETAPE,
+            fichier_journal=FICHIER_JOURNAL,
+        )
+        solutions_godot.exporter_campagne_pour_godot()
