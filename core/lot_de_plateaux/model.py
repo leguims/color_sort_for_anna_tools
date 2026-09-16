@@ -36,12 +36,12 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         self._filtrer_doublons_permutation_piles = False # Indique si la phase 3 de revalidation est terminee
         self._filtrer_doublons_permutation_jetons_piles = False # Indique si la phase 4 de revalidation est terminee
         self._filtrer_dernier_plateau_traite = None # Dernier plateau traité en revalidation pour reprise
+        self._nb_solutions = 0 # Nombre de solutions trouvées pour le lot de plateaux.
 
         # Reprise de la recherche
         self._repertoire_export_json = repertoire_export_json
         self._import_entete = False
         self._import_plateaux = False
-        self._import_solutions = False
         from .io import init_export_json, importer_entete_fichier_json
         init_export_json(self)
         importer_entete_fichier_json(self)
@@ -136,20 +136,12 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
         return len(self._ensemble_des_plateaux_valides)
 
     @property
-    def difficulte_plateaux(self) -> dict:
-        "Ensemble des difficultes de plateaux resolus"
-        if not self._import_solutions:
-            from .io import importer_solutions_fichier_json
-            importer_solutions_fichier_json(self)
-        return self._ensemble_des_difficultes_de_plateaux
-
-    @property
     def nb_plateaux_solutionnes(self) -> int:
         "Nombre de plateaux valides"
-        if not self._import_solutions:
-            from .io import importer_solutions_fichier_json
-            importer_solutions_fichier_json(self)
-        return sum([len(liste_plateaux) for _, dico_nb_coups in self._ensemble_des_difficultes_de_plateaux.items() for _, liste_plateaux in dico_nb_coups.items()])
+        if not self._import_plateaux:
+            from .io import importer_plateaux_fichier_json
+            importer_plateaux_fichier_json(self)
+        return self._nb_solutions
 
     @property
     def est_deja_termine(self) -> bool:
@@ -227,6 +219,15 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
 
 
     # API level
+    def reset_solutions(self):
+        from .level import reset_solutions
+        return reset_solutions(self)
+
+    def incrementer_nb_solutions(self):
+        from .level import incrementer_nb_solutions
+        return incrementer_nb_solutions(self)
+
+    # TODO : Les methodes ci-dessous de LEVEL sont surement obsoletes => EFFACER ? Voir l'usage.
     def est_deja_connu_difficulte_plateau(self, plateau: Plateau) -> bool:
         from .level import est_deja_connu_difficulte_plateau
         return est_deja_connu_difficulte_plateau(self, plateau)

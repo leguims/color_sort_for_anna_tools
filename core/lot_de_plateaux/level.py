@@ -3,6 +3,17 @@ import copy
 from .model import LotDePlateaux
 from core.plateau import Plateau
 
+def reset_solutions(lot_de_plateaux: LotDePlateaux):
+    "Methode qui réinitialise le compteur des solutions"
+    lot_de_plateaux._nb_solutions = 0
+
+def incrementer_nb_solutions(lot_de_plateaux: LotDePlateaux):
+    "Methode qui incremente le compteur des solutions"
+    lot_de_plateaux._nb_solutions += 1
+
+
+# TODO : Revoir/Effacer les methodes ci-dessous
+
 def est_deja_connu_difficulte_plateau(lot_de_plateaux: LotDePlateaux, plateau: Plateau) -> bool:
     "Methode qui verifie si le plateau est deja resolu"
     est_connu = False

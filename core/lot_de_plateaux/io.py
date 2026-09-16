@@ -38,13 +38,11 @@ def exporter_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
 def importer_fichier_json(lot_de_plateaux: LotDePlateaux) -> None:
     """Lit l'enregistrement JSON s'il existe"""
     if not lot_de_plateaux._import_entete \
-        or not lot_de_plateaux._import_plateaux \
-        or not lot_de_plateaux._import_solutions:
+        or not lot_de_plateaux._import_plateaux:
         data_json = lot_de_plateaux._export_json.importer()
 
         importer_entete_fichier_json(lot_de_plateaux, data_json)
         importer_plateaux_fichier_json(lot_de_plateaux, data_json)
-        importer_solutions_fichier_json(lot_de_plateaux, data_json)
 
 def importer_entete_fichier_json(lot_de_plateaux: LotDePlateaux, data_json = None) -> None:
     """Lit l'entete de l'enregistrement JSON"""
@@ -89,6 +87,11 @@ def importer_entete_fichier_json(lot_de_plateaux: LotDePlateaux, data_json = Non
         lot_de_plateaux._filtrer_doublons_permutation_jetons_piles = False
         lot_de_plateaux._filtrer_dernier_plateau_traite = None
 
+    if "nombre solutions" in data_json:
+        lot_de_plateaux._nb_solutions = data_json["nombre solutions"]
+    else:
+        lot_de_plateaux._nb_solutions = 0
+
 def importer_plateaux_fichier_json(lot_de_plateaux: LotDePlateaux, data_json = None) -> None:
     """Lit les plateaux de l'enregistrement JSON s'il existe"""
     if lot_de_plateaux._import_plateaux:
@@ -121,49 +124,6 @@ def importer_plateaux_fichier_json(lot_de_plateaux: LotDePlateaux, data_json = N
         plateau.clear()
     lot_de_plateaux._nombre_de_plateaux_valides_courant = len(lot_de_plateaux._ensemble_des_plateaux_valides)
 
-def importer_solutions_fichier_json(lot_de_plateaux: LotDePlateaux, data_json = None) -> None:
-    """Lit les solutions de l'enregistrement JSON s'il existe"""
-    if lot_de_plateaux._import_solutions:
-        return
-    lot_de_plateaux._import_solutions = True
-    if data_json is None:
-        data_json = lot_de_plateaux._export_json.importer()
-
-    # Solutions
-    if 'liste difficulte des plateaux' in data_json and data_json['liste difficulte des plateaux']:
-        # Convertir 'difficulte' et 'nb_coups' en entiers
-        plateau = lot_de_plateaux._plateau_courant
-        while data_json['liste difficulte des plateaux']:
-            # popitem() pour ne pas doubler la mémoire lors de la copie
-            difficulte_str, dico_nb_coups = data_json['liste difficulte des plateaux'].popitem()
-            if difficulte_str == 'null':
-                difficulte = None
-            else:
-                difficulte = int(difficulte_str)
-            while dico_nb_coups:
-                # popitem() pour ne pas doubler la mémoire lors de la copie
-                nb_coups_str, liste_plateaux = dico_nb_coups.popitem()
-                if nb_coups_str == 'null':
-                    nb_coups = None
-                else:
-                    nb_coups = int(nb_coups_str)
-                if difficulte not in lot_de_plateaux._ensemble_des_difficultes_de_plateaux:
-                    lot_de_plateaux._ensemble_des_difficultes_de_plateaux[difficulte] = {}
-                if nb_coups not in lot_de_plateaux._ensemble_des_difficultes_de_plateaux.get(difficulte):
-                    lot_de_plateaux._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups] = []
-                while liste_plateaux:
-                    # pop() pour ne pas doubler la mémoire lors de la copie
-                    # pop(0) est extrement gourmand en temps, meme s'il permet de maintenir une liste ordonnée
-                    plateau_txt = liste_plateaux.pop()
-                    plateau.clear()
-                    if '.' in plateau_txt:
-                        plateau.plateau_ligne_texte_universel = plateau_txt
-                    else:
-                        # Format d'enregistrement en cas d'exception 'MemoryError'
-                        plateau.plateau_ligne_texte = plateau_txt
-                    lot_de_plateaux._ensemble_des_difficultes_de_plateaux[difficulte][nb_coups].append(plateau.plateau_ligne_texte)
-        plateau.clear()
-
 def to_dict(lot_de_plateaux: LotDePlateaux) -> dict:
     importer_fichier_json(lot_de_plateaux) # Pas d'enregistrement partiel du fichier
     dict_lot_de_plateaux = {}
@@ -182,6 +142,8 @@ def to_dict(lot_de_plateaux: LotDePlateaux) -> dict:
     dict_lot_de_plateaux['filtrer doublons permutation piles'] = lot_de_plateaux._filtrer_doublons_permutation_piles
     dict_lot_de_plateaux['filtrer doublons permutation jetons piles'] = lot_de_plateaux._filtrer_doublons_permutation_jetons_piles
     dict_lot_de_plateaux['dernier plateau filtre'] = lot_de_plateaux._filtrer_dernier_plateau_traite
+    dict_lot_de_plateaux['nombre plateaux'] = len(lot_de_plateaux.plateaux_valides)
+    dict_lot_de_plateaux['nombre solutions'] = lot_de_plateaux._nb_solutions
 
     # Ajouter le nombre de plateaux et la liste des plateaux valides
     dict_lot_de_plateaux['nombre plateaux'] = len(lot_de_plateaux.plateaux_valides)
