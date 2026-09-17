@@ -1,7 +1,10 @@
+from contextlib import contextmanager
 import datetime
 import time
 import json
+import os
 from pathlib import Path
+import tempfile
 
 class ExportJSON:
     def __init__(self, delai, longueur, nom_plateau, nom_export, repertoire):
@@ -51,21 +54,84 @@ Retourne True si l'export a ete realise"""
                 print(f"{self.now()} JSON.forcer_export() MemoryError '{self._chemin_court_str}'")
                 # print(f"MemoryError : '{e}'")
                 return False
-        try:
-            with open(self._chemin_enregistrement, "w", encoding='utf-8') as fichier:
-                if 'Resolution' not in str(self._chemin_enregistrement):
-                    print(f"{self.now()} JSON.forcer_export() fichier ouvert '{self._chemin_court_str}'")
-                json.dump(contenu_dict, fichier, ensure_ascii=False, indent=4)
-        except OSError as e:
-            print(f"{self.now()} JSON.forcer_export() OSError '{self._chemin_court_str}'")
-            print(f"OSError : '{e}'")
+
+        # 5 tentatives de lecture à : 5min, 11min, 18min, 26min, 35min et 45min
+        ecriture = False
+        for attente_en_min in range(5,10): # Range cumulé = 5+6+7+8+9+10 = 45 mins
+            try:
+                self.__atomic_write_json(self._chemin_enregistrement, contenu_dict)
+                ecriture = True
+                break
+            except OSError as e:
+                print(f"{self.now()} JSON.forcer_export() OSError '{self._chemin_court_str}'")
+                print(f"OSError : '{e}'")
+                # Attente avant la prochaine tentative d'écriture du fichier
+                print(f"{self.now()} JSON.importer() OSError : Nouvelle tentative dans {attente_en_min} minutes")
+                time.sleep(attente_en_min * 60)
+        if not ecriture:
+            print(f"{self.now()} JSON.forcer_export() Abandon de l'ecriture '{self._chemin_court_str}'")
             return False
-        if 'Resolution' not in str(self._chemin_enregistrement):
-            print(f"{self.now()} JSON.forcer_export() fichier ferme '{self._chemin_court_str}'")
 
         self._longueur_dernier_enregistrement = len(contenu_dict)
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         return True
+
+    @contextmanager
+    def lockfile_blocking(self, lock_path: str):
+        """
+        Bloque indéfiniment tant que lock_path existe.
+        Prend le verrou en créant lock_path de façon atomique.
+        Relâche en supprimant lock_path à la sortie du with.
+        """
+        full_lock_path = lock_path + '.lock'
+        while True:
+            try:
+                # Création atomique : si ça existe -> FileExistsError
+                fd = os.open(full_lock_path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                os.close(fd)
+
+                # Verrou acquis
+                try:
+                    yield
+                finally:
+                    try:
+                        # Liberer le lock
+                        os.unlink(full_lock_path)
+                    except FileNotFoundError:
+                        pass
+                return
+
+            except FileExistsError:
+                # Quelqu'un a déjà le verrou => attente infinie
+                time.sleep(5.0)
+
+    def __atomic_write_json(self, path: str, data) -> None:
+        # On écrit dans le même dossier pour que os.replace soit atomique
+        dir_name = os.path.dirname(path) or "."
+        fd, tmp_path = tempfile.mkstemp(prefix=".tmp_", dir=dir_name)
+
+        try:
+            with self.lockfile_blocking(path):
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
+                    if 'Resolution' not in str(self._chemin_enregistrement):
+                        print(f"{self.now()} JSON.__atomic_write_json() fichier ouvert '{self._chemin_court_str}'")
+                    json.dump(data, f, ensure_ascii=False, indent=4)
+                    f.flush()
+                    os.fsync(f.fileno())  # force la persistance avant le swap (utile sur certains FS)
+
+                # Remplacement atomique : les lecteurs verront soit l’ancienne version,
+                # soit la nouvelle, jamais un fichier à moitié écrit.
+                os.replace(tmp_path, path)
+
+        finally:
+            # Si jamais ça échoue avant os.replace, on nettoie
+            try:
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+            except OSError:
+                pass
+        if 'Resolution' not in str(self._chemin_enregistrement):
+            print(f"{self.now()} JSON.__atomic_write_json() fichier ferme '{self._chemin_court_str}'")
 
     def effacer(self):
         """Effacer le contenu du fichier existant"""
@@ -73,13 +139,14 @@ Retourne True si l'export a ete realise"""
 
     def importer(self):
         """Lit dans un fichier JSON les informations totales ou de la derniere iteration realisee."""
-        # 5 tentatives de lecture à : 0min, 1min, 3min, 6min, 10min et 15min
-        for attente_en_min in range(1,6): # Range cumulé = 15
+        # 5 tentatives de lecture à : 5min, 11min, 18min, 26min, 35min et 45min
+        for attente_en_min in range(1,6): # Range cumulé = 5+6+7+8+9+10 = 45 mins
             try:
-                with open(self._chemin_enregistrement, "r", encoding='utf-8') as fichier:
-                    if 'Resolution' not in str(self._chemin_enregistrement):
-                        print(f"{self.now()} JSON.importer() fichier ouvert '{self._chemin_court_str}'")
-                    dico_json = self.json_load(fichier)
+                with self.lockfile_blocking(self._chemin_enregistrement):
+                    with open(self._chemin_enregistrement, "r", encoding='utf-8') as fichier:
+                        if 'Resolution' not in str(self._chemin_enregistrement):
+                            print(f"{self.now()} JSON.importer() fichier ouvert '{self._chemin_court_str}'")
+                        dico_json = self.json_load(fichier)
                 if 'Resolution' not in str(self._chemin_enregistrement):
                     print(f"{self.now()} JSON.importer() fichier ferme '{self._chemin_court_str}'")
                 return dico_json
@@ -101,6 +168,7 @@ Retourne True si l'export a ete realise"""
                     print(f"{self.now()} JSON.importer() MemoryError sur open '{self._chemin_court_str}'")
                     # print(f"MemoryError : '{e}'")
                 return {}
+        print(f"{self.now()} JSON.importer() Abandon de lecture '{self._chemin_court_str}'")
         return {}
 
     def json_load(self, fichier):

@@ -58,18 +58,19 @@ class FusionnerFiltrerLesPlateaux:
     def done(self):
         return self._done
 
-    def copier_parent(self, source: Path, nb_colonnes, nb_lignes):
+    def copier_parent(self, source: Path, nb_colonnes, nb_lignes, reset_filtre=True):
         # Copie le repertoire 'Plateaux_XX_YY' et le fichier JSON
         destination = Path(self._repertoire_filtre) / source.parent.name
         if source.exists() and not (destination/source.name).exists():
             destination.mkdir(parents=True, exist_ok=True)
             shutil.copy(source, destination)
 
-            # Reset le filtrage pour la fusion à venir
-            lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
-                            repertoire_export_json=self._repertoire_filtre)
-            lot_de_plateaux._filtrer_doublons_permutation_jetons_piles = False
-            lot_de_plateaux._export_json.forcer_export(lot_de_plateaux)
+            if reset_filtre:
+                # Reset le filtrage pour la fusion à venir
+                lot_de_plateaux = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
+                                repertoire_export_json=self._repertoire_filtre)
+                lot_de_plateaux._filtrer_doublons_permutation_jetons_piles = False
+                lot_de_plateaux._export_json.forcer_export(lot_de_plateaux)
 
     def filtrer_les_plateaux(self, nb_colonnes, nb_lignes):
         # Configurer le logger en doublon pour la paralelisation
@@ -79,12 +80,28 @@ class FusionnerFiltrerLesPlateaux:
 
         # TODO : Prevoir de créer un lien symbolique de PARENT_1 si PARENT_2 est vide.
 
+        # Les 2 parents existent, le filtrage doit etre réalisé
         lot_de_plateaux_parent_1 = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse_1,
                                         nb_plateaux_max = self._memoire_max)
         lot_de_plateaux_parent_2 = LotDePlateaux((nb_colonnes, nb_lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse_2,
                                         nb_plateaux_max = self._memoire_max)
+
+        # Si l'un des parents est absent : copier le parent et ne pas réaliser le filtrage
+        if Path(lot_de_plateaux_parent_1.chemin_enregistrement).exists() \
+            and not Path(lot_de_plateaux_parent_2.chemin_enregistrement).exists():
+            logger.info(f"Copie parent 1 uniquement {lot_de_plateaux_parent_1.chemin_enregistrement}")
+            self.copier_parent(lot_de_plateaux_parent_1.chemin_enregistrement,
+                                nb_colonnes, nb_lignes, reset_filtre=False)
+            return
+        if not Path(lot_de_plateaux_parent_1.chemin_enregistrement).exists() \
+            and Path(lot_de_plateaux_parent_2.chemin_enregistrement).exists():
+            logger.info(f"Copie parent 2 uniquement {lot_de_plateaux_parent_2.chemin_enregistrement}")
+            self.copier_parent(lot_de_plateaux_parent_2.chemin_enregistrement,
+                                nb_colonnes, nb_lignes, reset_filtre=False)
+            return
+
         if lot_de_plateaux_parent_1.est_filtre_doublons_permutation_piles \
             and lot_de_plateaux_parent_2.est_filtre_doublons_permutation_piles:
             # Copie des fichiers
@@ -99,6 +116,7 @@ class FusionnerFiltrerLesPlateaux:
                                             repertoire_export_json=self._repertoire_filtre,
                                             nb_plateaux_max = self._memoire_max)
             if not lot_de_plateaux.est_filtre_doublons_permutation_jetons_piles:
+                logger.info(f"Début de fusion et filtrage des 2 parents")
                 # Fusionner le parent 2 et le liberer
                 self._chrono.start()
                 plateaux_valides_parent_2 = lot_de_plateaux_parent_2.plateaux_valides
@@ -112,6 +130,7 @@ class FusionnerFiltrerLesPlateaux:
                 self._chrono.start()
                 lot_de_plateaux.filtrer_doublons_permutation_jetons_piles(self._periode_affichage)
                 self._chrono.pause()
+                logger.info(f"Fusion et filtrage des 2 parents achevé")
                 logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
             else:
                 logger.info(f"Le filtrage est deja acheve.")

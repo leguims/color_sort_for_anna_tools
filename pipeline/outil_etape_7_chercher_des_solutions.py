@@ -140,7 +140,6 @@ class ChercherDesSolutions:
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_solutions'
     FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    # REPERTOIRE_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
     REPERTOIRE_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
     REPERTOIRE_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions_unitaires'
 
