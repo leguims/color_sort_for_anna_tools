@@ -4,6 +4,7 @@ from pathlib import Path
 
 import sys
 import os
+import random
 
 # pour importer depuis le dossier parent
 REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
@@ -60,9 +61,11 @@ class ChercherDesPlateaux:
         # Configurer le logger
         logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
         logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
-        for iter_lignes in self._nb_lignes:
-            for iter_colonnes in self._nb_colonnes:
-                self.chercher_des_plateaux(iter_colonnes, iter_lignes)
+        # Parcourir aléatoirement pour pouvoir lancer plusieurs scripts en parallele san conflit de fichiers.
+        liste_colonne_ligne = [{'colonnes':c, 'lignes':l} for c in self._nb_colonnes for l in self._nb_lignes]
+        random.shuffle(liste_colonne_ligne)
+        for colonne_ligne in liste_colonne_ligne:
+            self.chercher_des_plateaux(colonne_ligne.get('colonnes'), colonne_ligne.get('lignes'))
         logger.info('-'*10 + " FIN " + '-'*10)
 
 if __name__ == "__main__":

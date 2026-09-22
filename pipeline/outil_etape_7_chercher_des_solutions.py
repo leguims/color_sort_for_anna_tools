@@ -118,9 +118,10 @@ class ChercherDesSolutions:
         self.chercher_en_sequence() # 1ere iteration est bavarde
         while(True):
             # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
-            for iter_lignes in self._nb_lignes:
-                for iter_colonnes in self._nb_colonnes:
-                    self.chercher_des_solutions(iter_colonnes, iter_lignes)
+            liste_colonne_ligne = [{'colonnes':c, 'lignes':l} for c in self._nb_colonnes for l in self._nb_lignes]
+            random.shuffle(liste_colonne_ligne)
+            for colonne_ligne in liste_colonne_ligne:
+                self.chercher_des_solutions(colonne_ligne.get('colonnes'), colonne_ligne.get('lignes'))
             current_time = datetime.datetime.now().strftime("%H:%M:%S")
             logger.info(f"{current_time} - Attente entre 2 iterations de {self._periode_scrutation_secondes}s...")
             time.sleep(self._periode_scrutation_secondes)
@@ -131,9 +132,11 @@ class ChercherDesSolutions:
 
         logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
         # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
-        for iter_lignes in self._nb_lignes:
-            for iter_colonnes in self._nb_colonnes:
-                self.chercher_des_solutions(iter_colonnes, iter_lignes)
+        # Parcourir aléatoirement pour pouvoir lancer plusieurs solutions en parallele.
+        liste_colonne_ligne = [{'colonnes':c, 'lignes':l} for c in self._nb_colonnes for l in self._nb_lignes]
+        random.shuffle(liste_colonne_ligne)
+        for colonne_ligne in liste_colonne_ligne:
+            self.chercher_des_solutions(colonne_ligne.get('colonnes'), colonne_ligne.get('lignes'))
         # logger.info('-'*10 + " FIN " + '-'*10)
         profil.stop()
 

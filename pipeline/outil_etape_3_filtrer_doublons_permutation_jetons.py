@@ -2,6 +2,7 @@
 import logging
 from pathlib import Path
 import shutil
+import random
 
 import sys
 import os
@@ -92,9 +93,11 @@ class FiltrerLesPlateaux:
         # Configurer le logger
         logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
         # logger.info('-'*10 + " NOUVELLE RECHERCHE " + '-'*10)
-        for iter_lignes in self._nb_lignes:
-            for iter_colonnes in self._nb_colonnes:
-                self.filtrer_les_plateaux(iter_colonnes, iter_lignes)
+        # Parcourir aléatoirement pour pouvoir lancer plusieurs scripts en parallele san conflit de fichiers.
+        liste_colonne_ligne = [{'colonnes':c, 'lignes':l} for c in self._nb_colonnes for l in self._nb_lignes]
+        random.shuffle(liste_colonne_ligne)
+        for colonne_ligne in liste_colonne_ligne:
+            self.filtrer_les_plateaux(colonne_ligne.get('colonnes'), colonne_ligne.get('lignes'))
         # logger.info('-'*10 + " FIN " + '-'*10)
 
     def chercher_en_parallele(self):
