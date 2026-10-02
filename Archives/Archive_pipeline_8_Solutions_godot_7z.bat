@@ -1,6 +1,6 @@
 @echo off
 set Path=%Path%;C:\Program Files\7-Zip
-set repertoire_source=..\..\Pipelines\pipeline_6_solutions\*.json
+set repertoire_source=..\..\Pipelines\pipeline_7_solutions\*.json
 set nom_cible=pipeline_8_Solutions_godot-Archive-%date:~6,4%-%date:~3,2%-%date:~0,2%.7z
 set nom_cible_compressee=pipeline_8_Solutions_godot-Archive_compressee-%date:~6,4%-%date:~3,2%-%date:~0,2%.7z
 

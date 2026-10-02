@@ -11,10 +11,28 @@ class ExportJSON:
         self._delai_enregistrement = delai
         self._longueur_enregistrement = longueur
         self._chemin_enregistrement = Path(repertoire) / nom_plateau / (nom_export+'.json')
+        self._log_fichier_absent = True
+        self._log_ouverture_fichier = True
         # Pour les logs
-        pipeline = self._chemin_enregistrement.parts[-3]
-        type_plateaux = nom_plateau.removeprefix('Plateaux_').removesuffix('.json')
-        self._chemin_court_str = f"{pipeline} : {type_plateaux}"
+        if nom_plateau:
+            # Recherche de plateaux, filtres et solutions
+            pipeline = self._chemin_enregistrement.parts[-3]
+            if 'solutions_unitaires' in pipeline:
+                pipeline = 'solutions_unitaires'
+                type_plateaux = nom_plateau.removeprefix('Plateaux_').removesuffix('.json')
+                plateau = nom_export.removeprefix('Plateaux_'+type_plateaux+'_').removesuffix('.json')
+                self._chemin_court_str = f"{pipeline} {type_plateaux} : {plateau}"
+                self._log_fichier_absent = False
+                self._log_ouverture_fichier = False
+            else:
+                type_plateaux = nom_plateau.removeprefix('Plateaux_').removesuffix('.json')
+                self._chemin_court_str = f"{pipeline} : {type_plateaux}"
+        else:
+            # Regroupement des plateaux heterogenes
+            pipeline = Path(repertoire).name
+            type_plateaux = nom_export
+            self._chemin_court_str = f"{pipeline} : {type_plateaux}"
+
 
         self._timestamp_dernier_enregistrement = datetime.datetime.now().timestamp()
         self._longueur_dernier_enregistrement = 0
@@ -57,14 +75,18 @@ Retourne True si l'export a ete realise"""
 
         # 5 tentatives de lecture à : 5min, 11min, 18min, 26min, 35min et 45min
         ecriture = False
+        chemin_enregistrement_str = str(self._chemin_enregistrement)
         for attente_en_min in range(5,10): # Range cumulé = 5+6+7+8+9+10 = 45 mins
             try:
-                self.__atomic_write_json(self._chemin_enregistrement, contenu_dict)
+                self.__atomic_write_json(chemin_enregistrement_str, contenu_dict)
                 ecriture = True
                 break
             except OSError as e:
                 print(f"{self.now()} JSON.forcer_export() OSError '{self._chemin_court_str}'")
                 print(f"OSError : '{e}'")
+                print("OSError:", repr(e))
+                print("errno:", getattr(e, "errno", None))
+                print("strerror:", getattr(e, "strerror", None))
                 # Attente avant la prochaine tentative d'écriture du fichier
                 print(f"{self.now()} JSON.importer() OSError : Nouvelle tentative dans {attente_en_min} minutes")
                 time.sleep(attente_en_min * 60)
@@ -83,37 +105,113 @@ Retourne True si l'export a ete realise"""
         Prend le verrou en créant lock_path de façon atomique.
         Relâche en supprimant lock_path à la sortie du with.
         """
-        full_lock_path = lock_path + '.lock'
-        while True:
-            try:
+        if not Path(lock_path).exists():
+            # print(f"{self.now()} JSON.lockfile_blocking() Pas de lock pour le fichier inexistant '{Path(lock_path).name}'")
+            yield
+        elif Path(lock_path).is_dir():
+            print(f"{self.now()} JSON.lockfile_blocking() Pas de lock pour le repertoire '{Path(lock_path).name}'")
+            yield
+        elif not Path(lock_path).is_file():
+            print(f"{self.now()} JSON.lockfile_blocking() Lock uniquement pour les fichiers '{Path(lock_path).name}'")
+            yield
+        else:
+            attente_max = 5
+            full_lock_path = lock_path + '.lock'
+            abs_full_lock_path = str(Path(full_lock_path).resolve(strict=False))
+            lock_trace = Path(lock_path).name.removeprefix('Plateaux_').removesuffix('.json')
+            while True:
                 # Création atomique : si ça existe -> FileExistsError
-                fd = os.open(full_lock_path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
-                os.close(fd)
+                try:
+                    with open(full_lock_path, "xb") as f:
+                        pass    # lock file binaire et vide
+                except FileExistsError:
+                    # Quelqu'un a déjà le verrou => attente infinie
+                    print(f"{self.now()} JSON.lockfile_blocking() bloqué :       '{lock_trace}'")
+                    if attente_max:
+                        attente_max -= 1
+                        print("attente 60s")
+                        time.sleep(60.0)
+                    else:
+                        raise FileExistsError
+                except OSError as e:
+                    print(f"{self.now()} JSON.lockfile_blocking() OSError sur creation/fermeture du lockfile '{lock_trace}'")
+
+                    print("full_lock_path:", full_lock_path)
+                    print("abs_full_lock_path:", abs_full_lock_path)
+                    print("CWD:", os.getcwd())
+                    print("to delete:", full_lock_path)
+                    print("exists:", os.path.exists(full_lock_path))
+                    print("isfile:", os.path.isfile(full_lock_path))
+                    print("isdir:", os.path.isdir(full_lock_path))
+                    print("parent:", os.path.dirname(full_lock_path))
+                    print("parent writable:", os.access(os.path.dirname(full_lock_path), os.W_OK))
+
+                    print(e)
+                    print("OSError:", repr(e))
+                    print("errno:", getattr(e, "errno", None))
+                    print("strerror:", getattr(e, "strerror", None))
+                    raise OSError
 
                 # Verrou acquis
+                # print(f"{self.now()} JSON.lockfile_blocking() Reservation :  '{lock_trace}'")
                 try:
                     yield
                 finally:
-                    try:
-                        # Liberer le lock
-                        os.unlink(full_lock_path)
-                    except FileNotFoundError:
-                        pass
-                return
+                    last_error = None
+                    for i in range(5):
+                        try:
+                            # Liberer le lock
+                            Path(full_lock_path).unlink(full_lock_path)
+                            # print(f"{self.now()} JSON.lockfile_blocking() Liberation :   '{lock_trace}'")
+                            return
+                        except FileNotFoundError:
+                            return
+                        except PermissionError as e:
+                            print(f"{self.now()} JSON.lockfile_blocking() PermissionError sur effacement du lockfile '{lock_trace}'")
+                            last_error = e
+                        except OSError as e:
+                            print(f"{self.now()} JSON.lockfile_blocking() OSError sur effacement du lockfile '{lock_trace}'")
+                            last_error = e
+                        # Pour le debug de PermissionError/OSError
+                        print("full_lock_path:", full_lock_path)
+                        print("abs_full_lock_path:", abs_full_lock_path)
+                        print("CWD:", os.getcwd())
+                        print("to delete:", full_lock_path)
+                        print("exists:", os.path.exists(full_lock_path))
+                        print("isfile:", os.path.isfile(full_lock_path))
+                        print("isdir:", os.path.isdir(full_lock_path))
+                        print("parent:", os.path.dirname(full_lock_path))
+                        print("parent writable:", os.access(os.path.dirname(full_lock_path), os.W_OK))
 
-            except FileExistsError:
-                # Quelqu'un a déjà le verrou => attente infinie
-                time.sleep(5.0)
+                        print(last_error)
+                        print("PermissionError:", repr(last_error))
+                        print("errno:", getattr(last_error, "errno", None))
+                        print("strerror:", getattr(last_error, "strerror", None))
+
+                        time.sleep(0.1)
+                    if last_error:
+                        raise last_error
 
     def __atomic_write_json(self, path: str, data) -> None:
+        if not Path(path).exists():
+            # print(f"{self.now()} JSON.__atomic_write_json() Ecriture atomique d'un nouveau fichier '{Path(path).name}'")
+            return
+        elif Path(path).is_dir():
+            print(f"{self.now()} JSON.__atomic_write_json() Pas d'écriture atomique sur un repertoire '{Path(path).name}'")
+            return
+        elif not Path(path).is_file():
+            print(f"{self.now()} JSON.__atomic_write_json() Ecriture atomique uniquement pour les fichiers '{Path(path).name}'")
+            return
+
         # On écrit dans le même dossier pour que os.replace soit atomique
         dir_name = os.path.dirname(path) or "."
         fd, tmp_path = tempfile.mkstemp(prefix=".tmp_", dir=dir_name)
+        chemin_enregistrement_str = str(self._chemin_enregistrement)
 
         try:
             with self.lockfile_blocking(path):
                 with os.fdopen(fd, "w", encoding="utf-8") as f:
-                    if 'Resolution' not in str(self._chemin_enregistrement):
+                    if self._log_ouverture_fichier:
                         print(f"{self.now()} JSON.__atomic_write_json() fichier ouvert '{self._chemin_court_str}'")
                     json.dump(data, f, ensure_ascii=False, indent=4)
                     f.flush()
@@ -121,7 +219,17 @@ Retourne True si l'export a ete realise"""
 
                 # Remplacement atomique : les lecteurs verront soit l’ancienne version,
                 # soit la nouvelle, jamais un fichier à moitié écrit.
-                os.replace(tmp_path, path)
+                try:
+                    os.replace(tmp_path, path)
+                except OSError as e:
+                    print(f"{self.now()} JSON.__atomic_write_json() OSError sur os.replace '{self._chemin_court_str}'")
+                    print("OSError:", repr(e))
+                    print("errno:", getattr(e, "errno", None))
+                    print("strerror:", getattr(e, "strerror", None))
+        except FileExistsError:
+            # Fichier bloqué
+            print(f"{self.now()} JSON.__atomic_write_json() FileExistsError le fichier est bloqué, pas d'écriture sur '{self._chemin_court_str}'")
+            raise FileExistsError
 
         finally:
             # Si jamais ça échoue avant os.replace, on nettoie
@@ -130,7 +238,7 @@ Retourne True si l'export a ete realise"""
                     os.unlink(tmp_path)
             except OSError:
                 pass
-        if 'Resolution' not in str(self._chemin_enregistrement):
+        if self._log_ouverture_fichier:
             print(f"{self.now()} JSON.__atomic_write_json() fichier ferme '{self._chemin_court_str}'")
 
     def effacer(self):
@@ -139,55 +247,59 @@ Retourne True si l'export a ete realise"""
 
     def importer(self):
         """Lit dans un fichier JSON les informations totales ou de la derniere iteration realisee."""
+        dico_json = {}
         # 5 tentatives de lecture à : 5min, 11min, 18min, 26min, 35min et 45min
         for attente_en_min in range(1,6): # Range cumulé = 5+6+7+8+9+10 = 45 mins
+            chemin_enregistrement_str = str(self._chemin_enregistrement)
             try:
-                with self.lockfile_blocking(self._chemin_enregistrement):
-                    with open(self._chemin_enregistrement, "r", encoding='utf-8') as fichier:
-                        if 'Resolution' not in str(self._chemin_enregistrement):
-                            print(f"{self.now()} JSON.importer() fichier ouvert '{self._chemin_court_str}'")
-                        dico_json = self.json_load(fichier)
-                if 'Resolution' not in str(self._chemin_enregistrement):
+                with self.lockfile_blocking(chemin_enregistrement_str):
+                    try:
+                        with open(chemin_enregistrement_str, "r", encoding='utf-8') as fichier:
+                            if self._log_ouverture_fichier:
+                                print(f"{self.now()} JSON.importer() fichier ouvert '{self._chemin_court_str}'")
+                            dico_json = self.json_load(fichier)
+                    except FileNotFoundError as e:
+                        if self._log_fichier_absent:
+                            print(f"{self.now()} JSON.importer() FileNotFoundError '{self._chemin_court_str}'")
+                            # print(f"FileNotFoundError : '{e}'")
+                    except OSError as e:
+                        print(f"{self.now()} JSON.importer() OSError sur open '{self._chemin_court_str}'")
+                        print("OSError:", repr(e))
+                        print("errno:", getattr(e, "errno", None))
+                        print("strerror:", getattr(e, "strerror", None))
+                    except MemoryError as e:
+                        print(f"{self.now()} JSON.importer() MemoryError sur open '{self._chemin_court_str}'")
+                        # print(f"MemoryError : '{e}'")
+                if self._log_ouverture_fichier:
                     print(f"{self.now()} JSON.importer() fichier ferme '{self._chemin_court_str}'")
                 return dico_json
 
-            except FileNotFoundError as e:
-                if 'Resolution' not in str(self._chemin_enregistrement):
-                    print(f"{self.now()} JSON.importer() FileNotFoundError '{self._chemin_court_str}'")
-                    # print(f"FileNotFoundError : '{e}'")
-                return {}
-            except OSError as e:
-                if 'Resolution' not in str(self._chemin_enregistrement):
-                    print(f"{self.now()} JSON.importer() OSError sur open '{self._chemin_court_str}'")
-                    print(f"OSError : '{e}'")
+            except FileExistsError:
                 # Attente avant la prochaine tentative de lecture du fichier
-                print(f"{self.now()} JSON.importer() OSError : Nouvelle tentative dans {attente_en_min} minutes")
+                print(f"{self.now()} JSON.importer() FileExistsError sur open '{self._chemin_court_str}'")
+                print(f"{self.now()} JSON.importer() lock bloqué : Nouvelle tentative dans {attente_en_min} minutes")
                 time.sleep(attente_en_min * 60)
-            except MemoryError as e:
-                if 'Resolution' not in str(self._chemin_enregistrement):
-                    print(f"{self.now()} JSON.importer() MemoryError sur open '{self._chemin_court_str}'")
-                    # print(f"MemoryError : '{e}'")
-                return {}
         print(f"{self.now()} JSON.importer() Abandon de lecture '{self._chemin_court_str}'")
-        return {}
+        return dico_json
 
     def json_load(self, fichier):
         """Decode le JSON du fichier."""
+        nom_enregistrement_str = str(Path(self._chemin_enregistrement).name)
         try:
             dico_json = json.load(fichier)
         except json.decoder.JSONDecodeError as e:
-            if 'Resolution' not in str(self._chemin_enregistrement):
-                print(f"{self.now()} JSON.importer() JSONDecodeError '{self._chemin_court_str}'")
-                print(f"JSONDecodeError : '{e}'")
+            print(f"{self.now()} JSON.importer() JSONDecodeError '{self._chemin_court_str}'")
+            print(f"JSONDecodeError : '{e}'")
             return {}
         except OSError as e:
-            if 'Resolution' not in str(self._chemin_enregistrement):
-                print(f"{self.now()} JSON.importer() OSError sur json.load '{self._chemin_court_str}'")
-                print(f"OSError sur json.load: '{e}'")
+            print(f"{self.now()} JSON.importer() OSError sur json.load '{self._chemin_court_str}'")
+            print(f"OSError sur json.load: '{e}'")
+            print("OSError:", repr(e))
+            print("errno:", getattr(e, "errno", None))
+            print("strerror:", getattr(e, "strerror", None))
             raise OSError(e) # Remonter l'exception pour relire le fichier plus tard
         except MemoryError as e:
-            if 'Resolution' not in str(self._chemin_enregistrement):
-                print(f"{self.now()} JSON.importer() MemoryError sur json.load '{self._chemin_court_str}'")
-                # print(f"MemoryError : '{e}'")
+            print(f"{self.now()} JSON.importer() MemoryError sur json.load '{self._chemin_court_str}'")
+            # print(f"MemoryError : '{e}'")
             return {}
         return dico_json

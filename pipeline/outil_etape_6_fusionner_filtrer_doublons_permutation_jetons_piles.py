@@ -195,8 +195,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     filtrer = FusionnerFiltrerLesPlateaux(
-        nb_colonnes=[3], #range(3, 12),
-        nb_lignes=[3], #range(3,14),
+        nb_colonnes=range(3, 12),
+        nb_lignes=range(3,14),
         nb_colonnes_vides=1,
         repertoire_analyse_1=str(REPERTOIRE_ANALYSE_1),
         repertoire_analyse_2=str(REPERTOIRE_ANALYSE_2),

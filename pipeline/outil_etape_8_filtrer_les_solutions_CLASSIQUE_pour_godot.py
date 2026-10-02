@@ -84,8 +84,22 @@ class FiltrerLesSolutionsClassique:
                 solutions_classees["liste difficulte des plateaux"] = {}
             dict_difficulte = solutions_classees["liste difficulte des plateaux"]
 
+            # Vérifier si ce type de plateau est deja present dans le fichier
+            # Le premier enregistrement est vérifié :
+            #     - s'il est present => 'deja_fait=True;verifier_deja_fait=False' et arret de la recherche
+            #     - s'il est absent => 'deja_fait=False;verifier_deja_fait=False' et poursuite de la recherche
+            deja_fait = False
+            verifier_deja_fait = True
+            # Trace pour l'avancement de la tache
+            logger.info(f"Nombre de plateau a parcourir : {lot_de_plateaux.nb_plateaux_valides}")
+            nb_plateaux_traites = 0
+            avancement_affichage = {pourcentage: False for pourcentage in range(10, 100, 5)}
             # Parcourir chaque solution et remplir la structure de données
             for plateau_ligne_texte_a_filtrer in lot_de_plateaux.plateaux_valides:
+                avancement = round(100. * nb_plateaux_traites / lot_de_plateaux.nb_plateaux_valides)
+                if avancement in avancement_affichage and not avancement_affichage.get(avancement, True):
+                    avancement_affichage[avancement] = True
+                    logger.info(f"Avancement : {avancement}%")
                 plateau.clear()
                 plateau.plateau_ligne_texte = plateau_ligne_texte_a_filtrer
                 plateau_ligne_texte_universel = plateau.plateau_ligne_texte_universel
@@ -103,14 +117,33 @@ class FiltrerLesSolutionsClassique:
                     and nb_chemins >= self._nb_chemins_min:
                     if difficulte_json_key_str not in dict_difficulte:
                         dict_difficulte[difficulte_json_key_str] = []
+                        if verifier_deja_fait:
+                            verifier_deja_fait = False
+                            deja_fait = False
+                            # Nouvelle difficulté ==> plateau jamais vu ==> recherche à poursuivre
                     if plateau_ligne_texte_universel not in dict_difficulte[difficulte_json_key_str]:
                         dict_difficulte[difficulte_json_key_str].append(plateau_ligne_texte_universel)
+                        if verifier_deja_fait:
+                            verifier_deja_fait = False
+                            deja_fait = False
+                            # Nouveau plateau ==> recherche à poursuivre
+                    else:
+                        if verifier_deja_fait:
+                            verifier_deja_fait = False
+                            deja_fait = True
+                            # Plateau connu ==> Sortir de la recherche qui a deja été réalisée
+                            self._chrono.pause()
+                            break
+                nb_plateaux_traites += 1
                 self._chrono.pause()
             logger.info(f"Traitement {self._nom_tache} en {self._chrono} secondes")
-            logger.info("Filtrage des solutions CLASSIQUE")
-            self.ordonner_difficulte(solutions_classees["liste difficulte des plateaux"])
-            solutions_classees_json.forcer_export(solutions_classees)
-            logger.info("Export termine")
+            if deja_fait:
+                logger.info("Filtrage des solutions CLASSIQUE deja realise")
+            else:
+                logger.info("Filtrage des solutions CLASSIQUE")
+                self.ordonner_difficulte(solutions_classees["liste difficulte des plateaux"])
+                solutions_classees_json.forcer_export(solutions_classees)
+                logger.info("Export termine")
         else:
             logger.info(" - Ce lot de plateaux n'est pas encore termine, pas de classement de solutions.")
 
@@ -159,7 +192,10 @@ class FiltrerLesSolutionsClassique:
             # Parcourir aléatoirement pour pouvoir lancer plusieurs solutions en parallele.
             liste_colonne_ligne = [{'colonnes':c, 'lignes':l} for c in self._nb_colonnes for l in self._nb_lignes]
             random.shuffle(liste_colonne_ligne)
+            taille_tache = len(liste_colonne_ligne)
             for colonne_ligne in liste_colonne_ligne:
+                indice = liste_colonne_ligne.index(colonne_ligne) + 1
+                print(f"Famille courante :  : {colonne_ligne.get('colonnes')}x{colonne_ligne.get('lignes')} avancement {indice}/{taille_tache}")
                 self.classer_les_solutions(colonne_ligne.get('colonnes'), colonne_ligne.get('lignes'))
             current_time = datetime.datetime.now().strftime("%H:%M:%S")
             logger.info(f"{current_time} - Attente entre 2 iterations de {self._periode_scrutation_secondes}s...")
@@ -169,9 +205,10 @@ class FiltrerLesSolutionsClassique:
         profil = ProfilerLeCode('chercher_des_solutions', self._profiler_le_code)
         profil.start()
 
-        # Effacer l'existant
-        solutions_classees_json = ExportJSON(0, 0, '', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
-        solutions_classees_json.effacer()
+        # Pas d'effacement, cumulation des différentes recherches.
+        # # Effacer l'existant
+        # solutions_classees_json = ExportJSON(0, 0, '', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
+        # solutions_classees_json.effacer()
         
         # Configurer le logger
         logger = logging.getLogger(f"chercher_en_sequence.NOUVELLE-RECHERCHE")
@@ -179,7 +216,10 @@ class FiltrerLesSolutionsClassique:
         # Parcourir aléatoirement pour pouvoir lancer plusieurs solutions en parallele.
         liste_colonne_ligne = [{'colonnes':c, 'lignes':l} for c in self._nb_colonnes for l in self._nb_lignes]
         random.shuffle(liste_colonne_ligne)
+        taille_tache = len(liste_colonne_ligne)
         for colonne_ligne in liste_colonne_ligne:
+            indice = liste_colonne_ligne.index(colonne_ligne) + 1
+            print(f"Famille courante :  : {colonne_ligne.get('colonnes')}x{colonne_ligne.get('lignes')} avancement {indice}/{taille_tache}")
             self.classer_les_solutions(colonne_ligne.get('colonnes'), colonne_ligne.get('lignes'))
         profil.stop()
 

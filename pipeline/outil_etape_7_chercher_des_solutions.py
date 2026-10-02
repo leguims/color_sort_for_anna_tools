@@ -57,7 +57,7 @@ class ChercherDesSolutions:
 
     def creer_repertoire_solution(self):
         # Crée le repertoire pour la synthèse des solutions
-        if not (self._repertoire_solution).exists():
+        if not Path(self._repertoire_solution).exists():
             self._repertoire_solution.mkdir(parents=True, exist_ok=True)
 
     def chercher_des_solutions(self, colonnes, lignes):
@@ -152,8 +152,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename=FICHIER_JOURNAL, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     chercher_solutions = ChercherDesSolutions(
-        nb_colonnes=[3], #range(2, 12),
-        nb_lignes=[3], #range(2, 14),
+        nb_colonnes=range(2, 12),
+        nb_lignes=range(2, 14),
         nb_colonnes_vides=1,
         repertoire_analyse=str(REPERTOIRE_ANALYSE),
         repertoire_solution=str(REPERTOIRE_SOLUTION),
