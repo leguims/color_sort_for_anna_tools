@@ -142,9 +142,16 @@ class ChercherDesSolutions:
 
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_solutions'
-    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    REPERTOIRE_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
-    REPERTOIRE_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions_unitaires'
+    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
+    if debug:
+        # DEBUG
+        FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
+        REPERTOIRE_ANALYSE = Path('Pipelines') / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
+        REPERTOIRE_SOLUTION = Path('Pipelines') / 'pipeline_7_solutions_unitaires'
+    else:
+        FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
+        REPERTOIRE_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
+        REPERTOIRE_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions_unitaires'
 
     # Configurer le logger
     if not FICHIER_JOURNAL.parent.exists():

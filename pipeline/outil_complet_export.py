@@ -13,8 +13,14 @@ from pipeline.outil_complet import OutilComplet
 
 if __name__ == "__main__":
     NOM_TACHE = 'outil_complet_export'
-    FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
-    REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines'
+    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
+    if debug:
+        # DEBUG
+        FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
+        REPERTOIRE_PIPELINE = Path('Pipelines')
+    else:
+        FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
+        REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines'
 
     PROFILER_LE_CODE = False
 

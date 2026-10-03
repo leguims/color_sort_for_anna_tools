@@ -137,9 +137,16 @@ class FiltrerLesPlateaux:
 
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_doublons_permutation_piles'
-    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_3_filtre_doublons_permutation_jetons'
-    FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_4_filtre_doublons_permutation_piles'
+    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
+    if debug:
+        # DEBUG
+        FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
+        FICHIER_ANALYSE = Path('Pipelines') / 'pipeline_3_filtre_doublons_permutation_jetons'
+        FICHIER_FILTRE = Path('Pipelines') / 'pipeline_4_filtre_doublons_permutation_piles'
+    else:
+        FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
+        FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_3_filtre_doublons_permutation_jetons'
+        FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_4_filtre_doublons_permutation_piles'
 
     if not FICHIER_JOURNAL.parent.exists():
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)

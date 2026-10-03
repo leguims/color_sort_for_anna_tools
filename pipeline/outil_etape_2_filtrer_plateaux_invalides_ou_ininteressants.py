@@ -119,9 +119,16 @@ class FiltrerLesPlateaux:
 
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_plateaux_invalides_ou_ininteressants'
-    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
-    FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
+    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
+    if debug:
+        # DEBUG
+        FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
+        FICHIER_ANALYSE = Path('Pipelines') / 'pipeline_1_chercher_des_plateaux'
+        FICHIER_FILTRE = Path('Pipelines') / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
+    else:
+        FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
+        FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
+        FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
 
     if not FICHIER_JOURNAL.parent.exists():
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
