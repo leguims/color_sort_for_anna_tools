@@ -100,14 +100,16 @@ class ExporterLesSolutionsPourGodot:
 
 if __name__ == "__main__":
     NOM_ETAPE = 'exporter_solutions_vers_godot'
-    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
-    if debug:
+    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
         # DEBUG
         FICHIER_JOURNAL = Path('logs') / f'{NOM_ETAPE}.log'
         FICHIER_SOLUTION = Path('Pipelines') / 'pipeline_7_solutions'
-    else:
+    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
         FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_ETAPE}.log'
         FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions'
+    else:
+        print("Impossible de déterminer le chemin des fichiers en mode debug ou release.")
+        exit(1)
 
     # Configurer le logger
     if not FICHIER_JOURNAL.parent.exists():

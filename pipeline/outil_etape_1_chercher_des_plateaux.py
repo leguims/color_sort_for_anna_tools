@@ -70,14 +70,16 @@ class ChercherDesPlateaux:
 
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_plateaux'
-    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
-    if debug:
+    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
         # DEBUG
         FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
         FICHIER_ANALYSE = Path('Pipelines') / 'pipeline_1_chercher_des_plateaux'
-    else:
+    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
         FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
         FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
+    else:
+        print("Impossible de déterminer le chemin des fichiers en mode debug ou release.")
+        exit(1)
 
     if not FICHIER_JOURNAL.parent.exists():
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)

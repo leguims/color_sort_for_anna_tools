@@ -185,17 +185,20 @@ class FusionnerFiltrerLesPlateaux:
 
 if __name__ == "__main__":
     NOM_TACHE = 'fusionner_filtrer_doublons_permutation_jetons_piles'
-    FICHIER_JOURNAL = Path('..') / 'logs' / f'{NOM_TACHE}.log'
-    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
-    if debug:
+    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
         # DEBUG
+        FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
         REPERTOIRE_ANALYSE_1 = Path('Pipelines') / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
         REPERTOIRE_ANALYSE_2 = Path('Pipelines_rapide') / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
         REPERTOIRE_FILTRE = Path('Pipelines') / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
-    else:
+    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
+        FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
         REPERTOIRE_ANALYSE_1 = Path('..') / '..' / 'Pipelines' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
         REPERTOIRE_ANALYSE_2 = Path('..') / '..' / 'Pipelines_rapide' / 'pipeline_5_filtre_doublons_permutation_jetons_piles'
         REPERTOIRE_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
+    else:
+        print("Impossible de déterminer le chemin des fichiers en mode debug ou release.")
+        exit(1)
 
     if not FICHIER_JOURNAL.parent.exists():
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)

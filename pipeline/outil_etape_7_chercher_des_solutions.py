@@ -142,16 +142,18 @@ class ChercherDesSolutions:
 
 if __name__ == "__main__":
     NOM_TACHE = 'chercher_des_solutions'
-    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
-    if debug:
+    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
         # DEBUG
         FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
         REPERTOIRE_ANALYSE = Path('Pipelines') / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
         REPERTOIRE_SOLUTION = Path('Pipelines') / 'pipeline_7_solutions_unitaires'
-    else:
+    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
         FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
         REPERTOIRE_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
         REPERTOIRE_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions_unitaires'
+    else:
+        print("Impossible de déterminer le chemin des fichiers en mode debug ou release.")
+        exit(1)
 
     # Configurer le logger
     if not FICHIER_JOURNAL.parent.exists():

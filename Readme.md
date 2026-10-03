@@ -135,6 +135,7 @@ C'est le compromis de la branche __future_4__ qui a été retenue pour la suite.
 	- nombre de colonnes min/max
 	- nombre de lignes min/max
 	- nombre de coups de la solution min/max
+- ~~Etape 8 : Réaliser un JSON qui cartographie pour chaque gameplay, le nombre de plateaux par difficulté disponible.~~
 
 ## V1.0 : Travaux long terme
 

@@ -119,16 +119,18 @@ class FiltrerLesPlateaux:
 
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_plateaux_invalides_ou_ininteressants'
-    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
-    if debug:
+    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
         # DEBUG
         FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
         FICHIER_ANALYSE = Path('Pipelines') / 'pipeline_1_chercher_des_plateaux'
         FICHIER_FILTRE = Path('Pipelines') / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
-    else:
+    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
         FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
         FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_1_chercher_des_plateaux'
         FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
+    else:
+        print("Impossible de déterminer le chemin des fichiers en mode debug ou release.")
+        exit(1)
 
     if not FICHIER_JOURNAL.parent.exists():
         FICHIER_JOURNAL.parent.mkdir(parents=True, exist_ok=True)

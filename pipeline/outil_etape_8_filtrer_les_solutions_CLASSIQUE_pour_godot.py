@@ -28,10 +28,12 @@ class FiltrerLesSolutionsClassique:
     """Parcourt les plateaux resolus et les rassemble dans le fichier
     'Solutions_classees.json' par difficulte avec une ecriture universelle"""
     def __init__(self, nb_colonnes, nb_lignes, nb_colonnes_vides,
+                gameplay,
                 repertoire_analyse,
                 repertoire_solution_unitaire,
                 repertoire_solution,
                 fichier_solution,
+                fichier_repartition,
                 nb_coups_min,
                 difficulte_min,
                 difficulte_max,
@@ -43,10 +45,12 @@ class FiltrerLesSolutionsClassique:
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
+        self._gameplay = gameplay
         self._repertoire_analyse = repertoire_analyse
         self._repertoire_solution_unitaire = repertoire_solution_unitaire
         self._repertoire_solution = repertoire_solution
         self._fichier_solution = fichier_solution
+        self._fichier_repartition = fichier_repartition
         self._nb_coups_min = nb_coups_min
         self._difficulte_min = difficulte_min
         self._difficulte_max = difficulte_max
@@ -166,19 +170,26 @@ class FiltrerLesSolutionsClassique:
         ensemble_des_difficultes_de_plateaux.clear()
         ensemble_des_difficultes_de_plateaux.update(dico_difficulte_classe)
 
-    def afficher_synthese(self):
+    def afficher_enregistrer_synthese(self):
         logger = logging.getLogger(f"chercher.afficher_synthese")
         logger.info(f"*** Synthese des Solutions CLASSIQUE:")
         solutions_classees_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_solution, repertoire=self._repertoire_solution)
         solutions_classees = solutions_classees_json.importer()
 
-        somme_plateaux = 0
         if solutions_classees.get('liste difficulte des plateaux'):
+            repartition = dict()
+            repartition['gameplay'] = self._gameplay
+            somme_plateaux = 0
             for difficulte, liste_plateaux in solutions_classees.get('liste difficulte des plateaux', {}).items():
                 logger.info(f" - Difficulte : {difficulte} : {len(liste_plateaux)} plateau{self.pluriel(liste_plateaux, 'x')}")
                 if difficulte:
                     somme_plateaux += len(liste_plateaux)
+                    repartition[f"{int(difficulte):03d}"] = f"{len(liste_plateaux):_}".replace("_", ".")
             logger.info(f" - Total : {somme_plateaux} plateau{self.pluriel(range(somme_plateaux), 'x')} valide{self.pluriel(range(somme_plateaux), 's')}")
+            repartition['total'] = f"{somme_plateaux:_}".replace("_", ".")
+            self.ordonner_difficulte(repartition)
+            repartition_json = ExportJSON(delai=60, longueur=100, nom_plateau='', nom_export=self._fichier_repartition, repertoire=self._repertoire_solution)
+            repartition_json.forcer_export(repartition)
 
     def pluriel(self, LIGNES, lettre='s'):
         return lettre if len(LIGNES) > 1 else ""
@@ -223,23 +234,25 @@ class FiltrerLesSolutionsClassique:
             self.classer_les_solutions(colonne_ligne.get('colonnes'), colonne_ligne.get('lignes'))
         profil.stop()
 
-        self.afficher_synthese()
+        self.afficher_enregistrer_synthese()
         logger.info('-'*10 + " FIN " + '-'*10)
 
 if __name__ == "__main__":
     NOM_TACHE = 'classer_les_solutions_classique'
-    debug = Path().parent.resolve().name != (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name
-    if debug:
+    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
         # DEBUG
         FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
         FICHIER_ANALYSE = Path('Pipelines') / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
         FICHIER_SOLUTION_UNITAIRE = Path('Pipelines') / 'pipeline_7_solutions_unitaires'
         FICHIER_SOLUTION = Path('Pipelines') / 'pipeline_7_solutions'
-    else:
+    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
         FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
         FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_6_fusion_filtre_doublons_permutation_jetons_piles'
         FICHIER_SOLUTION_UNITAIRE = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions_unitaires'
         FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions'
+    else:
+        print("Impossible de déterminer le chemin des fichiers en mode debug ou release.")
+        exit(1)
 
     # Configurer le logger
     if not FICHIER_JOURNAL.parent.exists():
@@ -250,10 +263,12 @@ if __name__ == "__main__":
         nb_colonnes=range(2, 12),
         nb_lignes=range(2, 14),
         nb_colonnes_vides=1,
+        gameplay='QUI_PERD_GAGNE',
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_solution_unitaire=str(FICHIER_SOLUTION_UNITAIRE),
         repertoire_solution=str(FICHIER_SOLUTION),
         fichier_solution='8_filtrer_les_solutions_CLASSIQUE_pour_godot',
+        fichier_repartition='8_repartition_des_solutions_CLASSIQUE_pour_godot',
         nb_coups_min=3,
         difficulte_min=1,
         difficulte_max=99,
@@ -262,5 +277,6 @@ if __name__ == "__main__":
         fichier_journal=FICHIER_JOURNAL,
         periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )
-    classer_solutions.chercher_en_sequence()
+    # classer_solutions.chercher_en_sequence()
+    classer_solutions.afficher_enregistrer_synthese()
     #classer_solutions.chercher_en_boucle()
