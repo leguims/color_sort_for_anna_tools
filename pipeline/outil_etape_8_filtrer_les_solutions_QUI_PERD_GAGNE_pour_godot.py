@@ -4,14 +4,10 @@ Entrée : 'pipeline_5_filtre_doublons_permutation_jetons_piles'
 Entrée : 'pipeline_6_solutions_unitaires'
 Sortie : '7_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot'"""
 
-import datetime
-import time
 import logging
 from pathlib import Path
-import random
 
 import sys
-import os
 REPERTOIRE_SOURCES = Path(__file__).resolve().parent.parent
 if str(REPERTOIRE_SOURCES) not in sys.path:
     sys.path.insert(0, str(REPERTOIRE_SOURCES))
@@ -19,9 +15,8 @@ if str(REPERTOIRE_SOURCES) not in sys.path:
 from core.plateau import Plateau
 from core.lot_de_plateaux import LotDePlateaux
 from core.resoudre_plateau import ResoudrePlateau
-from io_utils.profiler_le_code import ProfilerLeCode
 from io_utils.export_json import ExportJSON
-from io_utils.chrono import Chrono
+
 from pipeline.outil_etape_8_filtrer_les_solutions_CLASSIQUE_pour_godot import FiltrerLesSolutionsClassique
 
 class FiltrerLesSolutionsQuiPerdGagne(FiltrerLesSolutionsClassique):
@@ -143,8 +138,6 @@ if __name__ == "__main__":
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_solution_unitaire=str(FICHIER_SOLUTION_UNITAIRE),
         repertoire_solution=str(FICHIER_SOLUTION),
-        fichier_solution='8_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot',
-        fichier_repartition='8_repartition_des_solutions_QUI_PERD_GAGNE_pour_godot',
         nb_coups_min=3,
         difficulte_min=1,
         difficulte_max=99,
@@ -153,5 +146,6 @@ if __name__ == "__main__":
         fichier_journal=FICHIER_JOURNAL,
         periode_scrutation_secondes = 1 * 60 * 60 # 1h
     )
-    classer_solutions.chercher_en_sequence()
+    # classer_solutions.chercher_en_sequence()
+    classer_solutions.afficher_enregistrer_synthese()
     #classer_solutions.chercher_en_boucle()

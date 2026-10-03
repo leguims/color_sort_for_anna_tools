@@ -32,8 +32,6 @@ class FiltrerLesSolutionsClassique:
                 repertoire_analyse,
                 repertoire_solution_unitaire,
                 repertoire_solution,
-                fichier_solution,
-                fichier_repartition,
                 nb_coups_min,
                 difficulte_min,
                 difficulte_max,
@@ -49,8 +47,8 @@ class FiltrerLesSolutionsClassique:
         self._repertoire_analyse = repertoire_analyse
         self._repertoire_solution_unitaire = repertoire_solution_unitaire
         self._repertoire_solution = repertoire_solution
-        self._fichier_solution = fichier_solution
-        self._fichier_repartition = fichier_repartition
+        self._fichier_solution = f'8_filtrer_les_solutions_{self._gameplay}_pour_godot'
+        self._fichier_repartition = f'8_repartition_des_solutions_{self._gameplay}_pour_godot'
         self._nb_coups_min = nb_coups_min
         self._difficulte_min = difficulte_min
         self._difficulte_max = difficulte_max
@@ -263,12 +261,10 @@ if __name__ == "__main__":
         nb_colonnes=range(2, 12),
         nb_lignes=range(2, 14),
         nb_colonnes_vides=1,
-        gameplay='QUI_PERD_GAGNE',
+        gameplay='CLASSIQUE',
         repertoire_analyse=str(FICHIER_ANALYSE),
         repertoire_solution_unitaire=str(FICHIER_SOLUTION_UNITAIRE),
         repertoire_solution=str(FICHIER_SOLUTION),
-        fichier_solution='8_filtrer_les_solutions_CLASSIQUE_pour_godot',
-        fichier_repartition='8_repartition_des_solutions_CLASSIQUE_pour_godot',
         nb_coups_min=3,
         difficulte_min=1,
         difficulte_max=99,

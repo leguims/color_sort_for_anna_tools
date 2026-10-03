@@ -35,15 +35,16 @@ class CreerLaCampagnePourGodot:
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._chrono = Chrono()
 
+        # Configurer le logger
+        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self._logger = logging.getLogger(f"{self._nom_etape}")
+
     @property
     def elapsed(self):
         return self._chrono.elapsed
 
     def exporter_campagne_pour_godot(self):
-        # Configurer le logger
-        logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        logger = logging.getLogger(f"{self._nom_etape}")
-        logger.info(f"DEBUT {self._nom_etape}")
+        self._logger.info(f"DEBUT {self._nom_etape}")
 
         solutions_godot_json = ExportJSON(
             delai=60, longueur=100, nom_plateau='',
@@ -86,12 +87,12 @@ class CreerLaCampagnePourGodot:
                 difficulte_min = conf_plateau.get("difficulte", {}).get("min", 1)
                 difficulte_max = conf_plateau.get("difficulte", {}).get("max", 99)
                 gameplay = conf_plateau.get("gameplay", "CLASSIQUE")
-                logger.info(f"{self._nom_etape} Recherche : difficulte [{difficulte_min}-{difficulte_max}], gameplay {gameplay}")
+                self._logger.info(f"{self._nom_etape} Recherche : difficulte [{difficulte_min}-{difficulte_max}], gameplay {gameplay}")
                 # Parcourir les solutions pour trouver l'élu (choix de difficulté aleatoire)
                 plateau_godot = None
                 cpt_iteration = 1
                 while not plateau_godot:
-                    logger.info(f"{self._nom_etape} While not plateau_godot... {cpt_iteration}")
+                    self._logger.info(f"{self._nom_etape} While not plateau_godot... {cpt_iteration}")
                     for difficulte in random.sample(range(difficulte_min, difficulte_max + 1),
                                         k=difficulte_max-difficulte_min+1):
                         difficulte_str = str(difficulte).zfill(3)
@@ -100,7 +101,7 @@ class CreerLaCampagnePourGodot:
                             plateau_godot = random.choice(solutions_godot['liste difficulte des plateaux'][difficulte_str])
                             if plateau_godot.get("gameplay") == gameplay:
                                 plateaux_godot.append(plateau_godot)
-                                logger.info(f"{self._nom_etape} Trouve : difficulte= {plateau_godot.get('difficulte')}, gameplay {plateau_godot.get('gameplay')}")
+                                self._logger.info(f"{self._nom_etape} Trouve : difficulte= {plateau_godot.get('difficulte')}, gameplay {plateau_godot.get('gameplay')}")
                                 # Verifier les doublons
                                 plateau_tuple = (plateau_godot.get("nom"), plateau_godot.get("gameplay"))
                                 if plateau_tuple in plateaux_vus:
@@ -121,9 +122,9 @@ class CreerLaCampagnePourGodot:
             niveau_godot["plateaux"] = plateaux_godot
             campagne_godot["niveaux"].append(niveau_godot)
             if plateaux_doublons:
-                logger.error(f"Doublons trouves dans le niveau '{niveau_godot.get('nom', 'inconnu')}': {plateaux_doublons}")
+                self._logger.error(f"Doublons trouves dans le niveau '{niveau_godot.get('nom', 'inconnu')}': {plateaux_doublons}")
         self._chrono.pause()
-        logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
+        self._logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
         export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
                                        nom_export=self._fichier_campagne+'_'+campagne_godot["nom"].replace(" ", "_"),
                                        repertoire=self._repertoire_solution)
@@ -131,8 +132,72 @@ class CreerLaCampagnePourGodot:
         export_godot_json.forcer_export(campagne_godot)
 
         if liste_echec_recherche:
-            logger.error(f"Configurations de plateau non trouvees : {liste_echec_recherche}")
-        logger.info("Export termine")
+            self._logger.error(f"Configurations de plateau non trouvees : {liste_echec_recherche}")
+        self._logger.info("Export termine")
+
+    def auditer_campagne_pour_godot(self):
+        # Configurer le logger
+        self._logger.info(f"DEBUT {self._nom_etape} : audit de campagne")
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        configuration_campagne_godot_json = ExportJSON(
+                delai=60, longueur=100, nom_plateau='',
+                nom_export=self._fichier_configuration_campagne,
+                repertoire=current_dir)
+        configuration_campagne = configuration_campagne_godot_json.importer()
+
+        self._chrono.start()
+        # Lecture du fichier de campagne pour Godot
+        campagne_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
+                                       nom_export=self._fichier_campagne+'_'+configuration_campagne.get("nom", "").replace(" ", "_"),
+                                       repertoire=self._repertoire_solution)
+        campagne_godot = campagne_godot_json.importer()
+
+        # Vérifier pour chaque niveau, l'écart avec la consigne
+        audit_campagne = dict()
+        audit_campagne['nom'] = configuration_campagne.get("nom", 'inconnu')
+        for conf_niveau in configuration_campagne.get("niveaux", []):
+            nom_niveau = conf_niveau.get("nom", "")
+            nb_plateaux = conf_niveau.get("nb_plateaux", 0)
+            indice_plateau = -1
+            for conf_plateau in conf_niveau.get("plateaux", []):
+                indice_plateau += 1
+                difficulte_min = conf_plateau.get("difficulte", {}).get("min", 1)
+                difficulte_max = conf_plateau.get("difficulte", {}).get("max", 99)
+                gameplay = conf_plateau.get("gameplay", "CLASSIQUE")
+                # self._logger.debug(f"{self._nom_etape} Verifier : difficulte [{difficulte_min}-{difficulte_max}], gameplay {gameplay}")
+
+                # Vérifier le plateau dans la campagne Godot
+                for campagne_niveau in campagne_godot.get("niveaux", []):
+                    campagne_nom_niveau = campagne_niveau.get("nom", "")
+                    if campagne_nom_niveau == nom_niveau:
+                        campagne_liste_plateaux = campagne_niveau.get("plateaux", [])
+                        if indice_plateau == 0:
+                            # Verifier une seule fois par niveau
+                            campagne_nb_plateaux = campagne_niveau.get("nb_plateaux", 0)
+                            # Vérifier la taille, car cela compte !
+                            if campagne_nb_plateaux != nb_plateaux:
+                                self._logger.error(f"{self._nom_etape} '{nom_niveau}' Ecart 'nb_plateaux' : {indice_plateau+1} (attendu {nb_plateaux})")
+                            elif campagne_nb_plateaux != len(campagne_liste_plateaux):
+                                self._logger.error(f"{self._nom_etape} '{nom_niveau}' Plateaux absents : {campagne_nb_plateaux - len(campagne_liste_plateaux)}")
+                        elif indice_plateau < len(campagne_liste_plateaux):
+                            plateau = campagne_liste_plateaux[indice_plateau]
+                            # Vérifier la difficulté et le gameplay
+                            campagne_gameplay = plateau.get("gameplay", "INCONNU")
+                            if campagne_gameplay != gameplay:
+                                self._logger.error(f"{self._nom_etape} '{nom_niveau}-Plateau {indice_plateau}' Ecart 'gameplay' : {campagne_gameplay} (attendu {gameplay})")
+
+                            campagne_difficulte = int(plateau.get("difficulte", 0))
+                            if campagne_difficulte < difficulte_min or campagne_difficulte > difficulte_max:
+                                self._logger.error(f"{self._nom_etape} '{nom_niveau}-Plateau {indice_plateau}' Ecart 'difficulte': [{campagne_difficulte}] (attendu [{difficulte_min}-{difficulte_max}])")
+        self._chrono.pause()
+        self._logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
+        export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
+                                       nom_export=self._fichier_campagne+'_audit_'+campagne_godot["nom"].replace(" ", "_"),
+                                       repertoire=self._repertoire_solution)
+        export_godot_json.effacer()
+        export_godot_json.forcer_export(audit_campagne)
+        self._logger.info(f"FIN {self._nom_etape} : audit de campagne")
 
 
 if __name__ == "__main__":
@@ -161,4 +226,5 @@ if __name__ == "__main__":
         nom_etape=NOM_ETAPE,
         fichier_journal=FICHIER_JOURNAL,
     )
-    solutions_godot.exporter_campagne_pour_godot()
+    # solutions_godot.exporter_campagne_pour_godot()
+    solutions_godot.auditer_campagne_pour_godot()
