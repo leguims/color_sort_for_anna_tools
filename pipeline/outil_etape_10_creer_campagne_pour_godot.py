@@ -178,18 +178,34 @@ class CreerLaCampagnePourGodot:
                             # Vérifier la taille, car cela compte !
                             if campagne_nb_plateaux != nb_plateaux:
                                 self._logger.error(f"{self._nom_etape} '{nom_niveau}' Ecart 'nb_plateaux' : {indice_plateau+1} (attendu {nb_plateaux})")
+                                if nom_niveau not in audit_campagne:
+                                    audit_campagne[nom_niveau] = {}
+                                audit_campagne[nom_niveau]['nb_plateaux'] = f"attendu {nb_plateaux}, trouve {campagne_nb_plateaux}"
                             elif campagne_nb_plateaux != len(campagne_liste_plateaux):
                                 self._logger.error(f"{self._nom_etape} '{nom_niveau}' Plateaux absents : {campagne_nb_plateaux - len(campagne_liste_plateaux)}")
+                                if nom_niveau not in audit_campagne:
+                                    audit_campagne[nom_niveau] = {}
+                                audit_campagne[nom_niveau]['nb_plateaux'] = f"Plateaux absents : {campagne_nb_plateaux - len(campagne_liste_plateaux)}"
                         elif indice_plateau < len(campagne_liste_plateaux):
                             plateau = campagne_liste_plateaux[indice_plateau]
                             # Vérifier la difficulté et le gameplay
                             campagne_gameplay = plateau.get("gameplay", "INCONNU")
                             if campagne_gameplay != gameplay:
                                 self._logger.error(f"{self._nom_etape} '{nom_niveau}-Plateau {indice_plateau}' Ecart 'gameplay' : {campagne_gameplay} (attendu {gameplay})")
+                                if nom_niveau not in audit_campagne:
+                                    audit_campagne[nom_niveau] = {}
+                                if indice_plateau not in audit_campagne[nom_niveau]:
+                                    audit_campagne[nom_niveau][indice_plateau] = {}
+                                audit_campagne[nom_niveau][indice_plateau]['gameplay'] = f"{campagne_gameplay} (attendu {gameplay})"
 
                             campagne_difficulte = int(plateau.get("difficulte", 0))
                             if campagne_difficulte < difficulte_min or campagne_difficulte > difficulte_max:
                                 self._logger.error(f"{self._nom_etape} '{nom_niveau}-Plateau {indice_plateau}' Ecart 'difficulte': [{campagne_difficulte}] (attendu [{difficulte_min}-{difficulte_max}])")
+                                if nom_niveau not in audit_campagne:
+                                    audit_campagne[nom_niveau] = {}
+                                if indice_plateau not in audit_campagne[nom_niveau]:
+                                    audit_campagne[nom_niveau][indice_plateau] = {}
+                                audit_campagne[nom_niveau][indice_plateau]['difficulte'] = f"{campagne_difficulte} (attendu [{difficulte_min}-{difficulte_max}])"
         self._chrono.pause()
         self._logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
         export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
