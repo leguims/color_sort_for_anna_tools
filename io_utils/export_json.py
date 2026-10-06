@@ -283,6 +283,8 @@ Retourne True si l'export a ete realise"""
         except json.decoder.JSONDecodeError as e:
             print(f"{self.now()} JSON.importer() JSONDecodeError '{self._chemin_court_str}'")
             print(f"JSONDecodeError : '{e}'")
+            # TODO : effacer le fichier.
+            print(f"{self.now()} JSON.importer() Effacer le fichier JSON corrompu '{self._chemin_court_str}'")
             return {}
         except OSError as e:
             print(f"{self.now()} JSON.importer() OSError sur json.load '{self._chemin_court_str}'")

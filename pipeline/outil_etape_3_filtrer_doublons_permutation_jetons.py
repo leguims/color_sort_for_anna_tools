@@ -119,12 +119,13 @@ class FiltrerLesPlateaux:
 
 if __name__ == "__main__":
     NOM_TACHE = 'filtrer_doublons_permutation_jetons'
-    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
+    NOM_DEPOT = 'color_sort_for_anna_tools'
+    if Path().parent.resolve().name == NOM_DEPOT:
         # DEBUG
         FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
         FICHIER_ANALYSE = Path('Pipelines') / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
         FICHIER_FILTRE = Path('Pipelines') / 'pipeline_3_filtre_doublons_permutation_jetons'
-    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
+    elif Path().parent.resolve().name == (Path(NOM_DEPOT) / 'sources' / 'pipeline').name:
         FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
         FICHIER_ANALYSE = Path('..') / '..' / 'Pipelines' / 'pipeline_2_filtre_plateaux_invalides_ou_ininteressants'
         FICHIER_FILTRE = Path('..') / '..' / 'Pipelines' / 'pipeline_3_filtre_doublons_permutation_jetons'

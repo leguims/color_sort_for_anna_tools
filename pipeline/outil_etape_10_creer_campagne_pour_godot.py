@@ -209,7 +209,7 @@ class CreerLaCampagnePourGodot:
         self._chrono.pause()
         self._logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
         export_godot_json = ExportJSON(delai=60, longueur=100, nom_plateau='',
-                                       nom_export=self._fichier_campagne+'_audit_'+campagne_godot["nom"].replace(" ", "_"),
+                                       nom_export=self._fichier_campagne+'_'+campagne_godot["nom"].replace(" ", "_")+'_audit',
                                        repertoire=self._repertoire_solution)
         export_godot_json.effacer()
         export_godot_json.forcer_export(audit_campagne)
@@ -218,11 +218,12 @@ class CreerLaCampagnePourGodot:
 
 if __name__ == "__main__":
     NOM_ETAPE = 'creer_campagne_pour_godot'
-    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
+    NOM_DEPOT = 'color_sort_for_anna_tools'
+    if Path().parent.resolve().name == NOM_DEPOT:
         # DEBUG
         FICHIER_JOURNAL = Path('logs') / f'{NOM_ETAPE}.log'
         FICHIER_SOLUTION = Path('Pipelines') / 'pipeline_7_solutions'
-    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
+    elif Path().parent.resolve().name == (Path(NOM_DEPOT) / 'sources' / 'pipeline').name:
         FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_ETAPE}.log'
         FICHIER_SOLUTION = Path('..') / '..' / 'Pipelines' / 'pipeline_7_solutions'
     else:
@@ -242,5 +243,5 @@ if __name__ == "__main__":
         nom_etape=NOM_ETAPE,
         fichier_journal=FICHIER_JOURNAL,
     )
-    # solutions_godot.exporter_campagne_pour_godot()
+    solutions_godot.exporter_campagne_pour_godot()
     solutions_godot.auditer_campagne_pour_godot()

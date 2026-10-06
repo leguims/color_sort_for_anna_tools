@@ -225,11 +225,12 @@ class OutilComplet:
 
 if __name__ == "__main__":
     NOM_TACHE = 'outil_complet'
-    if Path().parent.resolve().name == 'color_sort_for_anna_tools':
+    NOM_DEPOT = 'color_sort_for_anna_tools'
+    if Path().parent.resolve().name == NOM_DEPOT:
         # DEBUG
         FICHIER_JOURNAL = Path('logs') / f'{NOM_TACHE}.log'
         REPERTOIRE_PIPELINE = Path('Pipelines')
-    elif Path().parent.resolve().name == (Path('color_sort_for_anna_tools') / 'sources' / 'pipeline').name:
+    elif Path().parent.resolve().name == (Path(NOM_DEPOT) / 'sources' / 'pipeline').name:
         FICHIER_JOURNAL = Path('..') / '..' / 'logs' / f'{NOM_TACHE}.log'
         REPERTOIRE_PIPELINE = Path('..') / '..' / 'Pipelines'
     else:

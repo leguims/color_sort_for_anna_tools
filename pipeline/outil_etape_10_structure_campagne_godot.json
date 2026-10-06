@@ -1,5 +1,5 @@
 {
-    "nom": "Campagne 1",
+    "nom": "V1.0.0-Campagne 1",
     "description": "Première campagne de la série",
     "nb_niveaux": 10,
     "nb_plateaux": 100,
@@ -160,17 +160,17 @@
                 {"difficulte": {"min": 85, "max": 90}, "gameplay": "QUI_PERD_GAGNE"},
                 {"difficulte": {"min": 85, "max": 90}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 85, "max": 90}, "gameplay": "CLASSIQUE"},
-                {"difficulte": {"min": 85, "max": 90}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 85, "max": 90}, "gameplay": "QUI_PERD_GAGNE"},
-                {"difficulte": {"min": 90, "max": 95}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 85, "max": 90}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 90, "max": 95}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 90, "max": 95}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 90, "max": 95}, "gameplay": "QUI_PERD_GAGNE"},
                 {"difficulte": {"min": 90, "max": 95}, "gameplay": "CLASSIQUE"},
-                {"difficulte": {"min": 90, "max": 95}, "gameplay": "QUI_PERD_GAGNE"},
+                {"difficulte": {"min": 90, "max": 95}, "gameplay": "CLASSIQUE"},
+                {"difficulte": {"min": 95, "max": 100}, "gameplay": "QUI_PERD_GAGNE"},
                 {"difficulte": {"min": 95, "max": 100}, "gameplay": "QUI_PERD_GAGNE"},
                 {"difficulte": {"min": 95, "max": 100}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 95, "max": 100}, "gameplay": "QUI_PERD_GAGNE"},
-                {"difficulte": {"min": 95, "max": 100}, "gameplay": "CLASSIQUE"},
                 {"difficulte": {"min": 95, "max": 100}, "gameplay": "QUI_PERD_GAGNE"}
             ]
         }
