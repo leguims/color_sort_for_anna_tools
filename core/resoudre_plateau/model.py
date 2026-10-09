@@ -38,6 +38,13 @@ class ResoudrePlateau:
         from .io import to_dict
         return to_dict(self)
 
+    def difficulte(self, gameplay : str) -> int:
+        if gameplay == "CLASSIQUE":
+            return self.difficulte_classique
+        if gameplay == "QUI_PERD_GAGNE":
+            return self.difficulte_qui_perd_gagne
+        return 0
+
     @property
     def difficulte_classique(self) -> int:
         from .heuristics import difficulte_classique
@@ -47,6 +54,13 @@ class ResoudrePlateau:
     def difficulte_qui_perd_gagne(self) -> int:
         from .heuristics import difficulte_qui_perd_gagne
         return difficulte_qui_perd_gagne(self)
+
+    def longueur_solution(self, gameplay : str) -> int:
+        if gameplay == "CLASSIQUE":
+            return self.longueur_solution_classique
+        if gameplay == "QUI_PERD_GAGNE":
+            return self.longueur_solution_qui_perd_gagne
+        return 0
 
     @property
     def longueur_solution_classique(self) -> int:
@@ -59,6 +73,13 @@ class ResoudrePlateau:
         if not self._dico_des_longueurs_de_blocages:
             return 0
         return min([int(k) for k in self._dico_des_longueurs_de_blocages.keys()])
+
+    def nb_solution(self, gameplay : str) -> int:
+        if gameplay == "CLASSIQUE":
+            return self.nb_solution_classique
+        if gameplay == "QUI_PERD_GAGNE":
+            return self.nb_solution_qui_perd_gagne
+        return 0
 
     @property
     def nb_solution_classique(self) -> int:

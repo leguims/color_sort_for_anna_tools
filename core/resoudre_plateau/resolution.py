@@ -46,7 +46,7 @@ def backtracking(resoudre_plateau: ResoudrePlateau, plateau: Plateau = None, lis
         liste_des_choix_courants = []
         profondeur_recursion = -1
     
-    profondeur_recursion += 1
+    profondeur_recursion += 1    # Longueur du chemin courant
     if profondeur_recursion > 50:
         raise RuntimeError("Appels recursifs infinis !")
     

@@ -29,7 +29,7 @@ def choix_est_valide(plateau: Plateau, choix) -> bool:
 
 def ensemble_des_plateaux_gagnants(resoudre_plateau: ResoudrePlateau) -> list:
     "Liste tous les plateaux gagnants"
-    if resoudre_plateau._liste_plateaux_gagnants is None:
+    if not resoudre_plateau._liste_plateaux_gagnants:
         nb_c = resoudre_plateau._plateau_initial.nb_colonnes
         nb_l = resoudre_plateau._plateau_initial.nb_lignes
         nb_cv = resoudre_plateau._plateau_initial.nb_colonnes_vides
