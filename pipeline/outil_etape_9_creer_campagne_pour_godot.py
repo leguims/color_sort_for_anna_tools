@@ -20,13 +20,15 @@ class CreerLaCampagnePourGodot:
     """Parcourt 'Solutions_classees.json' et crée un fichier de campagne pour Godot"""
     def __init__(self,
                 repertoire_solution,
-                fichier_solution,
+                fichier_solution_classique,
+                fichier_solution_qui_perd_gagne,
                 fichier_campagne,
                 fichier_configuration_campagne,
                 nom_etape,
                 fichier_journal):
         self._repertoire_solution = repertoire_solution
-        self._fichier_solution = fichier_solution
+        self._fichier_solution_classique = fichier_solution_classique
+        self._fichier_solution_qui_perd_gagne = fichier_solution_qui_perd_gagne
         self._fichier_campagne = fichier_campagne
         self._fichier_configuration_campagne = fichier_configuration_campagne
         self._nom_etape = nom_etape
@@ -46,12 +48,23 @@ class CreerLaCampagnePourGodot:
     def exporter_campagne_pour_godot(self):
         self._logger.info(f"DEBUT {self._nom_etape}")
 
-        solutions_godot_json = ExportJSON(
+        # Ouvrir tous les fichiers de solutions par GAMEPLAY
+        # outil_etape_8_filtrer_les_solutions_CLASSIQUE_pour_godot.py
+        solutions_CLASSIQUE_godot_json = ExportJSON(
             delai=60, longueur=100, nom_plateau='',
-            nom_export=self._fichier_solution,
+            nom_export=self._fichier_solution_classique,
             repertoire=self._repertoire_solution)
-        solutions_godot = solutions_godot_json.importer()
-        liste_difficulte_godot = solutions_godot.get('liste difficulte des plateaux', {})
+        solutions_CLASSIQUE_godot = solutions_CLASSIQUE_godot_json.importer()
+        liste_difficulte_CLASSIQUE_godot = solutions_CLASSIQUE_godot.get('liste difficulte des plateaux', {})
+
+        # outil_etape_8_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot.py
+        solutions_QUI_PERD_GAGNE_godot_json = ExportJSON(
+            delai=60, longueur=100, nom_plateau='',
+            nom_export=self._fichier_solution_qui_perd_gagne,
+            repertoire=self._repertoire_solution)
+        solutions_QUI_PERD_GAGNE_godot = solutions_QUI_PERD_GAGNE_godot_json.importer()
+        liste_difficulte_QUI_PERD_GAGNE_godot = solutions_QUI_PERD_GAGNE_godot.get('liste difficulte des plateaux', {})
+
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
         configuration_campagne_godot_json = ExportJSON(
@@ -83,10 +96,23 @@ class CreerLaCampagnePourGodot:
             # Selectionner les plateaux pour ce niveau
             plateaux_godot = []
             plateaux_doublons = []
+            solutions_godot = {}
+            liste_difficulte_godot = {}
             for conf_plateau in conf_niveau.get("plateaux", []):
                 difficulte_min = conf_plateau.get("difficulte", {}).get("min", 1)
                 difficulte_max = conf_plateau.get("difficulte", {}).get("max", 99)
+
+                # Selon le gameplay, consulter le bon fichiers de solutions
                 gameplay = conf_plateau.get("gameplay", "CLASSIQUE")
+                if gameplay == "CLASSIQUE":
+                    solutions_godot = solutions_CLASSIQUE_godot
+                    liste_difficulte_godot = liste_difficulte_CLASSIQUE_godot
+                elif gameplay == "QUI_PERD_GAGNE":
+                    solutions_godot = solutions_QUI_PERD_GAGNE_godot
+                    liste_difficulte_godot = liste_difficulte_QUI_PERD_GAGNE_godot
+                else:
+                    raise ValueError(f"Gameplay inconnu : {gameplay}")
+
                 self._logger.info(f"{self._nom_etape} Recherche : difficulte [{difficulte_min}-{difficulte_max}], gameplay {gameplay}")
                 # Parcourir les solutions pour trouver l'élu (choix de difficulté aleatoire)
                 plateau_godot = None
@@ -96,23 +122,28 @@ class CreerLaCampagnePourGodot:
                     for difficulte in random.sample(range(difficulte_min, difficulte_max + 1),
                                         k=difficulte_max-difficulte_min+1):
                         difficulte_str = str(difficulte).zfill(3)
+                        self._logger.info(f"{self._nom_etape}    Recherche : difficulte {difficulte_str}")
                         if difficulte_str in liste_difficulte_godot:
                             # Selectionner un plateau aleatoire
                             plateau_godot = random.choice(solutions_godot['liste difficulte des plateaux'][difficulte_str])
-                            if plateau_godot.get("gameplay") == gameplay:
+                            self._logger.info(f"{self._nom_etape}    Recherche : plateau {plateau_godot}")
+                            # Verifier les doublons
+                            plateau_tuple = (plateau_godot.get("nom"), plateau_godot.get("gameplay"))
+                            if plateau_tuple in plateaux_vus:
+                                plateaux_doublons.append(plateau_godot)
+                                # Poursuivre la recherche
+                                self._logger.info(f"{self._nom_etape}    Recherche : plateau en doublon {plateau_godot.get('nom')}")
+                            else:
+                                # Le plateau est nouveau. Youpi !
                                 plateaux_godot.append(plateau_godot)
-                                self._logger.info(f"{self._nom_etape} Trouve : difficulte= {plateau_godot.get('difficulte')}, gameplay {plateau_godot.get('gameplay')}")
-                                # Verifier les doublons
-                                plateau_tuple = (plateau_godot.get("nom"), plateau_godot.get("gameplay"))
-                                if plateau_tuple in plateaux_vus:
-                                    plateaux_doublons.append(plateau_godot)
-                                else:
-                                    plateaux_vus.add(plateau_tuple)
+                                self._logger.info(f"{self._nom_etape}    Trouve : difficulte= {plateau_godot.get('difficulte')}, gameplay {plateau_godot.get('gameplay')}")
+                                plateaux_vus.add(plateau_tuple)
                                 # Sortir de l'itération "difficulté"
                                 break
-                            # Tenter une autre difficulté
-                            plateau_godot = None
-                            continue
+                        else:
+                            self._logger.info(f"{self._nom_etape}    Recherche : difficulte {difficulte_str} absente")
+                        # Tenter une autre difficulté
+                        plateau_godot = None
                     if not plateau_godot:
                         cpt_iteration += 1
                         if cpt_iteration >= 100:
@@ -237,11 +268,12 @@ if __name__ == "__main__":
 
     solutions_godot = CreerLaCampagnePourGodot(
         repertoire_solution=str(FICHIER_SOLUTION),
-        fichier_solution='9_solutions_godot',
-        fichier_campagne='10_campagne_godot',
-        fichier_configuration_campagne='outil_etape_10_structure_campagne_godot',
+        fichier_solution_classique='8_filtrer_les_solutions_CLASSIQUE_pour_godot',
+        fichier_solution_qui_perd_gagne='8_filtrer_les_solutions_QUI_PERD_GAGNE_pour_godot',
+        fichier_campagne='9_campagne_godot',
+        fichier_configuration_campagne='outil_etape_9_structure_campagne_godot',
         nom_etape=NOM_ETAPE,
-        fichier_journal=FICHIER_JOURNAL,
+        fichier_journal=FICHIER_JOURNAL
     )
     solutions_godot.exporter_campagne_pour_godot()
     solutions_godot.auditer_campagne_pour_godot()

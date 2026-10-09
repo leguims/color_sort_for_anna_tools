@@ -113,10 +113,7 @@ class FiltrerLesSolutionsClassique:
                 if deja_fait:
                     # Plateau connu ==> Sortir de la recherche qui a deja été réalisée
                     break
-
                 nb_plateaux_traites += 1
-                if verifier_deja_fait:
-                    verifier_deja_fait = False
                 self._chrono.pause()
             self._logger.info(f"Traitement {self._nom_tache} en {self._chrono} secondes")
             if deja_fait:
@@ -129,7 +126,7 @@ class FiltrerLesSolutionsClassique:
         else:
             self._logger.info(" - Ce lot de plateaux n'est pas encore termine, pas de classement de solutions.")
 
-    def classer_et_exporter_la_solution_pour_godot(self, verifier_deja_fait = False):
+    def classer_et_exporter_la_solution_pour_godot(self, verifier_deja_fait = True):
         # self._logger.info(self._plateau.plateau_ligne_texte_universel)
         deja_fait = False
         plateau_ligne_texte_universel = self._plateau.plateau_ligne_texte_universel
@@ -145,24 +142,24 @@ class FiltrerLesSolutionsClassique:
             and lg_solution >= self._nb_coups_min \
             and nb_chemins >= self._nb_chemins_min:
 
-            self._logger.info(f"{self._plateau.plateau_ligne_texte_universel} ACCEPTE : difficulte={difficulte}, lg_solution={lg_solution}, nb_chemins={nb_chemins}.")
-
             dict_difficulte = self._solutions_classees["liste difficulte des plateaux"]
             if difficulte_json_key_str not in dict_difficulte:
                 dict_difficulte[difficulte_json_key_str] = []
-            if plateau_ligne_texte_universel not in dict_difficulte[difficulte_json_key_str]:
-                # Plateau au format GODOT
-                plateau_classique = {
-                    "nom": plateau_ligne_texte_universel,
-                    "difficulte": difficulte,
-                    "gameplay": self._gameplay
-                    }
-                dict_difficulte[difficulte_json_key_str].append(plateau_classique)
+            # Plateau au format GODOT
+            plateau_export_godot = {
+                "nom": plateau_ligne_texte_universel,
+                "difficulte": difficulte,
+                "gameplay": self._gameplay
+                }
+            if plateau_export_godot not in dict_difficulte[difficulte_json_key_str]:
+                dict_difficulte[difficulte_json_key_str].append(plateau_export_godot)
+                self._logger.info(f"'{self._plateau.plateau_ligne_texte_universel}' ACCEPTE : difficulte={difficulte}, lg_solution={lg_solution}, nb_chemins={nb_chemins}.")
             elif verifier_deja_fait:
                 # Plateau connu ==> Sortir de la recherche qui a deja été réalisée
                 deja_fait = True
+                self._logger.info(f"'{self._plateau.plateau_ligne_texte_universel}' deja vu.")
         else:
-            self._logger.info(f"{self._plateau.plateau_ligne_texte_universel} REFUSE : difficulte={difficulte}, lg_solution={lg_solution}, nb_chemins={nb_chemins}.")
+            self._logger.info(f"'{self._plateau.plateau_ligne_texte_universel}' REFUSE : difficulte={difficulte}, lg_solution={lg_solution}, nb_chemins={nb_chemins}.")
         return deja_fait
 
     # Copie de 'LotDePlateaux.arret_des_enregistrements_de_difficultes_plateaux()'
