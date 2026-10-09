@@ -58,7 +58,7 @@ class ChercherDesSolutions:
     def creer_repertoire_solution(self):
         # Crée le repertoire pour la synthèse des solutions
         if not Path(self._repertoire_solution).exists():
-            self._repertoire_solution.mkdir(parents=True, exist_ok=True)
+            Path(self._repertoire_solution).mkdir(parents=True, exist_ok=True)
 
     def chercher_des_solutions(self, colonnes, lignes):
         # Configurer le logger
