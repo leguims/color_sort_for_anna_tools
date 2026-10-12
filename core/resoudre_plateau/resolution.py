@@ -10,7 +10,7 @@ def enregistrer_solution(resoudre_plateau: ResoudrePlateau, liste_des_choix_cour
     "Enregistre le parcours de la solution pour la restituer"
     len_solution_courante = len(liste_des_choix_courants)
     # Si elle est plus courte, enregistrer la liste des choix courant comme la solution
-    if resoudre_plateau._solution is None or len_solution_courante < len(resoudre_plateau._solution):
+    if not resoudre_plateau._solution or len_solution_courante < len(resoudre_plateau._solution):
         resoudre_plateau._solution = copy.deepcopy(liste_des_choix_courants)
 
     # Mettre a jour les statistiques

@@ -5,7 +5,7 @@ def difficulte_classique(resoudre_plateau: ResoudrePlateau) -> int:
     La difficulté, c'est le rapport:
     - Le nombre de blocages
     - Le nombre de solutions"""
-    if resoudre_plateau._solution is None:
+    if not resoudre_plateau._solution:
         return 0
     # -1 : Remettre à jour ; 0 : remettre à jour par précaution
     if resoudre_plateau._difficulte_classique <= 0:
@@ -24,7 +24,7 @@ def difficulte_qui_perd_gagne(resoudre_plateau: ResoudrePlateau) -> int:
     La difficulté, c'est le rapport:
     - Le nombre de solutions
     - Le nombre de blocages"""
-    if resoudre_plateau._solution is None:
+    if not resoudre_plateau._solution:
         return 0
     # -1 : Remettre à jour ; 0 : remettre à jour par précaution
     if resoudre_plateau._difficulte_qui_perd_gagne <= 0:

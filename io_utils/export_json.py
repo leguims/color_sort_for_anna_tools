@@ -12,7 +12,7 @@ class ExportJSON:
         self._longueur_enregistrement = longueur
         self._chemin_enregistrement = (Path(repertoire) / nom_plateau / (nom_export+'.json')).resolve()
         self._chemin_enregistrement_str = str(self._chemin_enregistrement)
-        print(f"{self.now()} ExportJSON : '{ self._chemin_enregistrement_str}'")
+        # print(f"{self.now()} ExportJSON : '{ self._chemin_enregistrement_str}'")
         self._log_fichier_absent = True
         self._log_ouverture_fichier = True
         # Pour les logs
@@ -283,8 +283,10 @@ Retourne True si l'export a ete realise"""
         except json.decoder.JSONDecodeError as e:
             print(f"{self.now()} JSON.importer() JSONDecodeError '{self._chemin_court_str}'")
             print(f"JSONDecodeError : '{e}'")
-            # TODO : effacer le fichier.
+            # Effacer le fichier JSON indecodable (corrompu).
             print(f"{self.now()} JSON.importer() Effacer le fichier JSON corrompu '{self._chemin_court_str}'")
+            self._chemin_enregistrement.unlink(missing_ok=True)
+            print(f"{self.now()} JSON.importer() Fichier JSON corrompu efface")
             return {}
         except OSError as e:
             print(f"{self.now()} JSON.importer() OSError sur json.load '{self._chemin_court_str}'")
