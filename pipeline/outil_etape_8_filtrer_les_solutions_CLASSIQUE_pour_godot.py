@@ -153,13 +153,14 @@ class FiltrerLesSolutionsClassique:
                 }
             if plateau_export_godot not in dict_difficulte[difficulte_json_key_str]:
                 dict_difficulte[difficulte_json_key_str].append(plateau_export_godot)
-                self._logger.info(f"'{self._plateau.plateau_ligne_texte_universel}' ACCEPTE : difficulte={difficulte}, lg_solution={lg_solution}, nb_chemins={nb_chemins}.")
+                # self._logger.info(f"'{self._plateau.plateau_ligne_texte_universel}' ACCEPTE : difficulte={difficulte}, lg_solution={lg_solution}, nb_chemins={nb_chemins}.")
             elif verifier_deja_fait:
                 # Plateau connu ==> Sortir de la recherche qui a deja été réalisée
                 deja_fait = True
                 self._logger.info(f"'{self._plateau.plateau_ligne_texte_universel}' deja vu.")
         else:
-            self._logger.info(f"'{self._plateau.plateau_ligne_texte_universel}' REFUSE : difficulte={difficulte}, lg_solution={lg_solution}, nb_chemins={nb_chemins}.")
+            # self._logger.info(f"'{self._plateau.plateau_ligne_texte_universel}' REFUSE : difficulte={difficulte}, lg_solution={lg_solution}, nb_chemins={nb_chemins}.")
+            pass
         return deja_fait
 
     # Copie de 'LotDePlateaux.arret_des_enregistrements_de_difficultes_plateaux()'

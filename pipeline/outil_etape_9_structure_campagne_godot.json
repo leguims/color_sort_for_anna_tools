@@ -1,6 +1,6 @@
 {
     "nom": "Campagne 2",
-    "description": "Première campagne de la série",
+    "description": "Deuxième campagne de la série",
     "nb_niveaux": 10,
     "nb_plateaux": 100,
     "niveaux": [
