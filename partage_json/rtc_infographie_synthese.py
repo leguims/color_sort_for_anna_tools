@@ -72,10 +72,7 @@ def dessiner_plateau_img(nom_plateau, cell_size=18):
     img = Image.new("RGBA", (img_w, img_h), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
-    try:
-        font = ImageFont.truetype("arial.ttf", int(cell_size * 0.65))
-    except Exception:
-        font = ImageFont.load_default()
+    font = charger_font_emoji(int(cell_size * 0.65))
 
     for col_idx, pile in enumerate(piles):
         x = 3 + col_idx * (cell_size + 3)
@@ -112,6 +109,20 @@ def extraire_numero_niveau(nom_niveau):
 # ==========================================
 # GENERATION DE L'INFOGRAPHIE GLOBALE
 # ==========================================
+def charger_font_emoji(size : int):
+    # Tentative de chargement d'une police supportant les emojis
+    try:
+        # Sous Windows (Segoe UI Emoji)
+        font_emoji = ImageFont.truetype("seguiemj.ttf", size)
+    except Exception:
+        try:
+            # Sous Linux/macOS (Apple Color Emoji ou Noto Color Emoji)
+            font_emoji = ImageFont.truetype("NotoColorEmoji.ttf", size)
+        except Exception:
+            font_emoji = ImageFont.load_default(size) # Repli sur la police standard si aucune police emoji n'est trouvée
+    return font_emoji
+
+
 def generer_infographie():
     fichiers = glob.glob("Synthese_*.json")
     if not fichiers:
@@ -144,7 +155,7 @@ def generer_infographie():
         print("❌ Aucun plateau trouvé dans le fichier JSON.")
         return
 
-    # Configuration de la grille (carte légèrement plus haute pour bien tout afficher)
+    # Configuration de la grille
     cards_per_row = 3
     card_w = 420
     card_h = 335
@@ -160,15 +171,12 @@ def generer_infographie():
     canvas = Image.new("RGB", (total_w, total_h), (245, 247, 250))
     draw = ImageDraw.Draw(canvas)
 
-    try:
-        font_title = ImageFont.truetype("arial.ttf", 26)
-        font_sub = ImageFont.truetype("arial.ttf", 15)
-        font_bold = ImageFont.truetype("arialbd.ttf", 13)
-        font_norm = ImageFont.truetype("arial.ttf", 12)
-        font_small = ImageFont.truetype("arial.ttf", 10)
-        font_tiny = ImageFont.truetype("arial.ttf", 10)
-    except Exception:
-        font_title = font_sub = font_bold = font_norm = font_small = font_tiny = ImageFont.load_default()
+    font_title = charger_font_emoji(26)
+    font_sub = charger_font_emoji(15)
+    font_bold = charger_font_emoji(13)
+    font_norm = charger_font_emoji(12)
+    font_small = charger_font_emoji(10)
+    font_tiny = charger_font_emoji(10)
 
     # En-tête principal
     draw.rectangle([0, 0, total_w, header_h], fill=(30, 41, 59))
@@ -271,7 +279,8 @@ def generer_infographie():
             if ligne_courante:
                 draw.text((sx, ligne_y), ligne_courante, fill=(100, 116, 139), font=font_tiny)
 
-    nom_sortie = f"Infographie_{nom_campagne}.png"
+    # Nom du fichier de sortie avec le préfixe "rtc_" demandé
+    nom_sortie = f"rtc_Infographie_{nom_campagne}.png"
     
     try:
         canvas.save(nom_sortie)

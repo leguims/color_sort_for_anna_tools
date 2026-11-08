@@ -4,3 +4,6 @@ __pycache__/
 
 # Perso
 /logs/
+partage_json/*.json
+partage_json/*/*.json
+partage_json/old_QR
