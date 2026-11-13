@@ -4,7 +4,8 @@ import json
 import hmac
 import hashlib
 
-MODELE_SYNTHESE = "Synthese.json"
+MODELE_SYNTHESE = "../Synthese.json"
+# DEBUG # MODELE_SYNTHESE = "partage_json/Synthese.json"
 # Clé secrète au format texte
 CLE_SIGNATURE = "b[zr8Jel$PDq'y;!lh%X_:eu1T%FQQ6,&><mNKau"
 
@@ -24,6 +25,7 @@ def lancer_synthese():
         return
 
     fichiers_joueurs = glob.glob("rtc_*.json")
+    # DEBUG # fichiers_joueurs = glob.glob("partage_json/1ESSAI/rtc_*.json")
     
     if not fichiers_joueurs:
         print("❌ Aucun fichier joueur 'rtc_*.json' trouvé dans le répertoire.")
@@ -62,8 +64,8 @@ def lancer_synthese():
             continue
             
         nom_joueur = donnees_joueur.get("joueur")
-        campagne_joueur = donnees_joueur.get("campagne", {})
-        niveaux_joueur = campagne_joueur.get("niveaux", [])
+        campagne = donnees_joueur.get("campagne", {})
+        niveaux = campagne.get("niveaux", [])
         
         if not nom_joueur:
             print(f"⚠️ Nom de joueur introuvable dans {chemin_joueur}, ignoré.")
@@ -71,26 +73,33 @@ def lancer_synthese():
             
         synthese_niveaux = synthese_data.get("campagne", {}).get("niveaux", [])
         
-        for niv_joueur in niveaux_joueur:
-            plateaux_joueur = niv_joueur.get("plateaux", [])
+        for niveau in niveaux:
+            plateaux = niveau.get("plateaux", [])
             
-            for plat_joueur in plateaux_joueur:
-                nom_plateau = plat_joueur.get("nom")
-                statut = plat_joueur.get("statut", "").strip().lower()
-                duree = float(plat_joueur.get("duree", 0.0))
+            for plateau in plateaux:
+                nom_plateau = plateau.get("nom")
+                gameplay_plateau = plateau.get("gameplay")
+                statut = plateau.get("statut", "").strip().lower()
+                duree = float(plateau.get("duree", 0.0))
                 
-                if statut in ["réussi", "reussi"] and nom_plateau:
+                if statut in ["reussi", "passé", "abandonné"] and nom_plateau:
                     plateau_trouve = False
-                    for niv_synth in synthese_niveaux:
-                        for plat_synth in niv_synth.get("plateaux", []):
-                            if plat_synth.get("nom") == nom_plateau:
-                                ancienne_duree = plat_synth.get(nom_joueur, 0.0)
+                    # L'enregistrer dans la synthese
+                    for niveau_synthese in synthese_niveaux:
+                        for plateau_synthese in niveau_synthese.get("plateaux", []):
+                            if plateau_synthese.get("nom") == nom_plateau \
+                                and plateau_synthese.get("gameplay") == gameplay_plateau:
+                                ancienne_duree = plateau_synthese.get(nom_joueur, 0.0)
                                 nouvelle_duree = ancienne_duree + duree
-                                plat_synth[nom_joueur] = nouvelle_duree
+                                plateau_synthese[nom_joueur] = nouvelle_duree
                                 
-                                if nom_plateau not in suivi_plateaux_durees:
-                                    suivi_plateaux_durees[nom_plateau] = []
-                                suivi_plateaux_durees[nom_plateau].append(nouvelle_duree)
+                                # Derniere iteration du plateau
+                                if statut in ["reussi", "passé"]:
+                                    if gameplay_plateau not in suivi_plateaux_durees:
+                                        suivi_plateaux_durees[gameplay_plateau] = {}
+                                    if nom_plateau not in suivi_plateaux_durees[gameplay_plateau]:
+                                        suivi_plateaux_durees[gameplay_plateau][nom_plateau] = []
+                                    suivi_plateaux_durees[gameplay_plateau][nom_plateau].append(nouvelle_duree)
                                 
                                 plateau_trouve = True
                                 break
@@ -98,11 +107,13 @@ def lancer_synthese():
                             break
 
     synthese_niveaux = synthese_data.get("campagne", {}).get("niveaux", [])
-    for niv_synth in synthese_niveaux:
-        for plat_synth in niv_synth.get("plateaux", []):
-            nom_plateau = plat_synth.get("nom")
-            if nom_plateau in suivi_plateaux_durees:
-                liste_durees = suivi_plateaux_durees[nom_plateau]
+    for niveau_synthese in synthese_niveaux:
+        for plateau_synthese in niveau_synthese.get("plateaux", []):
+            nom_plateau = plateau_synthese.get("nom")
+            gameplay_plateau = plateau_synthese.get("gameplay")
+            if gameplay_plateau in suivi_plateaux_durees \
+                and nom_plateau in suivi_plateaux_durees[gameplay_plateau]:
+                liste_durees = suivi_plateaux_durees[gameplay_plateau][nom_plateau]
                 if liste_durees:
                     liste_triee = sorted(liste_durees)
                     n = len(liste_triee)
@@ -111,7 +122,7 @@ def lancer_synthese():
                     else:
                         mediane_val = (liste_triee[(n // 2) - 1] + liste_triee[n // 2]) / 2.0
 
-                    plat_synth["duree"] = {
+                    plateau_synthese["duree"] = {
                         "min": round(min(liste_durees), 2),
                         "mediane": round(mediane_val, 2),
                         "moyenne": round(sum(liste_durees) / len(liste_durees), 2),
