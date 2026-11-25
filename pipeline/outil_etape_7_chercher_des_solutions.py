@@ -29,7 +29,8 @@ class ChercherDesSolutions:
                 memoire_max = 5_000_000,
                 profiler_le_code = False,
                 periode_scrutation_secondes = 30*60, # en secondes
-                periode_affichage = 1*60): # en secondes
+                periode_affichage = 1*60, # en secondes
+                forcer_recherche = False):
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
@@ -44,6 +45,7 @@ class ChercherDesSolutions:
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
         self._periode_affichage = periode_affichage
+        self._forcer_recherche = forcer_recherche
         self._chrono = Chrono()
         self._done = False
 
@@ -69,7 +71,10 @@ class ChercherDesSolutions:
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse,
                                         nb_plateaux_max = self._memoire_max)
-        if lot_de_plateaux.est_deja_termine:
+        lot_de_plateaux_leger = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
+                                        repertoire_export_json=self._repertoire_analyse,
+                                        nb_plateaux_max = self._memoire_max)
+        if self._forcer_recherche or lot_de_plateaux.est_deja_termine:
             self.creer_repertoire_solution()
             plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
 
@@ -81,27 +86,51 @@ class ChercherDesSolutions:
 
                 dernier_affichage  = datetime.datetime.now().timestamp() - self._periode_affichage
                 nb_solutions_a_trouver = lot_de_plateaux.nb_plateaux_valides
-                lot_de_plateaux.reset_solutions()
-                plateaux_valides_melanges = list(copy.deepcopy(lot_de_plateaux.plateaux_valides))
-                random.shuffle(plateaux_valides_melanges)
-                for plateau_ligne_texte_a_resoudre in plateaux_valides_melanges:
+                dernier_nb_solutions_a_trouver = nb_solutions_a_trouver
+
+                # lot_de_plateaux.reset_solutions() # TODO : utile ?
+                liste_plateaux_valides_melanges = list(copy.deepcopy(lot_de_plateaux.plateaux_valides))
+                # Pour alleger la memoire consommée : Effacer le pointeur sur la liste des plateaux
+                lot_de_plateaux = None
+                logger.info(f"Liberation de la memoire 1")
+                random.shuffle(liste_plateaux_valides_melanges)
+                # Pour alleger la memoire consommée : limiter les plateaux valides considérés
+                liste_plateaux_valides_melanges_court = list(copy.deepcopy(liste_plateaux_valides_melanges[0:5_000]))
+                liste_plateaux_valides_melanges = None
+                logger.info(f"Liberation de la memoire 2")
+
+                delta_nb_sol_total = 0
+                delta_temps_en_s_total = 0.
+                for plateau_ligne_texte_a_resoudre in liste_plateaux_valides_melanges_court:
                     plateau.clear()
                     plateau.plateau_ligne_texte = plateau_ligne_texte_a_resoudre
+
                     self._chrono.start()
                     resolution = ResoudrePlateau(plateau,
                                                 repertoire_solution=self._repertoire_solution)
+                    # Chercher la solution
                     resolution.backtracking()
+
+                    # Calculer les difficultés pour tous les gameplay
+                    for gameplay in ['CLASSIQUE', 'QUI_PERD_GAGNE']:
+                        resolution.difficulte(gameplay)
                     self._chrono.pause()
-                    lot_de_plateaux.incrementer_nb_solutions()
+                    lot_de_plateaux_leger.incrementer_nb_solutions()
                     
                     # Afficher si dernier affichage > 5mins
                     nb_solutions_a_trouver -= 1
                     if datetime.datetime.now().timestamp() - dernier_affichage > self._periode_affichage:
-                        logger.info(f"Il reste {nb_solutions_a_trouver} solutions a resoudre.")
-                        dernier_affichage  = datetime.datetime.now().timestamp()
+                        # Calcul estimation fin
+                        delta_nb_sol_total += dernier_nb_solutions_a_trouver - nb_solutions_a_trouver
+                        delta_temps_en_s_total += datetime.datetime.now().timestamp() - dernier_affichage
+                        vitesse_sol = delta_nb_sol_total / delta_temps_en_s_total
+                        estimation_fin_en_s = nb_solutions_a_trouver / vitesse_sol
+                        logger.info(f"solutions : Trouve={delta_nb_sol_total}, Reste={nb_solutions_a_trouver}, Fin={self.conversion_secondes_en_texte(estimation_fin_en_s)}")
+                        dernier_affichage = datetime.datetime.now().timestamp()
+                        dernier_nb_solutions_a_trouver = nb_solutions_a_trouver
                 logger.info(f"Traitement {self._nom_etape} en {self._chrono} secondes")
 
-                lot_de_plateaux.arret_des_enregistrements_de_difficultes_plateaux()
+                lot_de_plateaux_leger.arret_des_enregistrements_de_difficultes_plateaux()
                 self._done = True
             else:
                 self._done = False
@@ -110,6 +139,33 @@ class ChercherDesSolutions:
             self._done = False
             logger.info("Ce lot de plateaux n'est pas encore termine, pas de recherche de solution.")
         # logger.info(f"FIN {self._nom_etape}")
+
+    def conversion_secondes_en_texte(self, nb_secondes):
+        "Convertir des secondes en durée texte"
+        if nb_secondes < 0:
+            raise ValueError("seconds must be >= 0")
+
+        annees, reste = divmod(nb_secondes, 365*24*60*60)
+        mois, reste = divmod(reste, 30*24*60*60)
+        jours, reste = divmod(reste, 24*60*60)
+        heures, reste = divmod(reste, 60*60)
+        minutes, secondes = divmod(reste, 60)
+
+        parts = []
+        if annees:
+            return f"{int(annees)}a"
+        if mois:
+            return f"{int(mois)}m"
+        if jours:
+            return f"{int(jours)}j"
+        if heures:
+            return f"{int(heures)}h"
+        if minutes:
+            return f"{int(minutes)}min"
+        if secondes or not parts:
+            return f"{int(secondes)}s"
+
+        return "?"
 
     def chercher_en_boucle(self):
         logger = logging.getLogger(f"chercher_en_boucle.NOUVELLE-RECHERCHE")

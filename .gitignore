@@ -7,3 +7,5 @@ __pycache__/
 partage_json/*.json
 partage_json/*/*.json
 partage_json/old_QR
+partage_json/*.png
+partage_json/*/*.png

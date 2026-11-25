@@ -138,7 +138,6 @@ Retourne True si l'export a ete realise"""
 
                     print("full_lock_path:", full_lock_path)
                     print("CWD:", os.getcwd())
-                    print("to delete:", full_lock_path)
                     print("exists:", os.path.exists(full_lock_path))
                     print("isfile:", os.path.isfile(full_lock_path))
                     print("isdir:", os.path.isdir(full_lock_path))
@@ -172,7 +171,6 @@ Retourne True si l'export a ete realise"""
                         # Pour le debug de PermissionError/OSError
                         print("full_lock_path:", full_lock_path)
                         print("CWD:", os.getcwd())
-                        print("to delete:", full_lock_path)
                         print("exists:", os.path.exists(full_lock_path))
                         print("isfile:", os.path.isfile(full_lock_path))
                         print("isdir:", os.path.isdir(full_lock_path))
@@ -184,7 +182,8 @@ Retourne True si l'export a ete realise"""
                         print("errno:", getattr(last_error, "errno", None))
                         print("strerror:", getattr(last_error, "strerror", None))
 
-                        time.sleep(0.1)
+                        print("**** Petit temps calme ****")
+                        time.sleep(0.1 * (i+1))
                     if last_error:
                         raise last_error
 

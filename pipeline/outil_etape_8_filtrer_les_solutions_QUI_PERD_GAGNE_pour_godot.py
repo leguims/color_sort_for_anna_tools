@@ -61,7 +61,8 @@ if __name__ == "__main__":
         nb_chemins_min=10,
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL,
-        periode_scrutation_secondes = 1 * 60 * 60 # 1h
+        periode_scrutation_secondes = 1 * 60 * 60, # 1h
+        forcer_recherche = True
     )
     classer_solutions.chercher_en_sequence()
     # classer_solutions.afficher_enregistrer_synthese()

@@ -19,7 +19,7 @@ for /d %%D in (%repertoire_source%) do (
         echo ########## Traitement sur : %%~nxD
 
         REM Pas de solutions unitaires si elles sont en cours de resolution
-        set resolution_achevee=%OUTDIR%\pipeline_7_Plateaux_Difficulte-Archive_compressee-%%~nxD.7z
+        set resolution_achevee=%OUTDIR%\pipeline_6_fusion-Archive_compressee-%%~nxD.7z
         if exist "!resolution_achevee!" (
             set nom_cible_compressee=pipeline_7_solutions_Unitaires-Archive_compressee-%%~nxD.7z
             if not exist "%OUTDIR%\!nom_cible_compressee!" (

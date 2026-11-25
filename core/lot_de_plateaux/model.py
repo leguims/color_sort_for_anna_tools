@@ -137,10 +137,7 @@ Le chanmps nb_plateaux_max designe la memoire allouee pour optimiser la recherch
 
     @property
     def nb_plateaux_solutionnes(self) -> int:
-        "Nombre de plateaux valides"
-        if not self._import_plateaux:
-            from .io import importer_plateaux_fichier_json
-            importer_plateaux_fichier_json(self)
+        "Nombre de plateaux solutionnes"
         return self._nb_solutions
 
     @property

@@ -39,7 +39,8 @@ class FiltrerLesSolutionsClassique:
                 nom_tache,
                 fichier_journal,
                 profiler_le_code = False,
-                periode_scrutation_secondes = 30*60): # en secondes
+                periode_scrutation_secondes = 30*60, # en secondes
+                forcer_recherche = False):
         self._nb_colonnes = nb_colonnes
         self._nb_lignes = nb_lignes
         self._nb_colonnes_vides = nb_colonnes_vides
@@ -61,6 +62,7 @@ class FiltrerLesSolutionsClassique:
             self._fichier_journal.parent.mkdir(parents=True, exist_ok=True)
         self._profiler_le_code = profiler_le_code
         self._periode_scrutation_secondes = periode_scrutation_secondes
+        self._forcer_recherche = forcer_recherche
         self._chrono = Chrono()
         # Configurer le logger
         logging.basicConfig(filename=self._fichier_journal, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -77,7 +79,7 @@ class FiltrerLesSolutionsClassique:
         self._plateau = Plateau(colonnes, lignes, self._nb_colonnes_vides)
         lot_de_plateaux = LotDePlateaux((colonnes, lignes, self._nb_colonnes_vides),
                                         repertoire_export_json=self._repertoire_analyse)
-        if lot_de_plateaux.est_deja_termine:
+        if self._forcer_recherche or lot_de_plateaux.est_deja_termine:
             self._logger.info("Ce lot de plateaux est termine")
 
             self._logger.info(f"Importer les solutions {self._gameplay}")
@@ -88,6 +90,11 @@ class FiltrerLesSolutionsClassique:
 
             if "liste difficulte des plateaux" not in self._solutions_classees:
                 self._solutions_classees["liste difficulte des plateaux"] = {}
+
+            # TODO : Consulter toutes les solutions existantes entre 1 mois et 5 minutes de creation.
+            # Pas de collision avec la résolution et possibilité de tourner en continue
+            # Faire évoluer la date la plus ancienne en fonctione de la réalisation
+            # Plus de necessité de vérifier si un fichier a déjà été fait.
 
             # Vérifier si ce type de plateau est deja present dans le fichier
             # Le premier enregistrement est vérifié.
@@ -115,6 +122,7 @@ class FiltrerLesSolutionsClassique:
                     break
                 nb_plateaux_traites += 1
                 self._chrono.pause()
+            self._logger.info(f"Avancement : 100%")
             self._logger.info(f"Traitement {self._nom_tache} en {self._chrono} secondes")
             if deja_fait:
                 self._logger.info(f"Filtrage des solutions {self._gameplay} deja realise")
@@ -285,7 +293,8 @@ if __name__ == "__main__":
         nb_chemins_min=10,
         nom_tache=NOM_TACHE,
         fichier_journal=FICHIER_JOURNAL,
-        periode_scrutation_secondes = 1 * 60 * 60 # 1h
+        periode_scrutation_secondes = 1 * 60 * 60, # 1h
+        forcer_recherche = True
     )
     classer_solutions.chercher_en_sequence()
     #classer_solutions.afficher_enregistrer_synthese()
