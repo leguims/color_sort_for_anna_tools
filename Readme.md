@@ -174,6 +174,7 @@ Lors de l'export des solutions classées vers GODOT, associer des elements de je
 - [Double Face] Difficulté Face 1 et 2
 
 Le fichier d'export des plateaux devient directement la partition de la campagne.
+AVERTISSEMENT : Le fichier de campagne exporté n'est pas directement exploitable par le jeu GODOT.
 
 #### Taille des niveaux
 
